@@ -25,3 +25,4 @@
 - 추천 게시판은 이 기기 전용이다. 공용 게시판과 투표는 별도 서버·사용자 식별·권한 검토 후 추가한다.
 - 무료 힌트는 광고 시청 보상이 아니다. IAA 도입 시 SDK 보상 이벤트에서만 지급하도록 별도로 구현해야 한다.
 - 최초 원본 커밋의 HintModalView에서 `backChoiceBtn` 대신 아직 초기화되지 않은 `mgBackChoiceBtn`을 참조하는 오류는 생성 파일에서만 보정한다. 원본이 수정되면 해당 패턴이 없어져 보정이 자동으로 생략된다.
+- 같은 커밋의 힌트 BASEBALL/UPDOWN 분기에 필요한 해금 상태 변수도 생성 단계에서 범위를 보정한다. 디자인 변환은 `k-sool/scripts/design-transforms.mjs`에 모으고 신규 원본 화면에도 적용한다. 변경 후 `npm run audit:design`을 실행한다.

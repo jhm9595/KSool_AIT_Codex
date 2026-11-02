@@ -11,3 +11,6 @@ Original prompt: Read KSool_Gemini without changing it, follow updates periodica
 - Build passed with k-sool.ait; browser suite passed first craft, saved unlock/settings, collection, hint, 9 party mounts/back and UpDown outcome/reset. No original backend requests, missing assets or page errors.
 - Mobile screenshots inspected; corrected inherited dark text/exit contrast. Original small text/text arrows remain release design work.
 - Remaining: actual Toss device testing, content/age-rating and brand rights review, support/privacy metadata, console registration/review. Do not mark released.
+- 2026-11-03: User approved amber/gold + dark theme and all-screen improvements. Added generated typography/color transforms, native-header separation, bottom settings access, safe areas, SVG control icons, modal keyboard controls, data-locality notice and layout corrections.
+- Added 45 screen/viewport design audit. All checks passed after keypad/selector size fixes; screenshots inspected. Additional upstream hint state-scope error fixed only in generated output.
+- CI Vite startup detection now uses HTTP readiness. Content/copy and real-device/operational release gates remain documented in docs/DESIGN-AUDIT.md.

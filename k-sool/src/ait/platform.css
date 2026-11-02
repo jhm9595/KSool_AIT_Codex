@@ -2,9 +2,75 @@
 html, body { overscroll-behavior: none; }
 body { font-family: "Tossface", -apple-system, BlinkMacSystemFont, sans-serif; word-break: keep-all; color: var(--text, #f8fafc); background: var(--bg, #0b1120); }
 #app-container { padding-top: env(safe-area-inset-top, 0px); box-sizing: border-box; }
-.tab-bar, nav { padding-bottom: max(env(safe-area-inset-bottom, 0px), 20px); }
-button { min-height: 44px; }
+.tab-bar { padding-bottom: max(env(safe-area-inset-bottom, 0px), 34px); }
+button, [role="button"], input[type="range"], .ing-card, .cat-btn { min-height: 44px; min-width: 44px; }
+button { min-height: 44px !important; min-width: 44px !important; }
 .modal-overlay { padding-bottom: max(env(safe-area-inset-bottom, 0px), 34px); }
 #ait-exit { width: 100%; border: 1px solid var(--border); border-radius: 10px; background: transparent; color: var(--text, #f8fafc); padding: 8px 12px; font-size: 15px; }
 #ait-status { position: fixed; bottom: max(100px, env(safe-area-inset-bottom)); left: 5%; width: 90%; box-sizing: border-box; padding: 16px; border-radius: 12px; background: #253249; color: white; font-size: 15px; z-index: 10000; }
 @media (max-width: 480px) { .brand-inline-sub { font-size: 12px; } }
+
+:root {
+  --primary: #d5a64a;
+  --primary-hover: #ba8629;
+  --primary-soft: rgba(213, 166, 74, .16);
+  --text-muted: #b0bbca;
+  --ait-on-primary: #211708;
+  --ait-caption: 15px;
+}
+/* Native container owns the title and close controls; settings joins app tabs. */
+#app-container > header { display: none; }
+.tab-bar > #open-settings-btn { flex: 0 0 64px; align-self: stretch; border: 0; border-left: 1px solid var(--border); border-radius: 0; background: var(--card-bg); color: var(--text); font-size: 15px; }
+.tab-btn.active, .brew-mode-tab-btn.active, .mix-btn:not(:disabled), .cat-filter-btn.active { color: var(--ait-on-primary); }
+.tab-btn, .brew-mode-tab-btn { font-size: 15px; font-weight: 700; }
+.brew-mode-tabs { flex-wrap: wrap; }
+.brew-mode-tab-btn { min-width: 130px; padding: 10px 8px; }
+.brew-quiz-card { gap: 12px; }
+.quiz-question-row { flex-wrap: wrap; }
+.quiz-question-row > * { min-width: 0; }
+.quiz-question-row > :last-child { flex: 1; }
+.view.active { min-height: 0; overflow-y: auto; overflow-x: hidden; }
+.pot-section { flex-shrink: 0; }
+.inventory-section { min-height: 160px; flex-shrink: 0; }
+.sool-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+.sool-card { min-width: 0; min-height: 180px; padding-top: 76px; }
+.sool-card .sool-num-badge { top: 8px; left: 8px; right: auto; max-width: calc(100% - 16px); }
+.sool-card .diff-badge { top: 36px; right: 8px; max-width: calc(100% - 16px); }
+.settings-reset-card { flex-wrap: wrap; gap: 16px; }
+.settings-reset-info { flex: 1 1 180px; }
+.settings-reset-card button { flex: 0 0 auto; white-space: nowrap; padding-inline: 16px; }
+.pot-slot { min-width: 0; }
+.slot-empty-text { color: var(--text-muted); }
+.cat-filter-btn.active, .cat-btn.active { color: var(--ait-on-primary); }
+.cat-chip.active { color: var(--ait-on-primary); }
+.collection-top-row { flex-direction: column; align-items: stretch; }
+#recipe-cat-bar { flex-wrap: nowrap; overflow-x: auto; width: 100%; padding-bottom: 4px; }
+#recipe-cat-bar > * { flex-shrink: 0; }
+.collection-progress-pill { align-self: flex-end; }
+.hint-back-choice-btn, .bb-help-btn { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); border-radius: 10px; }
+.modal-card { max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 64px); overscroll-behavior: contain; }
+.modal-close-x, .modal-close-btn { width: 44px; height: 44px; flex-shrink: 0; }
+.modal-header { align-items: center; }
+.modal-card p, .craft-result-desc, .settings-reset-desc { font-size: 15px; line-height: 1.6; }
+.ait-icon { display: inline-block; width: 20px; height: 20px; vertical-align: middle; flex-shrink: 0; }
+.ait-icon-only { display: inline-flex; align-items: center; justify-content: center; }
+/* App game controls live below play, rather than imitating a second top bar. */
+.party-game-top-bar { order: 2; height: auto; min-height: 60px; padding: 8px 12px; border: 0; gap: 12px; }
+.party-game-top-bar .party-topbar-spacer { display: none; }
+.party-back-btn { min-width: 104px; }
+.party-active-game-pill { border: 0 !important; background: transparent; min-width: 0; }
+.party-game-stage { min-height: 0; }
+.party-stage-updown { overflow-y: auto !important; }
+.updown-box.tabletop-symmetrical { min-height: 820px; overflow: visible; }
+.party-numpad-grid { grid-auto-rows: minmax(44px, auto); flex-shrink: 0; }
+.party-numpad-grid .party-num-key { height: 44px !important; }
+#view-party.active.party-fullscreen-mode { padding-top: env(safe-area-inset-top, 0px) !important; padding-bottom: max(env(safe-area-inset-bottom, 0px), 34px) !important; }
+.party-fullscreen-wrapper { min-height: 0; }
+#ait-data-note { margin: 0; color: var(--text-muted); font-size: 15px; line-height: 1.6; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+@media (max-height: 650px) {
+  .pot-section { padding: 8px 12px; }
+  .pot-slots-grid { gap: 6px; }
+}

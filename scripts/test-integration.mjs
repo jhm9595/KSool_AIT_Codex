@@ -28,11 +28,13 @@ const port = 4175;
 const server = spawn(process.execPath, [join(root, 'k-sool/node_modules/vite/bin/vite.js'), '--host', '127.0.0.1', '--port', String(port), '--strictPort'], { cwd: join(root, 'k-sool'), stdio: 'pipe' });
 let browser;
 try {
-  await new Promise((resolveReady, reject) => {
-    const timer = setTimeout(() => reject(new Error('Vite startup timed out')), 15000);
-    server.stdout.on('data', data => { if (data.toString().includes('Local:')) { clearTimeout(timer); resolveReady(); } });
-    server.once('exit', code => { clearTimeout(timer); reject(new Error(`Vite exited ${code}`)); });
-  });
+  let ready = false;
+  for (let attempt = 0; attempt < 100; attempt++) {
+    if (server.exitCode !== null) throw new Error(`Vite exited ${server.exitCode}`);
+    try { const response = await fetch(`http://127.0.0.1:${port}`); if (response.ok) { ready = true; break; } } catch { /* Starting. */ }
+    await new Promise(resolveWait => setTimeout(resolveWait, 300));
+  }
+  assert(ready, 'Vite startup timed out');
   browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await context.newPage();

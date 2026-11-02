@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "audit:design": "node scripts/audit-design.mjs",
     "dev": "npm --prefix k-sool run dev",
     "build": "npm --prefix k-sool run build",
     "test": "node scripts/test-integration.mjs",

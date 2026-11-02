@@ -1,5 +1,6 @@
 import { cpSync, readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync } from 'node:fs';
 import { resolve, join } from 'node:path';
+import { adaptDesign } from './design-transforms.mjs';
 
 const app = resolve(import.meta.dirname, '..');
 const source = resolve(app, '../vendor/KSool_Gemini');
@@ -40,11 +41,12 @@ function transform(dir) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const file = join(dir, entry.name);
     if (entry.isDirectory()) transform(file);
-    else if (file.endsWith('.js')) {
+    else if (/\.(js|css)$/.test(file)) {
       let text = readFileSync(file, 'utf8');
       text = text.replaceAll('./assets/', '/game/assets/').replaceAll('./data/', '/game/data/');
       text = text.replaceAll('광고 시청', '무료 힌트').replaceAll('광고를 시청', '힌트를 확인').replaceAll('광고 보고', '무료로').replaceAll('광고 보기', '힌트 보기');
       text = text.replaceAll('<span class="ad-tag">AD</span>', '<span class="ad-tag">무료</span>').replaceAll('은박 복권 긁기(AD)', '무료 은박 복권 긁기');
+      if (file.endsWith('.css') || file.includes(`${join('js', 'ui')}`) || file.endsWith('app.js')) text = adaptDesign(text);
       writeFileSync(file, text);
     }
   }
@@ -58,8 +60,12 @@ const hint = readFileSync(hintPath, 'utf8');
 writeFileSync(hintPath, hint.replace(
   /(const backChoiceBtn = container\.querySelector\('#hint-back-choice-btn'\);\s*)if \(mgBackChoiceBtn\) \{\s*mgBackChoiceBtn\.onclick/,
   '$1if (backChoiceBtn) {\n      backChoiceBtn.onclick',
+).replace(
+  /(const isImageUnlocked = this\.inventory\.isRecipeImageUnlocked\(this\.activeRecipeId\);\s*)(const resolvedName)/,
+  '$1const isDescUnlocked = this.inventory.isRecipeDescUnlocked(this.activeRecipeId);\n    const isRecipeUnlocked = this.inventory.isRecipeUnlocked(this.activeRecipeId);\n    $2',
 ));
 let html = readFileSync(join(source, 'index.html'), 'utf8');
+html = adaptDesign(html);
 html = html.replaceAll('./src/', '/game/src/').replaceAll('./assets/', '/game/assets/');
 html = html.replace(/<title>.*?<\/title>/, '<title>K-Sool</title>');
 html = html.replace(/^.*<meta property="og:(?:image|url)".*\r?\n/gm, '');

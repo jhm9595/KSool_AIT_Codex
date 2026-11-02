@@ -19,8 +19,9 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run build
       - run: npm test
+      - run: npm run audit:design
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: browser-test-results
-          path: test-results/integration
+          path: test-results
