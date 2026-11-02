@@ -1,0 +1,56 @@
+[
+  {
+    "hint_id": 1,
+    "recipe_id": 5,
+    "platform": "YOUTUBE",
+    "title": "📺 물과 불의 연금술! 전통 증류식 소주가 탄생하는 과정 (00:45)",
+    "teaser": "소주의 가장 기초가 되는 두 가지 자연 원소 힌트 영상",
+    "url": "https://www.youtube.com/results?search_query=%EC%86%8C%EC%A3%BC+%EC%A6%9D%EB%A5%98+%EC%9B%90%EB%A6%AC",
+    "start_time_sec": 45
+  },
+  {
+    "hint_id": 2,
+    "recipe_id": 25,
+    "platform": "BLOG",
+    "title": "📝 [주모의 발효 일기] 보리(맥)와 물, 바람으로 빚는 전통 누룩 비법",
+    "teaser": "막걸리의 심장인 누룩을 띄우기 위해 필요한 세 가지 기초 재료 글",
+    "url": "https://section.blog.naver.com/",
+    "start_time_sec": 0
+  },
+  {
+    "hint_id": 3,
+    "recipe_id": 2,
+    "platform": "YOUTUBE",
+    "title": "📺 소주에서 진짜 꿀맛이?! 전설의 꿀주 제조 방송 장면 (01:20)",
+    "teaser": "잔 바닥에 맥주를 아주 살짝만 깔아주는 황금비율 클립",
+    "url": "https://www.youtube.com/results?search_query=%EA%BF%80%EC%A3%BC+%EB%B9%84%EC%9C%A8",
+    "start_time_sec": 80
+  },
+  {
+    "hint_id": 4,
+    "recipe_id": 7,
+    "platform": "YOUTUBE",
+    "title": "📺 예능 화제의 만능열쇠 홍차 하이볼 제조 명장면 (02:25)",
+    "teaser": "진한 홍차와 소주, 얼음이 어우러지는 마법의 비율 공개",
+    "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    "start_time_sec": 145
+  },
+  {
+    "hint_id": 5,
+    "recipe_id": 31,
+    "platform": "BLOG",
+    "title": "📝 [주모의 비밀 수첩] 회식자리 인싸가 되는 황금소맥 과학적 탐구",
+    "teaser": "왜 3:7일 때 가장 목넘김이 부드러울까? 블로그 수수께끼 보러가기",
+    "url": "https://section.blog.naver.com/",
+    "start_time_sec": 0
+  },
+  {
+    "hint_id": 6,
+    "recipe_id": 55,
+    "platform": "BLOG",
+    "title": "📝 [팔도 유람기] 임금님 수라상에 올랐던 경기도 그 고장의 쌀 이야기",
+    "teaser": "팔도 지도에서 어디를 찍어야 할지 모르겠다면 이 글을 읽어보세요!",
+    "url": "https://section.blog.naver.com/",
+    "start_time_sec": 0
+  }
+]

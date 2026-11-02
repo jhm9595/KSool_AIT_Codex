@@ -1,0 +1,137 @@
+import assert from 'node:assert/strict';
+import { chromium } from 'playwright';
+import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { join, resolve } from 'node:path';
+import { createHash } from 'node:crypto';
+import { spawn } from 'node:child_process';
+
+const root = resolve(import.meta.dirname, '..');
+const artifacts = join(root, 'test-results/integration');
+mkdirSync(artifacts, { recursive: true });
+const manifest = JSON.parse(readFileSync(join(root, 'upstream.json'), 'utf8'));
+for (const [file, expected] of Object.entries(manifest.files)) {
+  assert.equal(createHash('sha256').update(readFileSync(join(root, 'vendor/KSool_Gemini', file))).digest('hex'), expected, `Upstream modified: ${file}`);
+}
+function checkBundle(dir) {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) checkBundle(path);
+    else if (/\.(js|html)$/.test(path)) {
+      const text = readFileSync(path, 'utf8');
+      assert(!text.includes('jyjxvwxlwkoedxwkkysj.supabase.co'), `Source backend leaked into ${path}`);
+      assert(!/eyJ[a-zA-Z0-9_-]+\.eyJ[a-zA-Z0-9_-]+\./.test(text), `Embedded token in ${path}`);
+    }
+  }
+}
+checkBundle(join(root, 'k-sool/dist'));
+const port = 4175;
+const server = spawn(process.execPath, [join(root, 'k-sool/node_modules/vite/bin/vite.js'), '--host', '127.0.0.1', '--port', String(port), '--strictPort'], { cwd: join(root, 'k-sool'), stdio: 'pipe' });
+let browser;
+try {
+  await new Promise((resolveReady, reject) => {
+    const timer = setTimeout(() => reject(new Error('Vite startup timed out')), 15000);
+    server.stdout.on('data', data => { if (data.toString().includes('Local:')) { clearTimeout(timer); resolveReady(); } });
+    server.once('exit', code => { clearTimeout(timer); reject(new Error(`Vite exited ${code}`)); });
+  });
+  browser = await chromium.launch({ headless: true });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const page = await context.newPage();
+  const errors = [], requests = [], missing = [];
+  page.on('pageerror', error => errors.push(error.message));
+  page.on('request', req => requests.push(req.url()));
+  page.on('response', res => { if (res.status() === 404) missing.push(res.url()); });
+  page.on('dialog', dialog => dialog.dismiss());
+  await page.goto(`http://127.0.0.1:${port}`);
+  await page.waitForFunction(() => window.ksoolApp?.recipeBook.recipes.size > 0);
+  assert.equal(await page.title(), 'K-Sool');
+  assert.equal(await page.locator('.brand h1').innerText(), 'K-Sool');
+  assert.equal(await page.locator('#mix-btn').isDisabled(), true);
+  await page.screenshot({ path: join(artifacts, '01-mobile-start.png') });
+
+  // Actual input -> first recipe -> persistent unlock, using visible controls.
+  await page.locator('[data-base-ing-id="202"]').click();
+  await page.locator('[data-base-ing-id="203"]').click();
+  assert.equal(await page.locator('#mix-btn').isEnabled(), true);
+  await page.locator('#mix-btn').click();
+  await page.waitForFunction(() => window.ksoolApp.inventory.isRecipeUnlocked(5));
+  await page.locator('#result-close-btn').waitFor();
+  await page.waitForTimeout(600);
+  await page.screenshot({ path: join(artifacts, '02-first-recipe.png') });
+  await page.locator('#result-close-btn').click();
+  await page.reload();
+  await page.waitForFunction(() => window.ksoolApp?.inventory.isRecipeUnlocked(5));
+
+  await page.locator('#open-settings-btn').click();
+  await page.locator('#settings-sound-mute-btn').click();
+  const muted = await page.evaluate(() => window.ksoolApp.audio.isMutedState());
+  await page.locator('#ait-exit').waitFor();
+  await page.screenshot({ path: join(artifacts, '03-settings.png') });
+  await page.evaluate(() => window.__ksoolPlatform.back());
+  assert.equal(await page.locator('#settings-modal').evaluate(el => el.classList.contains('active')), false);
+  await page.reload();
+  await page.waitForFunction(() => window.ksoolApp?.recipeBook.recipes.size > 0);
+  assert.equal(await page.evaluate(() => window.ksoolApp.audio.isMutedState()), muted);
+
+  // Make one failed combination to unlock the collection through normal rules.
+  await page.locator('[data-base-ing-id="205"]').click();
+  await page.locator('[data-base-ing-id="206"]').click();
+  await page.locator('#mix-btn').click();
+  await page.locator('#result-close-btn').waitFor();
+  await page.locator('#result-close-btn').click();
+  await page.evaluate(() => {
+    document.querySelectorAll('.modal-overlay.active').forEach(el => el.classList.remove('active'));
+    window.ksoolApp.switchTab('collection');
+  });
+  assert.equal(await page.evaluate(() => window.ksoolApp.currentTab), 'collection');
+  assert((await page.locator('#sool-grid').innerHTML()).length > 100);
+  await page.screenshot({ path: join(artifacts, '04-collection.png') });
+  // Hint entry renders the actual source UI; free service supports callback users.
+  await page.evaluate(() => window.ksoolApp.hintModalView.open(6));
+  await page.locator('#hint-modal.active').waitFor();
+  await page.waitForTimeout(600);
+  assert.equal(await page.locator('#hint-modal .ad-tag').innerText(), '무료');
+  await page.screenshot({ path: join(artifacts, '05-hint.png') });
+  await page.evaluate(() => window.__ksoolPlatform.back());
+  await page.evaluate(() => window.__ksoolPlatform.back());
+
+  // Native back ordering: game -> lobby -> brew. Every available party game mounts.
+  await page.locator('[data-tab-target="party"]').click();
+  const games = await page.evaluate(() => window.ksoolApp.partyGameHubView.gamesList.map(game => game.key));
+  for (const key of games) {
+    await page.evaluate(key => window.ksoolApp.partyGameHubView.playGame(key), key);
+    await page.waitForTimeout(120);
+    assert.equal(await page.evaluate(() => window.ksoolApp.partyGameHubView.activeGameKey), key);
+    assert((await page.locator('#party-game-stage').innerHTML()).length > 50, `Empty ${key}`);
+    if (key === 'updown') {
+      await page.evaluate(() => { window.ksoolApp.partyGameHubView.games.updown.secretNumber = 25; });
+      await page.locator('[data-digit="2"]').last().click();
+      await page.locator('[data-digit="5"]').last().click();
+      await page.locator('.btn-updown-submit').last().click();
+      assert.equal(await page.evaluate(() => window.ksoolApp.partyGameHubView.games.updown.isFinished), true);
+      await page.waitForTimeout(550);
+      await page.locator('#party-penalty-overlay').click();
+      assert.equal(await page.evaluate(() => window.ksoolApp.partyGameHubView.games.updown.isFinished), false);
+    }
+    await page.screenshot({ path: join(artifacts, `party-${key}.png`) });
+    await page.evaluate(() => window.__ksoolPlatform.back());
+    await page.waitForFunction(() => window.ksoolApp.partyGameHubView.mode === 'lobby');
+  }
+  await page.evaluate(() => window.__ksoolPlatform.back());
+  assert.equal(await page.evaluate(() => window.ksoolApp.currentTab), 'brew');
+
+  // Free hint callback must work; no source production backend may be contacted.
+  assert.equal(await page.evaluate(async () => {
+    let granted = 0;
+    const result = await window.KSool.AdService.showRewardedAd({ onRewarded: () => granted++ });
+    return granted === 1 && result.mode === 'free_hint' && result.success && !result.simulated;
+  }), true);
+  assert(!requests.some(url => url.includes('supabase.co')), 'Source backend request detected');
+  assert.deepEqual(missing, [], 'Missing local assets');
+  assert.deepEqual(errors, [], 'Uncaught game errors');
+  writeFileSync(join(artifacts, 'state.json'), await page.evaluate(() => window.render_game_to_text()));
+  writeFileSync(join(artifacts, 'report.json'), JSON.stringify({ sourceFilesVerified: Object.keys(manifest.files).length, partyGames: games, firstRecipe: 'passed', reloadPersistence: 'passed', settings: 'passed', nativeBack: 'passed', sourceBackendRequests: 0, errors, missing }, null, 2));
+  console.log(`PASS: snapshot, bundle isolation, first recipe, persistence, settings, ${games.length} party games, back navigation, free hints.`);
+} finally {
+  await browser?.close();
+  server.kill();
+}

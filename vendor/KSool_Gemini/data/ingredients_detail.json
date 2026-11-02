@@ -1,0 +1,220 @@
+[
+  {
+    "detail_id": 50201,
+    "base_ingredient_id": 502,
+    "display_name": "이천 임금님쌀",
+    "real_name": "이천쌀",
+    "is_licensed": false,
+    "emoji": "👑",
+    "required_user_level": 1,
+    "description": "예로부터 임금님 수라상에 진상되던 기름지고 찰진 경기 이천 명품 쌀",
+    "ui_meta": {
+      "region_code": "GG",
+      "region_label": "경기 이천",
+      "pin_x": 38,
+      "pin_y": 30,
+      "badge": "수라상 진상미"
+    }
+  },
+  {
+    "detail_id": 50202,
+    "base_ingredient_id": 502,
+    "display_name": "철원 두루미쌀",
+    "real_name": "철원 오대쌀",
+    "is_licensed": false,
+    "emoji": "🦢",
+    "required_user_level": 1,
+    "description": "청정 철원 평야의 화산 현무암 토양과 맑은 물로 자라난 단단한 고원 쌀",
+    "ui_meta": {
+      "region_code": "GW",
+      "region_label": "강원 철원",
+      "pin_x": 48,
+      "pin_y": 16,
+      "badge": "청정 현무암토"
+    }
+  },
+  {
+    "detail_id": 50203,
+    "base_ingredient_id": 502,
+    "display_name": "김제 황금지평선쌀",
+    "real_name": "김제 지평선쌀",
+    "is_licensed": false,
+    "emoji": "🌾",
+    "required_user_level": 2,
+    "description": "하늘과 땅이 만나는 호남평야의 풍부한 일조량을 머금은 곡창지대 대표 쌀",
+    "ui_meta": {
+      "region_code": "JB",
+      "region_label": "전북 김제",
+      "pin_x": 32,
+      "pin_y": 62,
+      "badge": "호남평야 일품"
+    }
+  },
+  {
+    "detail_id": 50204,
+    "base_ingredient_id": 502,
+    "display_name": "해남 땅끝해풍쌀",
+    "real_name": "해남 한눈에반한쌀",
+    "is_licensed": false,
+    "emoji": "🌊",
+    "required_user_level": 2,
+    "description": "따뜻한 남해 바닷바람을 맞고 자라 감칠맛과 단맛이 뛰어난 남도 명미",
+    "ui_meta": {
+      "region_code": "JN",
+      "region_label": "전남 해남",
+      "pin_x": 28,
+      "pin_y": 82,
+      "badge": "해풍 간척미"
+    }
+  },
+  {
+    "detail_id": 50205,
+    "base_ingredient_id": 502,
+    "display_name": "상주 낙동강삼백쌀",
+    "real_name": "상주 삼백쌀",
+    "is_licensed": false,
+    "emoji": "🏞️",
+    "required_user_level": 3,
+    "description": "낙동강 상류의 비옥한 충적평야에서 재배되어 술 빚기에 최적인 경북 명미",
+    "ui_meta": {
+      "region_code": "GB",
+      "region_label": "경북 상주",
+      "pin_x": 60,
+      "pin_y": 50,
+      "badge": "삼백의 고장"
+    }
+  },
+  {
+    "detail_id": 10101,
+    "base_ingredient_id": 101,
+    "display_name": "참방울 후레쉬",
+    "real_name": "참이슬 후레쉬",
+    "is_licensed": false,
+    "emoji": "🍶",
+    "required_user_level": 1,
+    "description": "대나무 숯으로 정제해 깔끔한 목넘김을 자랑하는 국민 초록병 소주",
+    "ui_meta": {
+      "bottle_color": "#16a34a",
+      "cap_color": "#22c55e",
+      "abv": 16.5,
+      "taste_tag": "깔끔 정석",
+      "shelf_row": 1
+    }
+  },
+  {
+    "detail_id": 10102,
+    "base_ingredient_id": 101,
+    "display_name": "두꺼비 이즈백",
+    "real_name": "진로 이즈백",
+    "is_licensed": false,
+    "emoji": "🐸",
+    "required_user_level": 1,
+    "description": "투명한 하늘색 병과 부드러운 저도수로 뉴트로 열풍을 일으킨 소주",
+    "ui_meta": {
+      "bottle_color": "#38bdf8",
+      "cap_color": "#0284c7",
+      "abv": 16.0,
+      "taste_tag": "초깔끔 뉴트로",
+      "shelf_row": 1
+    }
+  },
+  {
+    "detail_id": 10103,
+    "base_ingredient_id": 101,
+    "display_name": "처음부터 부드럽게",
+    "real_name": "처음처럼",
+    "is_licensed": false,
+    "emoji": "🌿",
+    "required_user_level": 2,
+    "description": "대관령 기슭 암반수로 만들어 흔들수록 부드러워지는 알칼리환원 소주",
+    "ui_meta": {
+      "bottle_color": "#15803d",
+      "cap_color": "#f8fafc",
+      "abv": 16.5,
+      "taste_tag": "부드러운 목넘김",
+      "shelf_row": 1
+    }
+  },
+  {
+    "detail_id": 10104,
+    "base_ingredient_id": 101,
+    "display_name": "부산 파도소주",
+    "real_name": "대선 소주",
+    "is_licensed": false,
+    "emoji": "🌊",
+    "required_user_level": 2,
+    "description": "원적외선 숙성 공법으로 부산·경남 술자리를 평정한 시원한 지역 대표 소주",
+    "ui_meta": {
+      "bottle_color": "#22c55e",
+      "cap_color": "#2563eb",
+      "abv": 16.5,
+      "taste_tag": "부산의 자존심",
+      "shelf_row": 2
+    }
+  },
+  {
+    "detail_id": 10105,
+    "base_ingredient_id": 101,
+    "display_name": "제주 화산암반 21",
+    "real_name": "한라산 21",
+    "is_licensed": false,
+    "emoji": "🌋",
+    "required_user_level": 3,
+    "description": "투명한 병에 담긴 21도 고도수의 짜릿함! 제주 화산암반수로 빚은 독주",
+    "ui_meta": {
+      "bottle_color": "#e2e8f0",
+      "cap_color": "#1d4ed8",
+      "abv": 21.0,
+      "taste_tag": "21도 화산암반",
+      "shelf_row": 2
+    }
+  },
+  {
+    "detail_id": 10201,
+    "base_ingredient_id": 102,
+    "display_name": "카아스 프레시",
+    "real_name": "카스 프레시",
+    "is_licensed": false,
+    "emoji": "🍺",
+    "required_user_level": 1,
+    "description": "콜드브루 공법으로 톡 쏘는 탄산감을 극대화한 소맥용 베스트셀러 라거",
+    "ui_meta": {
+      "can_color": "#1d4ed8",
+      "accent_color": "#93c5fd",
+      "abv": 4.5,
+      "taste_tag": "짜릿한 탄산"
+    }
+  },
+  {
+    "detail_id": 10202,
+    "base_ingredient_id": 102,
+    "display_name": "청정라거 테라피",
+    "real_name": "테라",
+    "is_licensed": false,
+    "emoji": "🌪️",
+    "required_user_level": 2,
+    "description": "청정맥아 100%와 리얼 탄산이 만들어내는 조밀한 거품의 초록병 맥주",
+    "ui_meta": {
+      "can_color": "#15803d",
+      "accent_color": "#fde047",
+      "abv": 4.6,
+      "taste_tag": "청정맥아 100%"
+    }
+  },
+  {
+    "detail_id": 10203,
+    "base_ingredient_id": 102,
+    "display_name": "더블숙성 켈리포니아",
+    "real_name": "켈리",
+    "is_licensed": false,
+    "emoji": "琥",
+    "required_user_level": 2,
+    "description": "해풍 맞은 북유럽 맥아를 두 번 숙성해 부드럽고 강렬한 앰버 컬러 라거",
+    "ui_meta": {
+      "can_color": "#d97706",
+      "accent_color": "#fef08a",
+      "abv": 4.5,
+      "taste_tag": "더블 숙성 라거"
+    }
+  }
+]

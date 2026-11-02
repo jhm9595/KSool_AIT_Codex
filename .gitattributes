@@ -1,0 +1,3 @@
+* text=auto eol=lf
+# Immutable snapshot hashes must survive checkout on Windows and Linux.
+vendor/** -text

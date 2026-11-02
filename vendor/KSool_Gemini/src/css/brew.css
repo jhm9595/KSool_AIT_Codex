@@ -1,0 +1,1139 @@
+/* 주조실 (Crafting View) */
+.pot-section {
+  padding: 12px 16px;
+  background: linear-gradient(180deg, #162032 0%, #0f172a 100%);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.pot-status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.76rem;
+  color: #cbd5e1;
+  font-weight: 700;
+}
+
+.total-count-pill {
+  background: #1e293b;
+  border: 1px solid #475569;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+}
+
+.total-count-pill.full {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: #f59e0b;
+  color: #fcd34d;
+}
+
+/* 단계별 넘버링 퀴즈 & 자유 주조 컨트롤 바 */
+.brew-step-quiz-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.brew-mode-tabs {
+  display: flex;
+  width: 100%;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 11px;
+  padding: 3px;
+  gap: 4px;
+}
+
+.brew-mode-tab-btn {
+  flex: 1;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.brew-mode-tab-btn.active {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+}
+
+.brew-quiz-card {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid #3b82f6;
+  border-radius: 14px;
+  padding: 11px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.45);
+}
+
+.quiz-question-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.quiz-icon-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  width: 44px;
+}
+
+.quiz-mystery-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.quiz-mystery-icon.is-locked {
+  cursor: default;
+  border: 1px dashed #475569;
+}
+
+.quiz-mystery-icon.is-locked.is-clickable {
+  cursor: pointer;
+}
+
+.quiz-mystery-icon.is-locked.is-clickable:hover {
+  border-color: #38bdf8;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
+  transform: scale(1.05);
+}
+
+.quiz-mystery-icon.is-unlocked {
+  cursor: default;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.quiz-mystery-icon.is-unlocked:hover {
+  border-color: rgba(148, 163, 184, 0.25);
+  box-shadow: none;
+  transform: none;
+}
+
+.quiz-question-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.quiz-header-inline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.quiz-title-group {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  flex: 1;
+}
+
+.quiz-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.quiz-ratio-count-badge {
+  font-size: 0.72rem;
+  font-weight: 900;
+  color: #fde047;
+  background: rgba(245, 158, 11, 0.18);
+  border: 1px solid #f59e0b;
+  padding: 2px 7px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.quiz-nav-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid #475569;
+  background: #1e293b;
+  color: #e2e8f0;
+  font-size: 0.66rem;
+  font-weight: 900;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.quiz-nav-btn:hover:not(:disabled) {
+  border-color: #60a5fa;
+  background: #172554;
+}
+
+.quiz-nav-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.quiz-num-badge {
+  font-size: 0.82rem;
+  font-weight: 900;
+  color: #60a5fa;
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+}
+
+.quiz-num-total {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+.quiz-target-title {
+  font-size: 0.86rem;
+  font-weight: 900;
+  color: #f8fafc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.quiz-infer-btn {
+  width: 44px;
+  padding: 3px 0;
+  border-radius: 6px;
+  border: 1px solid rgba(56, 189, 248, 0.55);
+  background: rgba(56, 189, 248, 0.18);
+  color: #7dd3fc;
+  font-size: 0.68rem;
+  font-weight: 800;
+  cursor: pointer;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+  line-height: 1.2;
+}
+
+.quiz-infer-btn:hover {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #7dd3fc;
+}
+
+.quiz-infer-btn:active {
+  transform: scale(0.95);
+}
+
+.quiz-desc-text {
+  font-size: 0.73rem;
+  color: #cbd5e1;
+  line-height: 1.44;
+  min-height: 38px;
+  margin-top: 7px;
+}
+
+/* 동적 슬롯 컨테이너 (초안 4슬롯, 제한 없이 확장 가능) */
+.pot-slots-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  min-height: 76px;
+  padding: 8px;
+  background: rgba(15, 23, 42, 0.75);
+  border: 2px dashed #334155;
+  border-radius: 16px;
+  transition: all 0.2s ease;
+}
+
+.pot-slots-grid.has-items {
+  border-color: var(--primary);
+  background: rgba(30, 41, 59, 0.65);
+}
+
+.pot-slot {
+  width: calc(25% - 6px);
+  min-width: 72px;
+  height: 68px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+  padding: 4px;
+}
+
+.pot-slot.empty {
+  background: rgba(30, 41, 59, 0.35);
+  border-style: dashed;
+  color: #475569;
+  cursor: default;
+}
+
+.pot-slot.filled {
+  border-color: #60a5fa;
+  background: linear-gradient(145deg, #1e293b, #172554);
+}
+
+.pot-slot.filled:active {
+  transform: scale(0.95);
+}
+
+.slot-emoji {
+  font-size: 1.45rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slot-name {
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin-top: 4px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.slot-detail-tag {
+  position: absolute;
+  top: 3px;
+  left: 4px;
+  font-size: 0.54rem;
+  background: rgba(245, 158, 11, 0.25);
+  color: #fde047;
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-weight: 800;
+}
+
+/* 우측 상단 모서리 플로팅 숫자 배지 (네모박스 내부 글자와 절대 겹치지 않도록 모서리 외곽 배치) */
+.slot-count-badge {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  z-index: 3;
+  min-width: 21px;
+  height: 21px;
+  padding: 0 5px;
+  background: #f59e0b;
+  color: #0f172a;
+  font-size: 0.72rem;
+  font-weight: 900;
+  border-radius: 999px;
+  border: 2px solid #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.55);
+}
+
+.ing-card .slot-count-badge {
+  top: -6px;
+  left: -6px;
+  right: auto;
+}
+
+.pot-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.mix-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #fff;
+  font-size: 0.92rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+  transition: opacity 0.2s;
+}
+
+.mix-btn:disabled {
+  background: #334155;
+  color: #64748b;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.mix-btn.already-crafted-alert {
+  background: linear-gradient(135deg, #b45309, #d97706);
+  color: #fffbeb;
+  border: 1px solid #f59e0b;
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.5);
+  animation: mixBtnAlertPulse 0.35s ease-in-out;
+}
+
+@keyframes mixBtnAlertPulse {
+  0% { transform: scale(1); }
+  35% { transform: scale(0.95); }
+  75% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+/* 기 주조 레시피 실시간 감지 알림 바 */
+.pot-match-notice {
+  min-height: 0;
+  transition: all 0.2s ease;
+}
+
+.pot-match-notice:empty {
+  display: none;
+}
+
+.pot-already-notice {
+  background: rgba(30, 41, 59, 0.85);
+  border: 1px solid #475569;
+  border-radius: 10px;
+  padding: 7px 12px;
+  font-size: 0.76rem;
+  color: #cbd5e1;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  animation: popIn 0.15s ease-out;
+}
+
+.pot-already-notice b {
+  color: #fde047;
+}
+
+/* 결과 모달 상단 정보 카드 (좌: 그림+명칭, 우: 설명) */
+.craft-result-info-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 12px 14px;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.craft-result-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 96px;
+  text-align: center;
+}
+
+.craft-result-emoji {
+  font-size: 2.8rem;
+  line-height: 1.1;
+}
+
+.craft-result-name {
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #f8fafc;
+  margin-top: 4px;
+  word-break: keep-all;
+  line-height: 1.25;
+}
+
+.craft-result-desc {
+  flex: 1;
+  font-size: 0.8rem;
+  color: #cbd5e1;
+  line-height: 1.55;
+  border-left: 1px solid #334155;
+  padding-left: 12px;
+}
+
+/* 통합 재료 해금/추가 카드 */
+.craft-unified-unlock-card {
+  width: 100%;
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid #475569;
+  border-radius: 14px;
+  padding: 11px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.craft-stepup-header {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(168, 85, 247, 0.2));
+  border: 1px solid rgba(245, 158, 11, 0.55);
+  border-radius: 10px;
+  padding: 9px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+}
+
+.craft-stepup-title {
+  font-size: 0.82rem;
+  font-weight: 900;
+  color: #fde047;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.craft-stepup-sub {
+  font-size: 0.73rem;
+  color: #f8fafc;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.craft-unlock-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.craft-unlock-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.craft-badge-chain {
+  font-size: 0.72rem;
+  font-weight: 900;
+  color: #6ee7b7;
+  background: rgba(16, 185, 129, 0.18);
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  padding: 2px 8px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.craft-badge-leaf {
+  font-size: 0.72rem;
+  font-weight: 900;
+  color: #fde047;
+  background: rgba(245, 158, 11, 0.18);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  padding: 2px 8px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.craft-unlock-items-box {
+  background: rgba(15, 23, 42, 0.7);
+  border-radius: 9px;
+  padding: 7px 9px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.craft-unlock-items-box.chain-box {
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.craft-unlock-items-box.leaf-box {
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.craft-unlock-chip-chain {
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  cursor: default;
+  pointer-events: none;
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.22);
+  color: #ecfdf5;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.craft-unlock-chip-leaf {
+  font-size: 0.72rem;
+  padding: 4px 9px;
+  cursor: default;
+  pointer-events: none;
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.2);
+  color: #fef3c7;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.clear-pot-btn {
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid #475569;
+  background: #1e293b;
+  color: #cbd5e1;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* 인벤토리 영역 */
+.inventory-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 10px 14px;
+  gap: 8px;
+}
+
+.cat-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.cat-chip {
+  padding: 6px 11px;
+  border-radius: 999px;
+  border: 1px solid #334155;
+  background: #1e293b;
+  color: #cbd5e1;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.cat-chip.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.ingredients-grid {
+  flex: 1;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  align-content: start;
+  padding: 6px 4px 16px 6px;
+}
+
+.ing-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 6px 9px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.15s ease;
+}
+
+.ing-card.has-picker {
+  padding-top: 20px;
+}
+
+.ing-card:hover {
+  background: var(--card-hover);
+  border-color: #64748b;
+}
+
+.ing-card:active {
+  transform: scale(0.95);
+}
+
+.ing-card.in-pot {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.12);
+}
+
+.ing-card.locked-ing {
+  opacity: 0.42;
+  border-style: dashed;
+}
+
+.ing-card.has-picker {
+  border-color: rgba(56, 189, 248, 0.6);
+}
+
+.ing-picker-btn {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  z-index: 2;
+  font-size: 0.58rem;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.3), rgba(56, 189, 248, 0.35));
+  color: #fde047;
+  border: 1px solid #f59e0b;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.25);
+  transition: all 0.15s ease;
+}
+
+.ing-picker-btn:hover {
+  background: linear-gradient(135deg, #f59e0b, #0284c7);
+  color: #ffffff;
+  border-color: #fde047;
+  transform: scale(1.05);
+}
+
+.ing-picker-btn:active {
+  transform: scale(0.93);
+}
+
+/* 상세 재료 해금 팝업 데모 스타일 */
+.detail-guide-demo-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px dashed #38bdf8;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin: 6px 0;
+}
+
+.demo-ing-card-preview {
+  position: relative;
+  width: 78px;
+  height: 82px;
+  background: #1e293b;
+  border: 1.5px solid rgba(56, 189, 248, 0.7);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: 18px;
+  padding-bottom: 4px;
+  gap: 3px;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.demo-picker-live-btn {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  z-index: 2;
+  font-size: 0.58rem;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.35), rgba(56, 189, 248, 0.4));
+  color: #fde047;
+  border: 1px solid #f59e0b;
+  padding: 2px 5px;
+  border-radius: 6px;
+  font-weight: 900;
+  white-space: nowrap;
+  animation: pulsePickerLive 1.4s ease-in-out infinite;
+}
+
+@keyframes pulsePickerLive {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 4px rgba(245, 158, 11, 0.3);
+    border-color: #f59e0b;
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 10px rgba(253, 224, 71, 0.85), inset 0 0 5px rgba(253, 224, 71, 0.5);
+    border-color: #fde047;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.85), rgba(56, 189, 248, 0.85));
+    color: #ffffff;
+  }
+}
+
+.demo-ing-emoji {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.demo-ing-name {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  text-align: center;
+  line-height: 1;
+}
+
+.demo-callout-arrow-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+}
+
+.demo-arrow {
+  font-size: 1.5rem;
+  animation: bounceArrow 1.2s infinite;
+}
+
+@keyframes bounceArrow {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(5px); }
+}
+
+.demo-arrow-text {
+  font-size: 0.78rem;
+  color: #38bdf8;
+  line-height: 1.45;
+  font-weight: 800;
+}
+
+.ing-emoji {
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ing-name {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  text-align: center;
+  word-break: keep-all;
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.25;
+}
+
+/* 도감 뷰 */
+.collection-header {
+  padding: 10px 14px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.collection-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.collection-top-row .cat-filter-bar {
+  flex: 1;
+  padding-bottom: 0;
+}
+
+.collection-progress-pill {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.sool-grid {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 14px 20px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 9px;
+  align-content: start;
+}
+
+.sool-card {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 14px;
+  padding: 22px 6px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+  position: relative;
+  text-align: center;
+  min-height: 104px;
+  box-sizing: border-box;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.sool-card:hover {
+  transform: translateY(-2px);
+  border-color: #60a5fa;
+}
+
+.sool-card.unlocked {
+  border-color: rgba(59, 130, 246, 0.55);
+  background: linear-gradient(160deg, #1e293b 0%, #172554 100%);
+}
+
+.sool-card.challengeable {
+  border-color: rgba(245, 158, 11, 0.55);
+  background: linear-gradient(160deg, #1e293b 0%, #291d12 100%);
+}
+
+.sool-card.challengeable.image-unlocked {
+  border-color: rgba(168, 85, 247, 0.75);
+  background: linear-gradient(160deg, #1e293b 0%, #2e1065 100%);
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.22);
+}
+
+.img-unlocked-pill {
+  position: absolute;
+  top: 22px;
+  left: 5px;
+  font-size: 0.5rem;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: rgba(168, 85, 247, 0.28);
+  color: #e9d5ff;
+  border: 1px solid rgba(192, 132, 252, 0.45);
+}
+
+.sool-num-badge {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  font-size: 0.56rem;
+  font-weight: 900;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(15, 23, 42, 0.85);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+}
+
+.sool-card.level-locked {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.diff-badge {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  font-size: 0.56rem;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.diff-EASY { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
+.diff-NORMAL { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
+.diff-MASTER { background: rgba(139, 92, 246, 0.25); color: #c4b5fd; }
+
+.sool-emoji {
+  font-size: 1.7rem;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sool-name {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #f8fafc;
+  word-break: keep-all;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.sool-hint-status {
+  font-size: 0.60rem;
+  color: #fbbf24;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.3px;
+  word-break: keep-all;
+  margin-top: 1px;
+}
+
+
+
+/* 주조실 잠긴 설명 힌트 텍스트 버튼 */
+/* 주조실 잠긴 설명 힌트: 은박지(실버 스크래치 호일) 스트립 & AD 긁기 버튼 */
+.quiz-desc-scratch-strip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  max-width: 100%;
+  padding: 3px 6px 3px 9px;
+  border-radius: 7px;
+  background: linear-gradient(135deg, #334155 0%, #64748b 25%, #cbd5e1 50%, #64748b 75%, #1e293b 100%);
+  background-size: 200% 200%;
+  border: 1px dashed rgba(255, 255, 255, 0.45);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.3), 0 2px 6px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.quiz-desc-scratch-strip:hover {
+  border-color: rgba(255, 255, 255, 0.75);
+  box-shadow: inset 0 1px 3px rgba(255, 255, 255, 0.5), 0 3px 10px rgba(0, 0, 0, 0.45);
+  transform: translateY(-1px);
+}
+
+.scratch-strip-foil {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.scratch-strip-coin {
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+.scratch-strip-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #0f172a;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.65);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.3px;
+}
+
+.scratch-strip-ad-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 0.66rem;
+  font-weight: 800;
+  cursor: pointer;
+  flex-shrink: 0;
+  box-shadow: 0 2px 5px rgba(37, 99, 235, 0.4);
+  transition: all 0.15s ease;
+}
+
+.scratch-strip-ad-badge:hover {
+  background: #1d4ed8;
+  transform: scale(1.04);
+}
+
+.scratch-strip-ad-badge .ad-pill {
+  background: #facc15;
+  color: #0f172a;
+  font-size: 0.56rem;
+  font-weight: 900;
+  padding: 1px 3px;
+  border-radius: 3px;
+  line-height: 1;
+}
+
+.quiz-desc-locked {
+  width: 100%;
+  min-height: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #94a3b8;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px dashed rgba(148, 163, 184, 0.4);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  box-sizing: border-box;
+}
+
+.quiz-desc-locked:hover {
+  color: #7dd3fc;
+  border-color: #38bdf8;
+  background: rgba(14, 165, 233, 0.12);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+  transform: translateY(-1px);
+}
+
+.quiz-desc-locked:active {
+  transform: scale(0.98);
+}
+
+.quiz-desc-locked .quiz-lock-icon {
+  font-style: normal;
+  font-size: 0.95rem;
+  line-height: 1;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+}
+
+.quiz-desc-locked .quiz-lock-label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: -0.2px;
+  transition: color 0.18s ease;
+}
+
+.quiz-desc-locked:hover .quiz-lock-label {
+  color: #7dd3fc;
+}

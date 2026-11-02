@@ -1,0 +1,75 @@
+{
+  "version": "2.3.0",
+  "description": "한국의 술자리 연금술 (K-Sool Alchemy) 정규화 데이터베이스 스키마",
+  "tables": {
+    "INGREDIENT_CATEGORY": {
+      "primaryKey": "category_id",
+      "columns": ["category_id", "name", "emoji", "order"]
+    },
+    "INGREDIENT_BASE": {
+      "primaryKey": "ingredient_id",
+      "foreignKeys": { "category_id": "INGREDIENT_CATEGORY.category_id" },
+      "columns": [
+        "ingredient_id",
+        "category_id",
+        "display_name",
+        "real_name",
+        "is_licensed",
+        "emoji",
+        "picker_component",
+        "picker_config",
+        "is_starter",
+        "unlocked_by_recipe_id"
+      ]
+    },
+    "INGREDIENT_DETAIL": {
+      "primaryKey": "detail_id",
+      "foreignKeys": { "base_ingredient_id": "INGREDIENT_BASE.ingredient_id" },
+      "columns": [
+        "detail_id",
+        "base_ingredient_id",
+        "display_name",
+        "real_name",
+        "is_licensed",
+        "emoji",
+        "required_user_level",
+        "description",
+        "ui_meta"
+      ]
+    },
+    "RECIPE": {
+      "primaryKey": "recipe_id",
+      "columns": [
+        "recipe_id",
+        "display_name",
+        "real_name",
+        "is_licensed",
+        "difficulty",
+        "required_level",
+        "requires_detail_ingredient",
+        "emoji",
+        "category",
+        "unlocks_ingredient_id",
+        "description"
+      ]
+    },
+    "RECIPE_INGREDIENT": {
+      "primaryKey": "id",
+      "foreignKeys": {
+        "recipe_id": "RECIPE.recipe_id",
+        "ingredient_id": "INGREDIENT_BASE.ingredient_id",
+        "detail_ingredient_id": "INGREDIENT_DETAIL.detail_id"
+      },
+      "columns": ["id", "recipe_id", "slot_order", "ingredient_id", "detail_ingredient_id", "ratio"]
+    },
+    "RECIPE_EXTERNAL_HINT": {
+      "primaryKey": "hint_id",
+      "foreignKeys": { "recipe_id": "RECIPE.recipe_id" },
+      "columns": ["hint_id", "recipe_id", "platform", "title", "teaser", "url", "start_time_sec"]
+    },
+    "RECIPE_SUGGESTION": {
+      "primaryKey": "suggestion_key",
+      "columns": ["suggestion_key", "items", "upvotes", "downvotes", "is_applied"]
+    }
+  }
+}

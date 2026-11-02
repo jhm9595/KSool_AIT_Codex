@@ -1,0 +1,1869 @@
+/* 3대 힌트 센터 (5-1 숫자야구, 5-2 Up/Down 비율, 5-3 외부 유튜브/블로그 링크) */
+.hint-top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #334155;
+}
+
+/* 베이스볼 타겟 레시피 정보 박스 (넘버링 + 이름 + 힌트 설명) */
+.bb-target-info-card {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.bb-target-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 설명 힌트 상단 배치 영역 */
+.hint-desc-section {
+  margin-top: 6px;
+  width: 100%;
+}
+
+/* 해금된 설명 힌트 박스 */
+.hint-desc-revealed-box {
+  padding: 8px 10px;
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px dashed rgba(245, 158, 11, 0.4);
+  border-radius: 8px;
+  font-size: 0.78rem;
+  color: #f1f5f9;
+  line-height: 1.45;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.hint-desc-revealed-text {
+  flex: 1;
+  word-break: keep-all;
+}
+
+/* 미해금 은박 복권 스트립 (실버 호일 텍스처 / 메탈릭 그라데이션) */
+.hint-desc-foil-strip {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  background: linear-gradient(135deg, #64748b 0%, #94a3b8 25%, #475569 50%, #cbd5e1 75%, #64748b 100%);
+  border: 1px dashed #94a3b8;
+  border-radius: 8px;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.25), 0 2px 6px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.hint-desc-foil-strip:hover {
+  filter: brightness(1.08);
+  border-color: #cbd5e1;
+}
+
+.foil-strip-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.foil-coin {
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+.foil-placeholder {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #0f172a;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 스크래치 진행 중 활성 영역 */
+.hint-desc-scratch-active-wrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+}
+
+.hint-desc-scratch-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+}
+
+.foil-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #fbbf24;
+}
+
+.foil-guide-text {
+  font-size: 0.68rem;
+  color: #94a3b8;
+}
+
+.bb-ratio-count-badge {
+  font-size: 0.74rem;
+  font-weight: 900;
+  color: #fde047;
+  background: rgba(245, 158, 11, 0.18);
+  border: 1px solid #f59e0b;
+  padding: 2px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.bb-all-solved-card {
+  width: 100%;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(6, 78, 59, 0.25) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  border-radius: 12px;
+  padding: 12px 14px;
+  text-align: center;
+  margin: 6px 0 10px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bb-all-solved-title {
+  color: #34d399;
+  font-size: 0.88rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.bb-all-solved-desc {
+  color: #cbd5e1;
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.pill-guide {
+  background: rgba(30, 41, 59, 0.85);
+  border: 1px dashed #64748b;
+  color: #94a3b8;
+  font-size: 0.84rem;
+  font-weight: 800;
+  padding: 8px 18px;
+  border-radius: 12px;
+  display: inline-block;
+  letter-spacing: -0.2px;
+}
+
+.animate-pop {
+  animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.bb-target-num {
+  color: #60a5fa;
+  font-weight: 900;
+  font-size: 0.82rem;
+}
+
+.bb-target-name {
+  color: #fde047;
+  font-weight: 900;
+  font-size: 0.95rem;
+  word-break: keep-all;
+  line-height: 1.3;
+}
+
+.bb-target-hint {
+  font-size: 0.74rem;
+  color: #cbd5e1;
+  line-height: 1.45;
+  word-break: keep-all;
+}
+
+.bb-target-hint .hint-bulb {
+  color: #fcd34d;
+  font-weight: 800;
+  margin-right: 2px;
+}
+
+.bb-help-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid #64748b;
+  background: #0f172a;
+  color: #cbd5e1;
+  font-size: 0.74rem;
+  font-weight: 900;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.bb-help-btn:hover, .bb-help-btn.active {
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.2);
+  color: #7dd3fc;
+}
+
+.bb-help-popover {
+  background: #0f172a;
+  border: 1px solid #38bdf8;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.73rem;
+  color: #e2e8f0;
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* 우측 상단 3개의 네모 체크박스 [☑] [☑] [□] */
+.stage-checkboxes {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stage-check-box {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 2px solid #475569;
+  background: #0f172a;
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.stage-check-box.active-stage {
+  border-color: #f59e0b;
+  color: #fcd34d;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.35);
+}
+
+.stage-check-box.checked {
+  background: #10b981;
+  border-color: #10b981;
+  color: #0b1120;
+}
+
+.stage-check-box.skipped {
+  opacity: 0.3;
+  border-style: dashed;
+}
+
+.hint-section-box {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hint-section-title {
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: #f8fafc;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* 5-1 숫자야구 슬롯 및 선택기 (주조실과 동일한 UI 스타일) */
+.baseball-slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  padding: 10px 8px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px dashed #334155;
+  border-radius: 14px;
+}
+
+/* 베이스볼 단계별 소제목 바 (재료유형 추리 / 대표재료 추리 / 상세재료 추리) */
+.bb-stage-subtitle-bar {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 2px 4px;
+  margin-top: 1px;
+}
+
+.bb-stage-num-badge {
+  font-size: 0.68rem;
+  font-weight: 900;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  padding: 2px 7px;
+  border-radius: 999px;
+  letter-spacing: -0.2px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.bb-stage-subtitle-title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #f1f5f9;
+  letter-spacing: -0.2px;
+}
+
+.bb-go-brew-btn {
+  width: 100%;
+  margin-top: 2px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+}
+
+.pot-slot.bb-slot-card {
+  width: 78px;
+  min-width: 74px;
+  height: 68px;
+}
+
+.pot-slot.hint-ratio-slot {
+  width: 82px;
+  min-width: 76px;
+  height: 70px;
+  cursor: pointer;
+}
+
+.pot-slot.hint-ratio-slot.active-ratio-slot {
+  border: 2px solid #f59e0b;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.35);
+}
+
+.pot-slot.hint-ratio-slot.solved-ratio-slot {
+  border-color: #10b981;
+}
+
+.slot-count-badge.is-question {
+  background: #f59e0b;
+  color: #0b1120;
+  animation: pulseGlow 1.5s infinite;
+}
+
+.slot-count-badge.is-solved {
+  background: #10b981;
+  color: #0b1120;
+}
+
+.bb-options-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.bb-options-pool {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 6px;
+  padding: 8px;
+  background: rgba(30, 41, 59, 0.45);
+  border: 1px solid #334155;
+  border-radius: 10px;
+}
+
+/* 모든 탭 중 가장 높이가 높은 탭의 높이에 자동 고정시키는 CSS Grid 오버레이 컨테이너 */
+.bb-options-pool.bb-stacked-pool {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.bb-cat-pane {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 6px;
+}
+
+.bb-cat-pane.hidden-pane {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.bb-cat-pane.active-pane {
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.bb-option-btn {
+  padding: 5px 9px;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  background: #1e293b;
+  color: #e2e8f0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.bb-option-btn:hover {
+  border-color: #60a5fa;
+  background: #172554;
+}
+
+.bb-option-btn.picked {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.18);
+  color: #fde68a;
+}
+
+.bb-submit-icon-btn {
+  width: 52px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #fff;
+  font-size: 1.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+  transition: transform 0.15s ease, opacity 0.2s ease;
+}
+
+.bb-submit-icon-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.bb-submit-icon-btn:disabled {
+  background: #334155;
+  color: #64748b;
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.bb-history-list {
+  width: 100%;
+}
+
+.bb-history-row {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  border: 2px solid #334155;
+  padding: 12px 16px;
+  border-radius: 12px;
+}
+
+.bb-score-pills {
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  font-size: 1.25rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.pill-strike { color: #10b981; text-shadow: 0 0 10px rgba(16, 185, 129, 0.35); }
+.pill-ball { color: #f59e0b; text-shadow: 0 0 10px rgba(245, 158, 11, 0.35); }
+.pill-out { color: #ef4444; text-shadow: 0 0 10px rgba(239, 68, 68, 0.35); }
+
+.pill-up { color: #f59e0b; text-shadow: 0 0 10px rgba(245, 158, 11, 0.35); }
+.pill-down { color: #38bdf8; text-shadow: 0 0 10px rgba(56, 189, 248, 0.35); }
+.pill-correct {
+  color: #10b981;
+  text-shadow: 0 0 12px rgba(16, 185, 129, 0.45);
+  font-size: 1.05rem;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  letter-spacing: -0.2px;
+}
+.pill-all-solved {
+  color: #34d399;
+  text-shadow: 0 0 14px rgba(52, 211, 153, 0.55);
+  font-size: 1.05rem;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  letter-spacing: -0.3px;
+}
+
+/* 5-2 비율 Up/Down 미니게임 패널 */
+.updown-ing-list {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.updown-ing-btn {
+  flex: 1;
+  min-width: 90px;
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid #334155;
+  background: #1e293b;
+  color: #f8fafc;
+  font-size: 0.76rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.updown-ing-btn.selected {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.15);
+}
+
+.updown-ing-btn.solved {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.15);
+}
+
+.numpad-1to10 {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+
+.num-btn {
+  padding: 9px 0;
+  border-radius: 8px;
+  border: 1px solid #475569;
+  background: #1e293b;
+  color: #f8fafc;
+  font-size: 0.84rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.num-btn:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.num-btn.correct-num {
+  background: rgba(16, 185, 129, 0.25);
+  border-color: #10b981;
+  color: #6ee7b7;
+}
+
+.updown-drawer-box {
+  animation: popIn 0.18s ease-out;
+}
+
+.updown-feedback-banner {
+  text-align: center;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 900;
+  background: #1e293b;
+}
+
+.updown-feedback-banner.up { color: #f59e0b; border: 1px solid #f59e0b; }
+.updown-feedback-banner.down { color: #38bdf8; border: 1px solid #38bdf8; }
+.updown-feedback-banner.correct { color: #10b981; border: 1px solid #10b981; }
+
+/* 초기 선택 화면 (베이스볼 / 그림 해금 게임 / 힌트보기) */
+.unlocked-img-preview-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(15, 23, 42, 0.9));
+  border: 1px solid rgba(192, 132, 252, 0.55);
+}
+
+.unlocked-img-emoji {
+  font-size: 2.3rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.5));
+}
+
+.unlocked-img-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* =========================================================================
+   🕵️ 순차적 3단계 힌트 추리 카드 스택 (.hint-steps-stack & .hint-step-card)
+   ========================================================================= */
+.hint-steps-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  width: 100%;
+  padding: 4px 0 2px 0;
+}
+
+.hint-step-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1.5px solid #334155;
+  background: #0f172a;
+  color: #f8fafc;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  user-select: none;
+  min-height: 64px;
+  box-sizing: border-box;
+}
+
+.hint-step-card:hover:not(.step-locked):not(.step-scratching) {
+  transform: translateY(-2px);
+}
+
+.hint-step-card:active:not(.step-locked):not(.step-scratching) {
+  transform: scale(0.98);
+}
+
+.step-card-num-col,
+.step-card-icon-col {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.step-order-badge {
+  font-size: 0.58rem;
+  font-weight: 900;
+  padding: 1px 5px;
+  border-radius: 6px;
+  letter-spacing: -0.2px;
+  text-transform: uppercase;
+}
+
+.step-main-icon {
+  font-size: 1.65rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.step-main-icon svg,
+.step-main-icon img,
+.step-main-icon canvas,
+.step-main-icon .pixel-art {
+  display: block;
+  max-width: 32px;
+  max-height: 32px;
+}
+
+.step-title-group {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.step-card-main-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.step-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.step-main-title {
+  font-size: 0.92rem;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -0.3px;
+}
+
+.step-main-desc {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.step-status-tag {
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 8px;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.step-status-tag.tag-done {
+  background: rgba(16, 185, 129, 0.2);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  font-weight: 800;
+  letter-spacing: 0.3px;
+}
+
+.step-status-tag.tag-locked {
+  background: rgba(71, 85, 105, 0.25);
+  color: #94a3b8;
+  border: 1px solid #475569;
+}
+
+.step-status-tag.tag-scratching {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fde047;
+  border: 1px solid #f59e0b;
+}
+
+/* 1단계 테마: 🟣 퍼플 (외형 그림 아케이드) */
+.hint-step-card.step-purple {
+  border-color: rgba(168, 85, 247, 0.35);
+  background: linear-gradient(135deg, rgba(35, 18, 60, 0.75) 0%, rgba(15, 23, 42, 0.85) 100%);
+}
+
+.hint-step-card.step-purple .step-order-badge {
+  color: #d8b4fe;
+  background: rgba(168, 85, 247, 0.2);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+}
+
+.hint-step-card.step-purple.step-active {
+  border-color: #a855f7;
+  box-shadow: 0 4px 16px rgba(168, 85, 247, 0.22);
+}
+
+.hint-step-card.step-purple.step-active .step-status-tag.tag-active {
+  background: rgba(168, 85, 247, 0.25);
+  color: #e9d5ff;
+  border: 1px solid #a855f7;
+}
+
+/* 2단계 테마: 🟡 골드/앰버 (설명 힌트 복권) */
+.hint-step-card.step-gold {
+  border-color: rgba(245, 158, 11, 0.35);
+  background: linear-gradient(135deg, rgba(50, 32, 12, 0.75) 0%, rgba(15, 23, 42, 0.85) 100%);
+}
+
+.hint-step-card.step-gold .step-order-badge {
+  color: #fde68a;
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.hint-step-card.step-gold.step-active {
+  border-color: #f59e0b;
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.24);
+}
+
+.hint-step-card.step-gold.step-done {
+  border-color: rgba(245, 158, 11, 0.3);
+  background: linear-gradient(135deg, rgba(40, 26, 12, 0.5) 0%, rgba(15, 23, 42, 0.85) 100%);
+  cursor: default;
+}
+
+.btn-step-scratch {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #0f172a;
+  border: none;
+  font-size: 0.72rem;
+  font-weight: 900;
+  padding: 4px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.35);
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-step-scratch:hover {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  transform: translateY(-1px);
+}
+
+.btn-step-scratch .ad-tag {
+  background: #0f172a;
+  color: #fbbf24;
+  font-size: 0.56rem;
+  font-weight: 900;
+  padding: 1px 4px;
+  border-radius: 3px;
+  line-height: 1;
+}
+
+.step-revealed-hint {
+  padding: 7px 10px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px dashed rgba(245, 158, 11, 0.35);
+  border-radius: 8px;
+  font-size: 0.75rem;
+  color: #fef3c7;
+  line-height: 1.45;
+  word-break: keep-all;
+}
+
+.step-revealed-hint .hint-bulb {
+  color: #f59e0b;
+  font-weight: 900;
+  margin-right: 3px;
+}
+
+/* 3단계 테마: 🔵 사이언/오션블루 (베이스볼 / 업앤다운 추리) */
+.hint-step-card.step-cyan {
+  border-color: rgba(6, 182, 212, 0.35);
+  background: linear-gradient(135deg, rgba(14, 46, 68, 0.75) 0%, rgba(15, 23, 42, 0.85) 100%);
+}
+
+.hint-step-card.step-cyan .step-order-badge {
+  color: #a5f3fc;
+  background: rgba(6, 182, 212, 0.2);
+  border: 1px solid rgba(6, 182, 212, 0.4);
+}
+
+.hint-step-card.step-cyan.step-active {
+  border-color: #06b6d4;
+  box-shadow: 0 4px 16px rgba(6, 182, 212, 0.24);
+}
+
+.hint-step-card.step-cyan.step-active .step-status-tag.tag-active {
+  background: rgba(6, 182, 212, 0.25);
+  color: #a5f3fc;
+  border: 1px solid #06b6d4;
+}
+
+/* 공통 잠김 카드 스타일 */
+.hint-step-card.step-locked {
+  opacity: 0.52;
+  cursor: not-allowed;
+  border-color: #334155 !important;
+  background: rgba(15, 23, 42, 0.6) !important;
+  box-shadow: none !important;
+}
+
+.hint-step-card.step-locked .step-order-badge {
+  color: #64748b !important;
+  background: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+/* 외부 힌트 슬림 바 버튼 */
+.hint-ext-hint-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 14px;
+  border-radius: 12px;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px dashed #475569;
+  color: #cbd5e1;
+  font-size: 0.74rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.hint-ext-hint-bar:hover {
+  background: rgba(51, 65, 85, 0.6);
+  border-color: #94a3b8;
+  color: #ffffff;
+}
+
+.hint-ext-hint-bar .ext-icon {
+  font-size: 1.1rem;
+}
+
+.hint-ext-hint-bar .ext-label {
+  flex: 1;
+  text-align: left;
+}
+
+.hint-ext-hint-bar .ext-arrow {
+  color: #64748b;
+  font-size: 0.72rem;
+}
+
+/* 그림 해금 아케이드 미니게임 선택 화면 */
+.minigame-select-intro {
+  font-size: 0.75rem;
+  color: #cbd5e1;
+  background: #0f172a;
+  border: 1px solid #334155;
+  padding: 9px 12px;
+  border-radius: 10px;
+  line-height: 1.45;
+}
+
+.minigame-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.minigame-select-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  border-radius: 14px;
+  border: 1px solid #334155;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.minigame-select-card:hover {
+  transform: translateY(-2px);
+}
+
+.minigame-select-card.mg-card-brick {
+  border-color: rgba(56, 189, 248, 0.55);
+}
+.minigame-select-card.mg-card-brick:hover {
+  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.25);
+}
+
+.minigame-select-card.mg-card-qix {
+  border-color: rgba(16, 185, 129, 0.55);
+}
+.minigame-select-card.mg-card-qix:hover {
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+}
+
+.minigame-select-card.mg-card-nonogram {
+  border-color: rgba(168, 85, 247, 0.55);
+}
+.minigame-select-card.mg-card-nonogram:hover {
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.25);
+}
+
+.mg-card-left {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid #334155;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mg-card-icon {
+  font-size: 1.55rem;
+}
+
+.mg-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mg-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.mg-card-title {
+  font-size: 0.84rem;
+  font-weight: 900;
+  color: #f8fafc;
+}
+
+.mg-diff-pill {
+  font-size: 0.58rem;
+  font-weight: 900;
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
+.mg-diff-pill.hard {
+  background: rgba(56, 189, 248, 0.2);
+  color: #7dd3fc;
+  border: 1px solid rgba(56, 189, 248, 0.45);
+}
+
+.mg-diff-pill.vhard {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fcd34d;
+  border: 1px solid rgba(245, 158, 11, 0.45);
+}
+
+.mg-diff-pill.extreme {
+  background: rgba(239, 68, 68, 0.22);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.5);
+}
+
+.mg-card-desc {
+  font-size: 0.68rem;
+  color: #cbd5e1;
+  line-height: 1.38;
+}
+
+.mg-play-btn {
+  padding: 7px 10px;
+  border-radius: 9px;
+  border: none;
+  background: #3b82f6;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 900;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* =========================================================================
+   🕹️ SPA 풀페이지 아케이드 캐비닛 시스템 (전체화면 미니게임 뷰)
+   ========================================================================= */
+
+/* 모달 오버레이를 SPA 전체 화면으로 전환 */
+#hint-modal.spa-arcade-view {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: #070b14 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  z-index: 2600;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#hint-modal.spa-arcade-view .modal-card.spa-arcade-content {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 100% !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  border-radius: 0 !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: radial-gradient(circle at 50% 12%, #0f172a 0%, #070b14 100%) !important;
+  box-shadow: none !important;
+  animation: none !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+/* PC 와이드 가로 화면(데스크톱)에서는 480px 스마트폰 프레임 유지 */
+@media (orientation: landscape) and (min-width: 900px), (min-aspect-ratio: 1.15/1) and (min-width: 600px) {
+  #hint-modal.spa-arcade-view {
+    background: rgba(4, 7, 14, 0.88) !important;
+    backdrop-filter: blur(8px) !important;
+  }
+  #hint-modal.spa-arcade-view .modal-card.spa-arcade-content {
+    max-width: 480px !important;
+    height: 94vh !important;
+    max-height: 920px !important;
+    border-radius: 24px !important;
+    border: 1px solid var(--border) !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.85) !important;
+  }
+}
+
+/* 아케이드 셸 래퍼 */
+.arcade-spa-shell {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* 1. 상단 네비게이션 헤더 바 */
+.arcade-spa-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(15, 23, 42, 0.92);
+  border-bottom: 1px solid rgba(56, 189, 248, 0.25);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 30;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.arcade-hdr-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.arcade-hdr-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  color: #f8fafc;
+  padding: 6px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 800;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.arcade-hdr-btn:hover,
+.arcade-hdr-btn:active {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: #38bdf8;
+  color: #38bdf8;
+}
+
+.arcade-recipe-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 4px 10px;
+  border-radius: 20px;
+  max-width: 170px;
+  overflow: hidden;
+}
+
+.arcade-recipe-badge .badge-emblem {
+  font-size: 1.05rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.arcade-recipe-badge .badge-title {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #fde047;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.arcade-hdr-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.arcade-title-pill {
+  font-size: 0.78rem;
+  font-weight: 900;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  color: #38bdf8;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+}
+
+.arcade-hdr-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.arcade-hdr-btn.close-btn {
+  padding: 6px 10px;
+  color: #94a3b8;
+  font-size: 0.95rem;
+}
+
+/* 2. 중앙 캔버스 스테이지 */
+.arcade-spa-stage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-height: 0;
+  padding: 8px 12px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.minigame-canvas {
+  width: auto;
+  max-width: 100%;
+  height: 100%;
+  max-height: min(530px, 60vh);
+  aspect-ratio: 420 / 520;
+  background: #070b14;
+  border: 2px solid rgba(56, 189, 248, 0.4);
+  border-radius: 16px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.8), 0 0 20px rgba(56, 189, 248, 0.2);
+  touch-action: none;
+  user-select: none;
+  display: block;
+}
+
+/* 3. 하단 컨트롤 콘솔 */
+.arcade-spa-console {
+  flex-shrink: 0;
+  background: rgba(15, 23, 42, 0.95);
+  border-top: 1px solid rgba(56, 189, 248, 0.25);
+  padding: 8px 14px 14px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 25;
+}
+
+.arcade-instruction-text {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  text-align: center;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+/* 벽돌깨기 전용 컨트롤 */
+.brick-console-box {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  width: 100%;
+}
+
+.brick-powerups-ribbon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.pw-badge {
+  font-size: 0.64rem;
+  font-weight: 800;
+  padding: 3px 7px;
+  border-radius: 8px;
+  background: rgba(30, 41, 59, 0.85);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  color: #cbd5e1;
+}
+
+.brick-buttons-row {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.arcade-action-btn {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 900;
+  cursor: pointer;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.launch-action-btn {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(2, 132, 199, 0.4);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+}
+
+.launch-action-btn:active {
+  transform: scale(0.97);
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.6);
+}
+
+.turbo-action-btn {
+  background: rgba(30, 41, 59, 0.9);
+  color: #fde047;
+  border: 1.5px solid rgba(250, 204, 21, 0.4);
+  max-width: 120px;
+}
+
+.turbo-action-btn.active {
+  background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%);
+  color: #0b0f17;
+  border-color: #fde047;
+  box-shadow: 0 0 16px rgba(250, 204, 21, 0.6);
+}
+
+/* 땅따먹기 전용 컨트롤 */
+.qix-console-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 12px;
+  width: 100%;
+}
+
+.qix-dpad-module {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qix-dpad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 44px);
+  grid-template-rows: repeat(3, 44px);
+  gap: 3px;
+  background: rgba(15, 23, 42, 0.8);
+  padding: 4px;
+  border-radius: 14px;
+  border: 1.5px solid rgba(56, 189, 248, 0.35);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+}
+
+.dpad-key {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  background: #1e293b;
+  color: #38bdf8;
+  font-size: 1.15rem;
+  font-weight: 900;
+  cursor: pointer;
+  user-select: none;
+  touch-action: none;
+  transition: all 0.08s ease;
+}
+
+.dpad-key.key-up { grid-column: 2; grid-row: 1; }
+.dpad-key.key-left { grid-column: 1; grid-row: 2; }
+.dpad-center-hub { grid-column: 2; grid-row: 2; background: rgba(30, 41, 59, 0.5); border-radius: 4px; }
+.dpad-key.key-right { grid-column: 3; grid-row: 2; }
+.dpad-key.key-down { grid-column: 2; grid-row: 3; }
+
+.dpad-key:active,
+.dpad-key.active {
+  background: #38bdf8;
+  color: #0b0f17;
+  transform: scale(0.92);
+  box-shadow: 0 0 14px #38bdf8;
+}
+
+.qix-side-module {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.dash-action-btn {
+  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+  color: #fff;
+  border: 1.5px solid rgba(254, 215, 170, 0.4);
+  padding: 12px 18px;
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(234, 88, 12, 0.4);
+  font-size: 0.92rem;
+}
+
+.dash-action-btn.active {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  box-shadow: 0 0 20px rgba(249, 115, 22, 0.8);
+  border-color: #fed7aa;
+}
+
+.qix-rule-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  padding: 3px 8px;
+  border-radius: 10px;
+}
+
+/* 네모네모 로직 컨트롤 */
+.nonogram-console-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.nonogram-buttons-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.nono-action-btn {
+  flex: 1;
+  background: #1e293b;
+  border: 1px solid #475569;
+  color: #e2e8f0;
+}
+
+.nono-action-btn.active {
+  background: #38bdf8;
+  border-color: #38bdf8;
+  color: #0b0f17;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.5);
+}
+
+.nono-action-btn.reset {
+  max-width: 90px;
+}
+
+/* 4. 미니게임 선택 로비 (MINIGAME_SELECT) */
+.arcade-lobby-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 14px 24px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.arcade-lobby-intro {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.lobby-intro-badge {
+  font-size: 0.68rem;
+  font-weight: 900;
+  color: #a855f7;
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  padding: 3px 10px;
+  border-radius: 12px;
+}
+
+.lobby-intro-title {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #f8fafc;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.lobby-intro-sub {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.arcade-cards-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.arcade-select-card {
+  position: relative;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1.5px solid rgba(148, 163, 184, 0.25);
+  border-radius: 18px;
+  padding: 14px 16px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.arcade-select-card:hover,
+.arcade-select-card:active {
+  transform: translateY(-2px);
+  border-color: #38bdf8;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 16px rgba(56, 189, 248, 0.25);
+}
+
+.card-brick:hover, .card-brick:active { border-color: #38bdf8; }
+.card-qix:hover, .card-qix:active { border-color: #34d399; }
+.card-nonogram:hover, .card-nonogram:active { border-color: #c084fc; }
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.card-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1.5px solid rgba(148, 163, 184, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.card-meta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.card-tag {
+  font-size: 0.62rem;
+  font-weight: 900;
+  color: #38bdf8;
+  letter-spacing: 0.5px;
+}
+
+.card-name {
+  font-size: 0.98rem;
+  font-weight: 900;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.card-badge {
+  font-size: 0.68rem;
+  font-weight: 900;
+  padding: 3px 8px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.badge-pop { background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid #38bdf8; }
+.badge-tact { background: rgba(52, 211, 153, 0.2); color: #34d399; border: 1px solid #34d399; }
+.badge-brain { background: rgba(192, 132, 252, 0.2); color: #c084fc; border: 1px solid #c084fc; }
+
+.card-desc {
+  font-size: 0.76rem;
+  color: #cbd5e1;
+  margin: 0;
+  line-height: 1.45;
+  word-break: keep-all;
+}
+
+.card-features-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.feat-pill {
+  font-size: 0.66rem;
+  font-weight: 800;
+  color: #94a3b8;
+  background: rgba(15, 23, 42, 0.8);
+  padding: 2px 7px;
+  border-radius: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.card-play-cta {
+  width: 100%;
+  padding: 10px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  color: #f8fafc;
+  font-size: 0.84rem;
+  font-weight: 900;
+  cursor: pointer;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  transition: all 0.15s ease;
+}
+
+.arcade-select-card:hover .card-play-cta {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  border-color: #38bdf8;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+}
+
+/* =========================================================================
+   🕵️ 순차적 힌트 3단계 인디케이터 & 복권 긁기 (Scratch Card)
+   ========================================================================= */
+.hint-step-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.hint-step-indicator .step-pill {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: #1e293b;
+  color: #94a3b8;
+  border: 1px solid #334155;
+  letter-spacing: -0.2px;
+}
+
+.hint-step-indicator .step-pill.done {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: #10b981;
+  color: #6ee7b7;
+}
+
+/* 1단계(퍼플), 2단계(골드), 3단계(사이언) 현재 진행 중 강조 */
+.hint-step-indicator .step-pill.pill-purple.curr {
+  background: rgba(168, 85, 247, 0.22);
+  border-color: #a855f7;
+  color: #e9d5ff;
+  box-shadow: 0 0 8px rgba(168, 85, 247, 0.35);
+}
+
+.hint-step-indicator .step-pill.pill-gold.curr {
+  background: rgba(245, 158, 11, 0.22);
+  border-color: #f59e0b;
+  color: #fde047;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.35);
+}
+
+.hint-step-indicator .step-pill.pill-cyan.curr {
+  background: rgba(6, 182, 212, 0.22);
+  border-color: #06b6d4;
+  color: #67e8f9;
+  box-shadow: 0 0 8px rgba(6, 182, 212, 0.35);
+}
+
+.hint-step-indicator .step-pill.locked {
+  background: #0f172a;
+  border-color: #1e293b;
+  color: #475569;
+}
+
+.hint-step-indicator .step-pill-arrow {
+  font-size: 0.62rem;
+  color: #475569;
+}
+
+/* 2단계 설명 힌트 박스 상태 */
+.bb-target-hint.hint-desc-locked {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px dashed #334155;
+  border-radius: 10px;
+  padding: 8px 12px;
+  color: #64748b;
+  font-size: 0.72rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bb-target-hint.hint-scratch-prompt {
+  background: linear-gradient(135deg, rgba(35, 24, 12, 0.8), rgba(20, 16, 10, 0.7));
+  border: 1.5px solid #f59e0b;
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.18);
+}
+
+.scratch-prompt-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.scratch-ticket-icon {
+  font-size: 1.8rem;
+  flex-shrink: 0;
+  animation: ticketBounce 1.8s infinite ease-in-out;
+}
+
+.ticket-bounce {
+  animation: ticketBounce 1.8s infinite ease-in-out;
+}
+
+@keyframes ticketBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px) scale(1.05); }
+}
+
+.scratch-prompt-title {
+  font-size: 0.78rem;
+  font-weight: 900;
+  color: #fde047;
+}
+
+.scratch-prompt-sub {
+  font-size: 0.66rem;
+  color: #94a3b8;
+  margin-top: 1px;
+}
+
+.btn-start-scratch {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #0f172a;
+  border: none;
+  font-size: 0.76rem;
+  font-weight: 900;
+  padding: 7px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.btn-start-scratch:hover {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  transform: translateY(-1px);
+}
+
+.btn-start-scratch:active {
+  transform: scale(0.96);
+}
+
+.btn-start-scratch .ad-tag {
+  background: #0f172a;
+  color: #fbbf24;
+  font-size: 0.58rem;
+  font-weight: 900;
+  padding: 1px 4px;
+  border-radius: 4px;
+  line-height: 1;
+}
+
+/* 캔버스 복권 긁기 컨테이너 */
+.scratch-card-box {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1.5px solid #d97706;
+  background: #090e1a;
+  min-height: 64px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.2);
+}
+
+.scratch-underlayer {
+  font-size: 0.76rem;
+  color: #fef3c7;
+  line-height: 1.5;
+  font-weight: 600;
+  user-select: text;
+  word-break: keep-all;
+}
+
+.scratch-overlay-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+  touch-action: none;
+  z-index: 2;
+  border-radius: 10px;
+  transition: opacity 0.65s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+

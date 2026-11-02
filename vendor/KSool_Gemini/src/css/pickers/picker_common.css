@@ -1,0 +1,194 @@
+/* 대표 재료별 커스텀 모달 공통 스타일 */
+.picker-subtitle {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.picker-default-btn {
+  width: 100%;
+  padding: 11px;
+  border-radius: 12px;
+  border: 1px solid #475569;
+  background: #0f172a;
+  color: #e2e8f0;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.15s ease;
+}
+
+.picker-default-btn:hover {
+  border-color: var(--primary);
+  background: #172554;
+}
+
+/* 대한민국 팔도 지도 모달 (쌀 등 산지 선택 UI) */
+.korea-map-container {
+  position: relative;
+  width: 100%;
+  height: 310px;
+  background: radial-gradient(circle at center, #172554 0%, #0b1120 100%);
+  border: 1px solid #334155;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.korea-map-svg {
+  width: 82%;
+  height: 92%;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.6));
+}
+
+.map-pin-btn {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  background: rgba(15, 23, 42, 0.92);
+  border: 2px solid #f59e0b;
+  color: #f8fafc;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  transition: transform 0.15s ease, background 0.15s ease;
+  white-space: nowrap;
+  z-index: 5;
+}
+
+.map-pin-btn:hover {
+  transform: translate(-50%, -50%) scale(1.08);
+  background: #f59e0b;
+  color: #0f172a;
+  z-index: 10;
+}
+
+.map-pin-btn.locked {
+  border-color: #475569;
+  color: #64748b;
+  opacity: 0.7;
+}
+
+.map-selected-info {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 0.76rem;
+  color: #cbd5e1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* 소주 브랜드 냉장고 쇼케이스 모달 */
+.soju-fridge-container {
+  background: linear-gradient(180deg, #091526 0%, #0f172a 100%);
+  border: 2px solid #38bdf8;
+  border-radius: 16px;
+  padding: 12px;
+  box-shadow: inset 0 0 25px rgba(56, 189, 248, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fridge-neon-banner {
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 900;
+  color: #38bdf8;
+  letter-spacing: 1px;
+  text-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+  padding-bottom: 6px;
+  border-bottom: 1px dashed rgba(56, 189, 248, 0.35);
+}
+
+.fridge-shelf-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.bottle-showcase-card {
+  background: rgba(30, 41, 59, 0.85);
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.15s ease;
+}
+
+.bottle-showcase-card:hover {
+  border-color: #38bdf8;
+  transform: translateY(-2px);
+}
+
+.bottle-showcase-card.locked {
+  opacity: 0.5;
+}
+
+.bottle-visual {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bottle-silhouette {
+  width: 22px;
+  height: 44px;
+  border-radius: 5px 5px 3px 3px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  box-shadow: inset -3px 0 6px rgba(0,0,0,0.35);
+}
+
+.bottle-cap {
+  position: absolute;
+  top: -5px;
+  width: 12px;
+  height: 6px;
+  border-radius: 2px 2px 0 0;
+}
+
+.bottle-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bottle-title {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.bottle-abv {
+  font-size: 0.66rem;
+  color: #38bdf8;
+  font-weight: 700;
+}
+
+.bottle-desc {
+  font-size: 0.66rem;
+  color: #94a3b8;
+  line-height: 1.3;
+}

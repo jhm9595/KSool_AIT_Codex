@@ -1,0 +1,44 @@
+[
+  {
+    "category_id": "ALCOHOL",
+    "name": "주류",
+    "emoji": "🍶",
+    "order": 1
+  },
+  {
+    "category_id": "NATURE",
+    "name": "자연",
+    "emoji": "🌿",
+    "order": 2
+  },
+  {
+    "category_id": "FRUIT",
+    "name": "과일",
+    "emoji": "🍎",
+    "order": 3
+  },
+  {
+    "category_id": "GRAIN",
+    "name": "곡물",
+    "emoji": "🌾",
+    "order": 4
+  },
+  {
+    "category_id": "DRINK",
+    "name": "음료",
+    "emoji": "🥤",
+    "order": 5
+  },
+  {
+    "category_id": "DESSERT",
+    "name": "디저트",
+    "emoji": "🍨",
+    "order": 6
+  },
+  {
+    "category_id": "ETC",
+    "name": "기타",
+    "emoji": "🍬",
+    "order": 7
+  }
+]
