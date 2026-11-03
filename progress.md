@@ -35,3 +35,5 @@ Original prompt: Read KSool_Gemini without changing it, follow updates periodica
 - Unified apricot theme controls, glass, cream shelf and category colors in a warm apricot/brown palette. Removed cool teal surfaces. Let CSS color transitions settle before theme screenshots. Build and integration tests passed; final apricot capture inspected.
 
 - Replaced accumulated per-theme overrides with a single semantic palette registry (theme.js), shared token-driven surfaces, and generated legacy UI color adaptation. Themes now cover all main tabs, settings and game surfaces. Brewing numbers/slots are white; mix and locked-hint controls use themed enabled/disabled roles. Added cross-tab palette regression captures and docs/THEMES.md. Build, integration and 54-screen design audit passed.
+
+- Fixed settings audio button, percent, track fill and browser-specific slider thumbs to consume shared palette tokens. Replaced generated runtime gradient literals so open-modal theme switching updates fill immediately. Verified four theme settings captures and audio color regression assertions.

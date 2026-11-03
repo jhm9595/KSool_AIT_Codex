@@ -89,6 +89,19 @@ try {
     assert.equal(await page.evaluate(() => document.documentElement.dataset.bottleTheme), theme);
     await page.locator('#open-settings-btn').click();
     assert.equal(await page.locator(`.ait-theme-option[data-bottle-theme="${theme}"]`).getAttribute('aria-pressed'), 'true');
+    await page.waitForTimeout(400);
+    const soundColors = await page.evaluate(() => {
+      const root = getComputedStyle(document.documentElement);
+      const button = document.querySelector('#settings-sound-mute-btn');
+      const range = document.querySelector('#settings-sound-range');
+      const probe = document.createElement('span'); probe.style.color = root.getPropertyValue('--primary'); document.body.append(probe);
+      const expected = getComputedStyle(probe).color; probe.remove();
+      return { expected, button: getComputedStyle(button).color, accent: getComputedStyle(range).accentColor, fill: range.style.getPropertyValue('--track-fill') };
+    });
+    assert.equal(soundColors.button, soundColors.expected);
+    assert.equal(soundColors.accent, soundColors.expected);
+    assert(soundColors.fill.includes('var(--primary)'));
+    await page.screenshot({ path: join(artifacts, `theme-${theme}-settings.png`) });
   }
   await page.locator('#settings-sound-mute-btn').click();
   const muted = await page.evaluate(() => window.ksoolApp.audio.isMutedState());

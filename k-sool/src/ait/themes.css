@@ -46,3 +46,16 @@ body, #app-container, .view, .party-fullscreen-wrapper { background-color: var(-
 @media (max-height: 650px) { #view-brew .pot-section { margin-top: 6px; padding: 12px 10px; } }
 #view-brew .quiz-desc-locked { background: var(--disabled-bg); color: var(--disabled-ink); }
 #view-brew .quiz-desc-locked .quiz-lock-label { color: var(--disabled-ink); }
+
+/* Audio controls consume the same palette as the rest of settings. */
+#settings-modal .settings-sound-card { background: var(--theme-soft); border-color: var(--border); }
+#settings-modal .settings-sound-mute-btn { background: var(--theme-soft); color: var(--primary); border-color: var(--primary); box-shadow: none; }
+#settings-modal .settings-sound-mute-btn:hover { background: var(--card-hover); }
+#settings-modal .settings-sound-mute-btn.is-muted { background: var(--bg); color: var(--text-muted); border-color: var(--border); }
+#settings-modal .sound-vol-percent { color: var(--primary); }
+#settings-modal .settings-sound-labels { color: var(--text); }
+#settings-modal .settings-sound-range { accent-color: var(--primary); }
+#settings-modal .settings-sound-range::-webkit-slider-thumb { background: var(--primary); border-color: var(--primary-hover); box-shadow: 0 2px 5px #00000030; }
+#settings-modal .settings-sound-range:active::-webkit-slider-thumb { background: var(--primary-hover); box-shadow: 0 0 0 4px var(--theme-soft); }
+#settings-modal .settings-sound-range::-moz-range-thumb { background: var(--primary); border-color: var(--primary-hover); box-shadow: 0 2px 5px #00000030; }
+#settings-modal .settings-sound-range:active::-moz-range-thumb { background: var(--primary-hover); box-shadow: 0 0 0 4px var(--theme-soft); }

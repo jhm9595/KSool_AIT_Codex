@@ -1,5 +1,7 @@
 // Generated UI only. Never apply these adaptations to vendor or upstream.
 export function adaptDesign(text) {
+  // Runtime range fill must keep palette references so an open modal updates immediately.
+  text = text.replaceAll('linear-gradient(to right, #38bdf8 0%, #38bdf8 ${fillPercent}%, #334155 ${fillPercent}%, #334155 100%)', 'linear-gradient(to right, var(--primary) 0%, var(--primary) ${fillPercent}%, var(--border) ${fillPercent}%, var(--border) 100%)');
   const colors = {
     '#3182f6': '#16845b', '#3b82f6': '#16845b', '#2563eb': '#116a49',
     '#60a5fa': '#116a49', '#93c5fd': '#116a49', '#1d4ed8': '#0d573c',
