@@ -497,19 +497,33 @@ class ImageMinigameSuite {
   launchBall() {
     if (this.gameType === 'BRICK_BREAKER' && this.bbState) {
       const st = this.bbState;
-      if (this.gameState === 'READY' || !st.isLaunched) {
+      if (!st.isLaunched || this.gameState === 'READY') {
         st.isLaunched = true;
         this.gameState = 'PLAYING';
         st.lastTime = performance.now();
-        const b = st.balls[0];
+        const b = st.balls ? st.balls[0] : null;
         if (b) {
-          const baseSpeed = 7.6; // 상쾌하고 빠른 시작 속도 (대기 시간 제로!)
-          b.vx = Math.cos(st.aimAngle) * baseSpeed;
-          b.vy = Math.sin(st.aimAngle) * baseSpeed;
+          const baseSpeed = 8.2;
+          const angle = this._getLaunchAngle();
+          b.vx = Math.cos(angle) * baseSpeed;
+          b.vy = Math.sin(angle) * baseSpeed;
         }
         this.audio?.playTap?.();
       }
     }
+  }
+
+  /**
+   * 발사 각도: 패들 위치 기반 조준각에 약간의 랜덤 편차를 더해
+   * 정면 일직선 왕복(지루한 패턴)이 되지 않도록 보정
+   */
+  _getLaunchAngle() {
+    const st = this.bbState;
+    let angle = (st && typeof st.aimAngle === 'number') ? st.aimAngle : -Math.PI / 2;
+    angle += (Math.random() - 0.5) * 0.7;
+    const minA = -Math.PI + 0.38;
+    const maxA = -0.38;
+    return Math.max(minA, Math.min(maxA, angle));
   }
 
   toggleTurbo() {
@@ -533,6 +547,21 @@ class ImageMinigameSuite {
   setDash(bool) {
     if (this.gameType === 'TERRITORY_QIX' && this.qixState) {
       this.qixState.isDash = !!bool;
+    }
+  }
+
+  setNonogramTool(tool) {
+    if (this.gameType === 'NONOGRAM' && this.nonogramState) {
+      this.nonogramState.toolMode = (tool === 'X' || tool === 'MARK') ? 'X' : 'FILL';
+    }
+  }
+
+  resetNonogram() {
+    if (this.gameType === 'NONOGRAM' && this.nonogramState) {
+      for (let r = 0; r < this.nonogramState.rows; r++) {
+        this.nonogramState.board[r].fill(0);
+      }
+      this.audio?.playTap?.();
     }
   }
 
@@ -903,6 +932,7 @@ class ImageMinigameSuite {
       lives: 3,
       elapsed: 0,
       lastTime: performance.now(),
+      readyTime: performance.now(),
       targetPct: 100,
       blockAreaBottom: topY + stageH,
       isLaunched: false,
@@ -1019,8 +1049,9 @@ class ImageMinigameSuite {
         const b = this.bbState.balls[0];
         if (b) {
           const baseSpeed = 7.6; // 상쾌하고 빠른 시작 속도!
-          b.vx = Math.cos(this.bbState.aimAngle) * baseSpeed;
-          b.vy = Math.sin(this.bbState.aimAngle) * baseSpeed;
+          const la = this._getLaunchAngle();
+          b.vx = Math.cos(la) * baseSpeed;
+          b.vy = Math.sin(la) * baseSpeed;
         }
         this.audio?.playTap?.();
       } else if (this.gameState === 'OVER') {
@@ -1032,8 +1063,9 @@ class ImageMinigameSuite {
         const b = this.bbState.balls[0];
         if (b) {
           const baseSpeed = 7.6;
-          b.vx = Math.cos(this.bbState.aimAngle) * baseSpeed;
-          b.vy = Math.sin(this.bbState.aimAngle) * baseSpeed;
+          const la2 = this._getLaunchAngle();
+          b.vx = Math.cos(la2) * baseSpeed;
+          b.vy = Math.sin(la2) * baseSpeed;
         }
       } else if (this.bbState.activePowerups?.laserTimer > 0) {
         this.fireLaser();
@@ -1064,8 +1096,9 @@ class ImageMinigameSuite {
       if (handleWinClose()) return;
       isPointerDragging = true;
       movePaddle(e.clientX);
-      if (!this.bbState.isLaunched || this.bbState.activePowerups?.laserTimer > 0) {
-        doLaunchBall();
+      // 발사 전에는 공이 패들에 붙은 채로 위치만 조정, 손을 떼는 순간 발사
+      if (this.bbState.isLaunched && this.bbState.activePowerups?.laserTimer > 0) {
+        this.fireLaser();
       }
     };
 
@@ -1075,7 +1108,11 @@ class ImageMinigameSuite {
     };
 
     const onPointerUp = (e) => {
+      const wasDragging = isPointerDragging;
       isPointerDragging = false;
+      if (wasDragging && !this.bbState.isLaunched && this.gameState !== 'WIN') {
+        this.launchBall();
+      }
     };
 
     const onKeyDown = (e) => {
@@ -1086,8 +1123,6 @@ class ImageMinigameSuite {
         this.bbState.paddle.keyDir = 1;
       } else if (e.key === ' ' || e.key === 'Enter') {
         doLaunchBall();
-      } else if (e.key === 't' || e.key === 'T') {
-        this.toggleTurbo();
       }
     };
 
@@ -1119,7 +1154,7 @@ class ImageMinigameSuite {
     st.lastTime = now;
     st.elapsed += dt;
 
-    const timeScale = st.isTurbo ? 1.7 : 1.0;
+    const timeScale = 1.0;
     const p = st.paddle;
 
     // 파워업 타이머 갱신
@@ -1355,10 +1390,11 @@ class ImageMinigameSuite {
 
       this.gameState = 'READY';
       st.isLaunched = false;
+      st.readyTime = performance.now();
       st.balls = [
         {
           x: p.x + p.w / 2,
-          y: p.y - 44,
+          y: p.y - 12,
           vx: 0,
           vy: 0,
           r: 7,
@@ -1386,7 +1422,7 @@ class ImageMinigameSuite {
     }
 
     // 알카노이드 정통 파워업 캡슐 드롭 (26% 확률)
-    if (Math.random() < 0.26) {
+    if (Math.random() < 0.13) {
       const types = ['MULTI', 'WIDE', 'LASER', 'FIRE', 'BARRIER'];
       const randType = types[Math.floor(Math.random() * types.length)];
       const icons = {
@@ -1653,12 +1689,11 @@ class ImageMinigameSuite {
 
     // 10. 상단 HUD
     const pct = (st.brokenCount / Math.max(1, st.totalBreakable)) * 100;
-    const remaining = Math.max(0, st.totalBreakable - st.brokenCount);
-    const turboLabel = st.isTurbo ? '⚡2X TURBO' : '';
+    const turboLabel = st.isTurbo ? '⚡터보' : '';
     this._drawHUD(ctx, {
       lives: st.lives,
       progressPct: pct,
-      labelText: remaining === 0 ? '100% 완료!' : `${st.brokenCount}/${st.totalBreakable} (${Math.floor(pct)}%) ${turboLabel}`
+      labelText: `${Math.floor(pct)}% ${turboLabel}`.trim()
     });
   }
 
@@ -1667,10 +1702,8 @@ class ImageMinigameSuite {
   // =========================================================================
   _createQixEnemies(cols, rows) {
     return [
-      { isBoss: true, baseSpeed: 23.5, r: 16, c: 26, vr: 1.2, vc: 1.4 },
-      { isBoss: false, baseSpeed: 27.5, r: 24, c: 20, vr: -1.4, vc: 1.1 },
-      { isSparx: true, baseSpeed: 18.0, r: 0, c: Math.floor(cols / 2), dir: 1 },
-      { isSparx: true, baseSpeed: 18.0, r: rows - 1, c: Math.floor(cols / 2), dir: -1 }
+      { isBoss: true, r: Math.floor(rows * 0.35), c: Math.floor(cols * 0.5), vr: 12.0, vc: 14.0 },
+      { isBoss: false, r: Math.floor(rows * 0.65), c: Math.floor(cols * 0.4), vr: -13.5, vc: 11.5 }
     ];
   }
 
@@ -2178,8 +2211,8 @@ class ImageMinigameSuite {
           pl.dr = 0;
           this._floodFillCaptureQix();
 
-          // 정통 룰: 영토 75% 이상 점령 또는 실루엣 100% 해금 시 승리!
-          if (st.claimedTerritoryPct >= 75 || st.silhouetteRevealedPct >= 100) {
+          // 실루엣 100% 해금 시에만 승리! (외곽 빈 영토만 잘라먹어서는 해금 불가)
+          if (st.silhouetteRevealedPct >= 100 || st.capturedSilhouetteCount >= st.totalSilhouetteCells) {
             this.gameState = 'WIN';
             this.winTimestamp = performance.now();
             this.audio?.playSuccess?.();
@@ -2190,23 +2223,8 @@ class ImageMinigameSuite {
       }
     }
 
-    // 적 이동 및 충돌
+    // 내부 적 이동 및 충돌 (바깥쪽 스파크 적은 완전 삭제, 내부 적 속도 대폭 상향)
     for (const en of st.enemies) {
-      if (en.isSparx) {
-        // 스파크 순찰자: 외곽선 둘레를 시계/반시계 방향으로 순찰
-        en.c += en.dir * en.baseSpeed * dt * 0.4;
-        if (en.c >= st.cols - 1) { en.c = st.cols - 1; en.dir = -1; }
-        else if (en.c <= 0) { en.c = 0; en.dir = 1; }
-
-        // 스파크가 플레이어와 직접 충돌
-        if (Math.hypot(en.c - pl.c, en.r - pl.r) < 1.4) {
-          this._onQixPlayerHit();
-          return;
-        }
-        continue;
-      }
-
-      // 보스 궤적 충돌
       const stepDist = Math.max(Math.abs(en.vc), Math.abs(en.vr)) * dt;
       const subSteps = Math.max(1, Math.ceil(stepDist / 0.45));
       const subDt = dt / subSteps;
@@ -2217,7 +2235,7 @@ class ImageMinigameSuite {
         const checkC = Math.max(0, Math.min(st.cols - 1, Math.floor(nextC)));
         const checkR = Math.max(0, Math.min(st.rows - 1, Math.floor(nextR)));
 
-        // 적이 플레이어의 선(2)을 타격하면 피격!
+        // 적이 플레이어의 궤적(2)을 타격하면 피격!
         if (st.grid[checkR][checkC] === 2 || (st.grid[pl.r][pl.c] === 2 && Math.hypot(en.c - pl.c, en.r - pl.r) < 1.6)) {
           this._onQixPlayerHit();
           return;
@@ -2225,16 +2243,24 @@ class ImageMinigameSuite {
 
         if (st.grid[checkR][Math.floor(en.c)] === 1) {
           en.vr = -en.vr;
-          en.vc += (Math.random() - 0.5) * 1.5;
+          en.vc += (Math.random() - 0.5) * 3;
         } else {
           en.r = nextR;
         }
 
         if (st.grid[Math.floor(en.r)][checkC] === 1) {
           en.vc = -en.vc;
-          en.vr += (Math.random() - 0.5) * 1.5;
+          en.vr += (Math.random() - 0.5) * 3;
         } else {
           en.c = nextC;
+        }
+
+        // 속도 유지 보정
+        const spd = Math.hypot(en.vc, en.vr);
+        if (spd < 13.0 || spd > 22.0) {
+          const factor = 17.0 / (spd || 1);
+          en.vc *= factor;
+          en.vr *= factor;
         }
       }
     }
@@ -2353,24 +2379,14 @@ class ImageMinigameSuite {
     for (const en of st.enemies) {
       const ex = en.c * st.cellW;
       const ey = st.topOffset + en.r * st.cellH;
-      if (en.isSparx) {
-        ctx.fillStyle = '#ef4444';
-        ctx.shadowColor = '#ef4444';
-        ctx.shadowBlur = 12;
-        ctx.beginPath();
-        ctx.arc(ex, ey, 5.5, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      } else {
-        ctx.strokeStyle = en.isBoss ? '#f43f5e' : '#a855f7';
-        ctx.shadowColor = en.isBoss ? '#f43f5e' : '#a855f7';
-        ctx.shadowBlur = 10;
-        ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        ctx.arc(ex, ey, en.isBoss ? 9 : 7, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-      }
+      ctx.strokeStyle = en.isBoss ? '#f43f5e' : '#a855f7';
+      ctx.shadowColor = en.isBoss ? '#f43f5e' : '#a855f7';
+      ctx.shadowBlur = 10;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(ex, ey, en.isBoss ? 9 : 7, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
     }
 
     // 6. 플레이어 아바타 렌더링
@@ -2388,12 +2404,12 @@ class ImageMinigameSuite {
     ctx.stroke();
     ctx.shadowBlur = 0;
 
-    // 7. 상단 HUD
-    const dashLabel = st.isDash ? '⚡DASH' : '';
+    // 7. 상단 HUD (실루엣 해금 진행도만 깔끔하게 표시)
+    const dashLabel = st.isDash ? '⚡대시' : '';
     this._drawHUD(ctx, {
       lives: st.lives,
-      progressPct: st.claimedTerritoryPct,
-      labelText: `영토: ${Math.floor(st.claimedTerritoryPct)}% (목표 75%) | 외형: ${Math.floor(st.silhouetteRevealedPct)}% ${dashLabel}`
+      progressPct: st.silhouetteRevealedPct,
+      labelText: `실루엣 ${Math.floor(st.silhouetteRevealedPct)}% ${dashLabel}`.trim()
     });
   }
   // =========================================================================
@@ -2401,13 +2417,10 @@ class ImageMinigameSuite {
   // =========================================================================
   _initNonogram() {
     const dotInfo = this._parseDotSprite(this.recipe);
-    const minR = dotInfo.minR;
-    const maxR = dotInfo.maxR;
-    const minC = dotInfo.minC;
-    const maxC = dotInfo.maxC;
-
-    const rows = maxR - minR + 1;
-    const cols = maxC - minC + 1;
+    // 모든 재료 15x15 동일한 그리드로 통일 (16x16 도트에서 비어있는/중복 줄 1행·1열 제거)
+    const rows = 15;
+    const cols = 15;
+    const grid15 = this._reduceGridTo15(dotInfo.grid);
 
     const target = Array.from({ length: rows }, () => Array(cols).fill(false));
     const targetColor = Array.from({ length: rows }, () => Array(cols).fill(null));
@@ -2415,7 +2428,7 @@ class ImageMinigameSuite {
 
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
-        const color = dotInfo.grid[minR + r][minC + c];
+        const color = grid15[r][c];
         if (color) {
           target[r][c] = true;
           targetColor[r][c] = color;
@@ -2463,33 +2476,27 @@ class ImageMinigameSuite {
     // Board State: 0: Empty, 1: Filled, 2: X Mark
     const board = Array.from({ length: rows }, () => Array(cols).fill(0));
 
-    // Dynamic Sizing & Positioning
+    // 고정 16x16 정밀 레이아웃 & 비율 계산
     const maxRowNums = Math.max(1, ...rowClues.map(c => c.length));
     const maxColNums = Math.max(1, ...colClues.map(c => c.length));
 
-    const leftClueW = Math.max(50, Math.min(85, maxRowNums * 15 + 12));
-    const topClueH = Math.max(45, Math.min(75, maxColNums * 14 + 10));
+    const leftClueW = Math.max(52, Math.min(72, maxRowNums * 13 + 12));
+    const topClueH = Math.max(48, Math.min(72, maxColNums * 13 + 10));
 
-    const availW = this.width - leftClueW - 24;
-    const availH = this.height - topClueH - 120;
-
-    let cellSize = Math.min(Math.floor(availW / cols), Math.floor(availH / rows), 24);
-    cellSize = Math.max(cellSize, 16);
-
+    // 캔버스 가용 영역에 맞춰 칸 크기를 최대한 크게 (정사각 칸 유지)
+    const availW = this.width - leftClueW - 12;
+    const availH = this.height - topClueH - 52;
+    const cellSize = Math.max(16, Math.floor(Math.min(availW / cols, availH / rows)));
     const gridW = cols * cellSize;
     const gridH = rows * cellSize;
 
     const totalPuzzleW = leftClueW + gridW;
     const leftX = Math.floor((this.width - totalPuzzleW) / 2);
     const gridX = leftX + leftClueW;
-    const clueTopY = 48;
-    const gridY = clueTopY + topClueH;
 
-    // Bottom control buttons
-    const btnY = gridY + gridH + 16;
-    const btnH = 34;
-    const totalBtnW = 275;
-    const btnStartX = Math.floor((this.width - totalBtnW) / 2);
+    const totalPuzzleH = topClueH + gridH;
+    const clueTopY = Math.max(40, Math.floor((this.height - totalPuzzleH) / 2) - 6);
+    const gridY = clueTopY + topClueH;
 
     this.nonogramState = {
       rows,
@@ -2511,12 +2518,7 @@ class ImageMinigameSuite {
       gridY,
       clueTopY,
       gridW,
-      gridH,
-      buttons: {
-        fill: { x: btnStartX, y: btnY, w: 90, h: btnH },
-        cross: { x: btnStartX + 98, y: btnY, w: 90, h: btnH },
-        reset: { x: btnStartX + 196, y: btnY, w: 75, h: btnH }
-      }
+      gridH
     };
 
     this.gameState = 'PLAYING';
@@ -2555,6 +2557,11 @@ class ImageMinigameSuite {
         st.board[r][c] = nextVal;
         st.dragVal = nextVal;
       } else if (tool === 'X') {
+        // 이미 칠해진 칸(1)은 X표시 도구로 누르더라도 X가 되지 않도록 방어
+        if (st.board[r][c] === 1) {
+          st.dragVal = null;
+          return;
+        }
         const nextVal = st.board[r][c] === 2 ? 0 : 2;
         st.board[r][c] = nextVal;
         st.dragVal = nextVal;
@@ -2571,27 +2578,6 @@ class ImageMinigameSuite {
       const st = this.nonogramState;
       if (!st) return;
 
-      // Check bottom buttons
-      const bFill = st.buttons.fill;
-      const bCross = st.buttons.cross;
-      const bReset = st.buttons.reset;
-
-      if (pos.x >= bFill.x && pos.x <= bFill.x + bFill.w && pos.y >= bFill.y && pos.y <= bFill.y + bFill.h) {
-        st.toolMode = 'FILL';
-        this.audio?.playTap?.();
-        return;
-      }
-      if (pos.x >= bCross.x && pos.x <= bCross.x + bCross.w && pos.y >= bCross.y && pos.y <= bCross.y + bCross.h) {
-        st.toolMode = 'X';
-        this.audio?.playTap?.();
-        return;
-      }
-      if (pos.x >= bReset.x && pos.x <= bReset.x + bReset.w && pos.y >= bReset.y && pos.y <= bReset.y + bReset.h) {
-        for (let r = 0; r < st.rows; r++) st.board[r].fill(0);
-        this.audio?.playTap?.();
-        return;
-      }
-
       // Check grid
       const col = Math.floor((pos.x - st.gridX) / st.cellSize);
       const row = Math.floor((pos.y - st.gridY) / st.cellSize);
@@ -2599,6 +2585,7 @@ class ImageMinigameSuite {
       if (col >= 0 && col < st.cols && row >= 0 && row < st.rows) {
         st.isDragging = true;
         const tool = isRightClick ? 'X' : st.toolMode;
+        st.currentDragTool = tool;
         applyCellAction(row, col, tool);
       }
     };
@@ -2606,12 +2593,16 @@ class ImageMinigameSuite {
     const handlePointerMove = (clientX, clientY) => {
       const st = this.nonogramState;
       if (!st || !st.isDragging || this.gameState !== 'PLAYING') return;
+      if (st.dragVal === null || st.dragVal === undefined) return;
 
       const pos = getCanvasPos(clientX, clientY);
       const col = Math.floor((pos.x - st.gridX) / st.cellSize);
       const row = Math.floor((pos.y - st.gridY) / st.cellSize);
 
       if (col >= 0 && col < st.cols && row >= 0 && row < st.rows) {
+        // X표시 도구 드래그 조작 시 이미 칠해진 칸(1)은 X나 빈칸으로 절대 덮어쓰지 않음
+        if (st.currentDragTool === 'X' && st.board[row][col] === 1) return;
+
         if (st.board[row][col] !== st.dragVal) {
           st.board[row][col] = st.dragVal;
           this.audio?.playTap?.();
@@ -2623,6 +2614,8 @@ class ImageMinigameSuite {
     const handlePointerUp = () => {
       if (this.nonogramState) {
         this.nonogramState.isDragging = false;
+        this.nonogramState.dragVal = null;
+        this.nonogramState.currentDragTool = null;
       }
     };
 
@@ -2661,32 +2654,73 @@ class ImageMinigameSuite {
 
     this.canvas.addEventListener('mousedown', onMouseDown);
     this.canvas.addEventListener('mousemove', onMouseMove);
-    this.canvas.addEventListener('mouseup', onMouseUp);
+    window.addEventListener('mouseup', onMouseUp);
     this.canvas.addEventListener('contextmenu', onContextMenu);
     this.canvas.addEventListener('touchstart', onTouchStart, { passive: false });
     this.canvas.addEventListener('touchmove', onTouchMove, { passive: false });
-    this.canvas.addEventListener('touchend', onTouchEnd);
+    window.addEventListener('touchend', onTouchEnd);
 
     this._cleanupInputHandlers = () => {
       this.canvas.removeEventListener('mousedown', onMouseDown);
       this.canvas.removeEventListener('mousemove', onMouseMove);
-      this.canvas.removeEventListener('mouseup', onMouseUp);
+      window.removeEventListener('mouseup', onMouseUp);
       this.canvas.removeEventListener('contextmenu', onContextMenu);
       this.canvas.removeEventListener('touchstart', onTouchStart);
       this.canvas.removeEventListener('touchmove', onTouchMove);
-      this.canvas.removeEventListener('touchend', onTouchEnd);
+      window.removeEventListener('touchend', onTouchEnd);
     };
+  }
+
+  /**
+   * 16x16 도트 그리드를 15x15로 축소: 완전히 빈 가장자리 줄을 우선 제거하고,
+   * 양끝이 모두 차 있으면 이웃 줄과 가장 비슷한(중복) 내부 줄을 제거해 형태를 유지
+   */
+  _reduceGridTo15(grid) {
+    const pickDrop = (lines) => {
+      const n = lines.length;
+      const cnt = lines.map(l => l.filter(Boolean).length);
+      if (cnt[n - 1] === 0) return n - 1;
+      if (cnt[0] === 0) return 0;
+      const emptyInner = cnt.findIndex((v, i) => i > 0 && i < n - 1 && v === 0);
+      if (emptyInner !== -1) return emptyInner;
+      let best = 1;
+      let bestDiff = Infinity;
+      for (let i = 1; i < n - 1; i++) {
+        for (const j of [i - 1, i + 1]) {
+          let diff = 0;
+          for (let k = 0; k < lines[i].length; k++) {
+            if (Boolean(lines[i][k]) !== Boolean(lines[j][k])) diff++;
+          }
+          if (diff < bestDiff) { bestDiff = diff; best = i; }
+        }
+      }
+      return best;
+    };
+
+    let g = grid.map(row => row.slice());
+    if (g.length > 15) {
+      const dr = pickDrop(g);
+      g.splice(dr, 1);
+    }
+    if (g[0] && g[0].length > 15) {
+      const cols = g[0].length;
+      const colLines = Array.from({ length: cols }, (_, c) => g.map(row => row[c]));
+      const dc = pickDrop(colLines);
+      g = g.map(row => { const nr = row.slice(); nr.splice(dc, 1); return nr; });
+    }
+    return g;
   }
 
   _checkNonogramWin() {
     const st = this.nonogramState;
-    if (!st || this.gameState !== 'PLAYING') return;
+    if (!st || this.gameState !== 'PLAYING' || st.totalTargetFilled <= 0) return;
 
+    // 무조건 100% 똑같이 맞춰야만 Clear (256칸 전수 일치 검증)
     let isSolved = true;
     for (let r = 0; r < st.rows; r++) {
       for (let c = 0; c < st.cols; c++) {
         const isFilled = (st.board[r][c] === 1);
-        const shouldBeFilled = st.target[r][c];
+        const shouldBeFilled = Boolean(st.target[r][c]);
         if (isFilled !== shouldBeFilled) {
           isSolved = false;
           break;
@@ -2747,7 +2781,7 @@ class ImageMinigameSuite {
     ctx.font = 'bold 15px sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillText('🧩 네모네모 로직', 20, 26);
+    ctx.fillText('🧩 네모네모 로직', 20, 24);
 
     let filledCount = 0;
     for (let r = 0; r < st.rows; r++) {
@@ -2760,7 +2794,7 @@ class ImageMinigameSuite {
     ctx.textAlign = 'right';
     ctx.font = '12px sans-serif';
     ctx.fillStyle = '#94a3b8';
-    ctx.fillText(`채운 칸: ${filledCount} / ${st.totalTargetFilled} (${pct}%)`, this.width - 20, 26);
+    ctx.fillText(`${filledCount} / ${st.totalTargetFilled} (${pct}%)`, this.width - 20, 24);
 
     // 3. 상단 열(Column) 힌트 숫자
     ctx.fillStyle = 'rgba(15, 23, 42, 0.7)';
@@ -2773,14 +2807,15 @@ class ImageMinigameSuite {
 
       const clues = st.colClues[c];
       const cx = st.gridX + c * st.cellSize + st.cellSize / 2;
-      const startNumY = st.clueTopY + st.topClueH - 8 - (clues.length - 1) * 14;
+      const spacing = Math.min(13, Math.floor((st.topClueH - 8) / Math.max(1, clues.length)));
+      const startNumY = st.clueTopY + st.topClueH - 7 - (clues.length - 1) * spacing;
 
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.font = isDone ? 'bold 11px sans-serif' : '11px sans-serif';
 
       for (let i = 0; i < clues.length; i++) {
-        const ny = startNumY + i * 14;
+        const ny = startNumY + i * spacing;
         ctx.fillStyle = isDone ? '#10b981' : '#cbd5e1';
         ctx.fillText(String(clues[i]), cx, ny);
       }
@@ -2804,14 +2839,15 @@ class ImageMinigameSuite {
 
       const clues = st.rowClues[r];
       const cy = st.gridY + r * st.cellSize + st.cellSize / 2;
-      const endX = st.leftX + st.leftClueW - 8;
+      const endX = st.leftX + st.leftClueW - 7;
+      const spacing = Math.min(13, Math.floor((st.leftClueW - 10) / Math.max(1, clues.length)));
 
       ctx.textAlign = 'right';
       ctx.textBaseline = 'middle';
       ctx.font = isDone ? 'bold 11px sans-serif' : '11px sans-serif';
 
       for (let i = clues.length - 1; i >= 0; i--) {
-        const nx = endX - (clues.length - 1 - i) * 14;
+        const nx = endX - (clues.length - 1 - i) * spacing;
         ctx.fillStyle = isDone ? '#10b981' : '#cbd5e1';
         ctx.fillText(String(clues[i]), nx, cy);
       }
@@ -2910,47 +2946,6 @@ class ImageMinigameSuite {
     ctx.strokeStyle = '#38bdf8';
     ctx.lineWidth = 2;
     ctx.strokeRect(st.gridX, st.gridY, st.gridW, st.gridH);
-
-    // 6. 하단 조작 버튼 3종 (플레이 중에만 렌더링)
-    if (!isWin) {
-      const bFill = st.buttons.fill;
-      const bCross = st.buttons.cross;
-      const bReset = st.buttons.reset;
-
-      // Fill Button
-      const isFillActive = st.toolMode === 'FILL';
-      ctx.fillStyle = isFillActive ? 'rgba(14, 165, 233, 0.25)' : 'rgba(30, 41, 59, 0.7)';
-      ctx.strokeStyle = isFillActive ? '#38bdf8' : '#475569';
-      ctx.lineWidth = isFillActive ? 2 : 1;
-      this._roundRect(ctx, bFill.x, bFill.y, bFill.w, bFill.h, 8, true, true);
-
-      ctx.fillStyle = isFillActive ? '#38bdf8' : '#94a3b8';
-      ctx.font = 'bold 13px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('⬛ 채우기', bFill.x + bFill.w / 2, bFill.y + bFill.h / 2);
-
-      // Cross Button
-      const isCrossActive = st.toolMode === 'X';
-      ctx.fillStyle = isCrossActive ? 'rgba(244, 63, 94, 0.25)' : 'rgba(30, 41, 59, 0.7)';
-      ctx.strokeStyle = isCrossActive ? '#f43f5e' : '#475569';
-      ctx.lineWidth = isCrossActive ? 2 : 1;
-      this._roundRect(ctx, bCross.x, bCross.y, bCross.w, bCross.h, 8, true, true);
-
-      ctx.fillStyle = isCrossActive ? '#f43f5e' : '#94a3b8';
-      ctx.font = 'bold 13px sans-serif';
-      ctx.fillText('❌ 표시', bCross.x + bCross.w / 2, bCross.y + bCross.h / 2);
-
-      // Reset Button
-      ctx.fillStyle = 'rgba(30, 41, 59, 0.7)';
-      ctx.strokeStyle = '#475569';
-      ctx.lineWidth = 1;
-      this._roundRect(ctx, bReset.x, bReset.y, bReset.w, bReset.h, 8, true, true);
-
-      ctx.fillStyle = '#cbd5e1';
-      ctx.font = '12px sans-serif';
-      ctx.fillText('↺ 초기화', bReset.x + bReset.w / 2, bReset.y + bReset.h / 2);
-    }
   }
 
   _roundRect(ctx, x, y, w, h, r, fill, stroke) {
@@ -2970,9 +2965,15 @@ class ImageMinigameSuite {
     if (this.gameState !== 'PLAYING') {
       if (this.gameState === 'READY' && this.gameType === 'BRICK_BREAKER' && this.bbState) {
         const p = this.bbState.paddle;
-        const b = this.bbState.ball;
-        b.x = p.x + p.w / 2;
-        b.y = p.y - b.r - 2;
+        const b = this.bbState.balls ? this.bbState.balls[0] : null;
+        if (b && p) {
+          b.x = p.x + p.w / 2;
+          b.y = p.y - b.r - 2;
+        }
+        // 시작 후 0.6초 경과 시 자동 발사 (플레이어가 아무것도 안 눌러도 즉시 동작)
+        if (performance.now() - (this.bbState.readyTime || 0) > 600) {
+          this.launchBall();
+        }
       }
       return;
     }

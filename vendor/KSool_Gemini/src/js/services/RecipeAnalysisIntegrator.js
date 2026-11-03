@@ -452,13 +452,9 @@ class RecipeAnalysisIntegrator {
    * @returns {object} { rows, cols, rowClues, colClues, targetGrid, totalTargetFilled }
    */
   static calcNonogramClues(dotInfo) {
-    const minR = dotInfo.minR;
-    const maxR = dotInfo.maxR;
-    const minC = dotInfo.minC;
-    const maxC = dotInfo.maxC;
-
-    const rows = maxR - minR + 1;
-    const cols = maxC - minC + 1;
+    // 모든 재료 16x16 동일한 그리드로 통일
+    const rows = 16;
+    const cols = 16;
 
     const targetGrid = Array.from({ length: rows }, () => Array(cols).fill(false));
     const targetColors = Array.from({ length: rows }, () => Array(cols).fill(null));
@@ -466,7 +462,7 @@ class RecipeAnalysisIntegrator {
 
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
-        const color = dotInfo.grid[minR + r][minC + c];
+        const color = dotInfo.grid[r][c];
         if (color) {
           targetGrid[r][c] = true;
           targetColors[r][c] = color;

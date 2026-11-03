@@ -71,6 +71,42 @@ class AudioService {
     }
   }
 
+  /**
+   * 은박지(복권) 긁는 소리: 짧은 고주파 노이즈 + 불규칙한 바스락 스파이크
+   */
+  playScratch(intensity = 1) {
+    const effVol = this.getEffectiveVolume();
+    if (effVol <= 0) return;
+    const ctx = this._getContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    const dur = 0.07 + Math.random() * 0.06;
+    const len = Math.max(1, Math.floor(ctx.sampleRate * dur));
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) {
+      const env = Math.sin(Math.PI * i / len);
+      const crackle = Math.random() < 0.14 ? 1 : 0.32;
+      data[i] = (Math.random() * 2 - 1) * env * crackle;
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const hp = ctx.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = 2600 + Math.random() * 1400;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 5200 + Math.random() * 2800;
+    bp.Q.value = 0.7;
+    const gain = ctx.createGain();
+    gain.gain.value = 0.26 * effVol * intensity;
+    src.connect(hp);
+    hp.connect(bp);
+    bp.connect(gain);
+    gain.connect(ctx.destination);
+    src.start(now);
+  }
+
   playTap() {
     const effVol = this.getEffectiveVolume();
     if (effVol <= 0) return;

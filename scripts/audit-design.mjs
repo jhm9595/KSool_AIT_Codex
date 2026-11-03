@@ -47,6 +47,13 @@ try {
       await audit(key);
       await page.evaluate(()=>window.ksoolApp.partyGameHubView.openLobby());
     }
+    await page.evaluate(()=>window.ksoolApp.switchTab('brew'));
+    for(const type of ['BRICK_BREAKER','TERRITORY_QIX','NONOGRAM']) {
+      await page.evaluate(()=>window.ksoolApp.hintModalView.open(6,'MINIGAME_SELECT'));
+      await page.locator(`[data-start-minigame="${type}"]`).click();
+      await audit(`hint-${type}`);
+      await page.evaluate(()=>window.ksoolApp.hintModalView.close());
+    }
     await page.evaluate(()=>{ window.ksoolApp.switchTab('brew'); window.ksoolApp.settingsModalView.open(); });
     await audit('settings');
     await page.evaluate(()=>{window.ksoolApp.settingsModalView.close();window.ksoolApp.hintModalView.open(6);});

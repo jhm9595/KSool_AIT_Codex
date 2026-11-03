@@ -501,7 +501,7 @@ class PartyGameHubView {
         <div class="party-game-top-bar">
           <button type="button" class="party-back-btn" id="party-back-btn">
             <span class="back-icon">‹</span>
-            <span class="back-label">게임 목록</span>
+            <span class="back-label">뒤로</span>
           </button>
           <div class="party-active-game-pill" style="border-color:${meta.accentColor};">
             <span class="pill-emoji">${meta.emoji}</span>

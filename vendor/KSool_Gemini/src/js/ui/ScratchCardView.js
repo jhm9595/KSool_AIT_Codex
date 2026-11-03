@@ -9,7 +9,7 @@
 
   class ScratchCardView {
     constructor(options = {}) {
-      this.containerId = options.containerId || 'scratch-card-box';
+      this.containerId = options.containerId || 'hint-desc-card';
       this.secretText = options.secretText || '';
       this.onComplete = options.onComplete || (() => {});
       this.audio = options.audio || null;
@@ -22,48 +22,65 @@
       this.scratchRatioThreshold = options.threshold || 0.80; // 80% 이상 충분히 긁었을 때 자동 공개
     }
 
+    /**
+     * 기존 카드 요소(#hint-desc-card) 내부의 캔버스를 초기화 (크기 불일치 없는 완벽한 일체형)
+     */
+    init(cardEl) {
+      if (!cardEl) return;
+      this.isCompleted = false;
+      this.canvas = cardEl.querySelector('.scratch-overlay-canvas');
+      if (!this.canvas) return;
+      this.ctx = this.canvas.getContext('2d', { willReadFrequently: true });
+
+      requestAnimationFrame(() => {
+        this._initCanvas(cardEl);
+        this._bindPointerEvents();
+      });
+    }
+
+    /**
+     * 레거시 부모 요소 마운트 지원
+     */
     render(parentEl) {
       if (!parentEl) return;
       this.isCompleted = false;
 
+      if (parentEl.classList?.contains('hint-desc-card') || parentEl.querySelector('.scratch-overlay-canvas')) {
+        const card = parentEl.classList?.contains('hint-desc-card') ? parentEl : (parentEl.querySelector('.hint-desc-card') || parentEl);
+        this.init(card);
+        return;
+      }
+
       parentEl.innerHTML = `
-        <div class="scratch-card-box" id="${this.containerId}">
-          <div class="scratch-underlayer">
+        <div class="hint-desc-card" id="${this.containerId}">
+          <div class="hint-desc-underlayer">
             <span class="hint-bulb">💡</span>
-            <span class="scratch-secret-content">${this.secretText}</span>
+            <span class="hint-desc-text">${this.secretText}</span>
           </div>
           <canvas class="scratch-overlay-canvas"></canvas>
         </div>
       `;
 
-      const box = parentEl.querySelector('.scratch-card-box');
-      this.canvas = parentEl.querySelector('.scratch-overlay-canvas');
-      this.ctx = this.canvas.getContext('2d', { willReadFrequently: true });
-
-
-      // 캔버스 크기 측정 및 초기화
-      requestAnimationFrame(() => {
-        this._initCanvas(box);
-        this._bindPointerEvents();
-      });
+      const box = parentEl.querySelector('.hint-desc-card') || parentEl;
+      this.init(box);
     }
 
     _initCanvas(box) {
       if (!this.canvas || !box) return;
       const rect = box.getBoundingClientRect();
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const width = Math.max(Math.floor(rect.width), 240);
-      const height = Math.max(Math.floor(rect.height), 72);
+      const width = Math.max(Math.floor(box.clientWidth || rect.width || 280), 200);
+      const height = Math.max(Math.floor(box.clientHeight || rect.height || 54), 48);
 
-      this.canvas.width = width * dpr;
-      this.canvas.height = height * dpr;
+      this.canvas.width = Math.floor(width * dpr);
+      this.canvas.height = Math.floor(height * dpr);
       this.canvas.style.width = width + 'px';
       this.canvas.style.height = height + 'px';
 
       const ctx = this.ctx;
       ctx.scale(dpr, dpr);
 
-      // 고급 실버 복권 그라데이션 코팅
+      // 고급 실버 복권 그라데이션 코팅 (pre-scratch 은박지와 동일한 메탈릭 실버)
       const grad = ctx.createLinearGradient(0, 0, width, height);
       grad.addColorStop(0, '#475569');
       grad.addColorStop(0.3, '#94a3b8');
@@ -85,11 +102,11 @@
         ctx.fill();
       }
 
-      // 테두리 스티치 라인
+      // 테두리 스티치 라인 (pre-scratch 은박지와 동일한 3px 내부 점선)
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
       ctx.lineWidth = 1.5;
       ctx.setLineDash([4, 4]);
-      ctx.strokeRect(4, 4, width - 8, height - 8);
+      ctx.strokeRect(3, 3, width - 6, height - 6);
       ctx.setLineDash([]);
 
       // 스크래치 안내 문구 및 동전 아이콘
@@ -126,8 +143,11 @@
         this.lastPoint = pt;
 
         this.moveCount++;
-        if (this.moveCount % 6 === 0) {
-          this.audio?.playTap?.();
+        const nowTs = performance.now();
+        if (!this._lastScratchSound || nowTs - this._lastScratchSound > 60) {
+          this._lastScratchSound = nowTs;
+          if (this.audio?.playScratch) this.audio.playScratch(1);
+          else this.audio?.playTap?.();
         }
         if (this.moveCount % 10 === 0) {
           this._checkProgress();
@@ -151,14 +171,14 @@
       if (!this.ctx) return;
       this.ctx.globalCompositeOperation = 'destination-out';
       this.ctx.beginPath();
-      this.ctx.arc(x, y, 12, 0, Math.PI * 2);
+      this.ctx.arc(x, y, 14, 0, Math.PI * 2);
       this.ctx.fill();
     }
 
     _scratchLine(p1, p2) {
       if (!this.ctx || !p1 || !p2) return;
       this.ctx.globalCompositeOperation = 'destination-out';
-      this.ctx.lineWidth = 22;
+      this.ctx.lineWidth = 26;
       this.ctx.lineCap = 'round';
       this.ctx.lineJoin = 'round';
       this.ctx.beginPath();
@@ -208,7 +228,8 @@
         }, 680);
       }
 
-      this.audio?.playTap?.();
+      if (this.audio?.playScratch) this.audio.playScratch(1.6);
+      else this.audio?.playTap?.();
       if (typeof this.onComplete === 'function') {
         this.onComplete();
       }

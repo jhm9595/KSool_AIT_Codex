@@ -45,6 +45,8 @@ try {
   page.on('dialog', dialog => dialog.dismiss());
   await page.goto(`http://127.0.0.1:${port}`);
   await page.waitForFunction(() => window.ksoolApp?.recipeBook.recipes.size > 0);
+  // Test the game surface without the development-only floating inspector.
+  await page.addStyleTag({ content: '.ait-panel-root { display: none !important; }' });
   assert.equal(await page.title(), 'K-Sool');
   assert.equal(await page.locator('.brand h1').innerText(), 'K-Sool');
   assert.equal(await page.locator('#mix-btn').isDisabled(), true);
@@ -95,6 +97,39 @@ try {
   await page.screenshot({ path: join(artifacts, '05-hint.png') });
   await page.evaluate(() => window.__ksoolPlatform.back());
   await page.evaluate(() => window.__ksoolPlatform.back());
+
+  // Upstream 3e31279 changed all three picture-hint games and their controls.
+  await page.evaluate(() => window.ksoolApp.hintModalView.open(6));
+  await page.locator('#btn-start-scratch').click();
+  await page.waitForFunction(() => Boolean(window.ksoolApp.hintModalView.scratchCardInstance?.ctx));
+  const scratch = await page.locator('#scratch-overlay-canvas').boundingBox();
+  assert(scratch && scratch.width > 0 && scratch.height > 0);
+  await page.mouse.move(scratch.x + 2, scratch.y + 2);
+  await page.mouse.down();
+  for (let y = 2; y < scratch.height; y += 12) {
+    await page.mouse.move(scratch.x + scratch.width - 2, scratch.y + y, { steps: 15 });
+    await page.mouse.move(scratch.x + 2, scratch.y + y, { steps: 15 });
+  }
+  await page.mouse.up();
+  await page.waitForFunction(() => window.ksoolApp.inventory.isRecipeDescUnlocked(6));
+  await page.screenshot({ path: join(artifacts, 'hint-scratch-complete.png') });
+  await page.evaluate(() => window.ksoolApp.hintModalView.close());
+  for (const type of ['BRICK_BREAKER', 'TERRITORY_QIX', 'NONOGRAM']) {
+    await page.addStyleTag({ content: '.ait-panel-root { display: none !important; }' });
+    await page.evaluate(() => window.ksoolApp.hintModalView.open(6, 'MINIGAME_SELECT'));
+    await page.locator(`[data-start-minigame="${type}"]`).click();
+    await page.waitForFunction(() => Boolean(window.ksoolApp.hintModalView.minigameInstance));
+    if (type === 'NONOGRAM') {
+      assert.equal(await page.evaluate(() => window.ksoolApp.hintModalView.minigameInstance.nonogramState.rows), 15);
+      await page.locator('#nono-mode-mark').click();
+      assert.equal(await page.evaluate(() => window.ksoolApp.hintModalView.minigameInstance.nonogramState.toolMode), 'X');
+      await page.locator('#nono-mode-fill').click();
+      await page.locator('#nono-reset-btn').click();
+    }
+    await page.screenshot({ path: join(artifacts, `hint-${type}.png`) });
+    await page.evaluate(() => window.ksoolApp.hintModalView.close());
+    assert.equal(await page.evaluate(() => window.ksoolApp.hintModalView.minigameInstance), null);
+  }
 
   // Native back ordering: game -> lobby -> brew. Every available party game mounts.
   await page.locator('[data-tab-target="party"]').click();

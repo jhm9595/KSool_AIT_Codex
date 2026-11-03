@@ -629,6 +629,13 @@ class CapFlickGame {
 
     // 포인터/터치 업 (손 떼기: 파워 결정 및 타격)
     const onEnd = (e) => {
+      // 상단 탑바(뒤로 버튼 등) 터치는 클릭이 정상 동작하도록 preventDefault/타격 처리를 건너뜀
+      if (e.target && e.target.closest && e.target.closest('.party-game-top-bar')) {
+        if (e.type === 'touchend' || e.type === 'touchcancel') {
+          setTimeout(() => { touchInProgress = false; }, 80);
+        }
+        return;
+      }
       if (e.cancelable) e.preventDefault();
 
       if (e.type === 'touchend' || e.type === 'touchcancel') {
