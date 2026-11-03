@@ -12,13 +12,37 @@ button { min-height: 44px !important; min-width: 44px !important; }
 @media (max-width: 480px) { .brand-inline-sub { font-size: 12px; } }
 
 :root {
-  --primary: #d5a64a;
-  --primary-hover: #ba8629;
-  --primary-soft: rgba(213, 166, 74, .16);
-  --text-muted: #b0bbca;
-  --ait-on-primary: #211708;
+  --primary: #16845b;
+  --primary-hover: #116a49;
+  --primary-soft: rgba(22, 132, 91, .12);
+  --bg: #f2faf6;
+  --app-bg: #f2faf6;
+  --card-bg: #ffffff;
+  --card-hover: #e2f3eb;
+  --border: #c7dcd1;
+  --text: #193b31;
+  --text-muted: #587367;
+  --ait-on-primary: #ffffff;
   --ait-caption: 15px;
 }
+
+html { color-scheme: light; }
+.tab-bar { background: #ffffff; border-top: 1px solid var(--border); }
+.tab-btn { background: #ffffff; color: var(--text-muted); }
+.tab-btn.active { background: #e2f3eb; color: #116a49; }
+.brew-mode-tab-btn.active, .mix-btn:not(:disabled), .cat-chip.active { color: #ffffff; }
+.brew-quiz-card, .ing-card, .sool-card, .modal-card { box-shadow: none; }
+.modal-overlay { background: rgba(25, 59, 49, .35); }
+.modal-card { background: #ffffff; border-color: var(--border); }
+.modal-title, .modal-close-x, .clear-pot-btn { color: var(--text); }
+.modal-close-x { background: #e2f3eb; }
+.mix-btn:disabled { background: #dce8e1; color: #668174; }
+.pot-slot.empty { background: #ffffff; border-color: var(--border); }
+.tab-bar > #open-settings-btn { background: #ffffff; }
+.party-fullscreen-wrapper { color: var(--text); background: #f2faf6; }
+.party-game-top-bar { background: #ffffff; }
+#view-party.active.party-fullscreen-mode { background: #f2faf6 !important; }
+#ait-status { background: #193b31; color: #ffffff; }
 /* Native container owns the title and close controls; settings joins app tabs. */
 #app-container > header { display: none; }
 .tab-bar > #open-settings-btn { flex: 0 0 64px; align-self: stretch; border: 0; border-left: 1px solid var(--border); border-radius: 0; background: var(--card-bg); color: var(--text); font-size: 15px; }
@@ -75,3 +99,19 @@ button { min-height: 44px !important; min-width: 44px !important; }
   .pot-section { padding: 8px 12px; }
   .pot-slots-grid { gap: 6px; }
 }
+
+/* Final light-theme contrast overrides after shared control rules. */
+.tab-btn.active { color: #116a49; }
+.settings-danger-section { background: #fff5f4; border-color: #ebc9c6; }
+.settings-danger-section .settings-reset-desc { color: #70564e; }
+.settings-danger-btn { background: #fff; color: #a53434; }
+.quiz-num-total, .sool-num-badge, .settings-sound-labels { color: #587367; }
+.slot-empty-text, .slot-empty-hint, .slot-placeholder { color: #587367; opacity: 1; }
+.pot-slot.empty { color: #587367; }
+.party-num-key, .party-number-display { box-shadow: none !important; }
+.hint-step-card.step-purple { background: #f4edf9; color: #6d3894; box-shadow: none; }
+.hint-step-card.step-cyan { background: #edf8f4; color: #116a49; box-shadow: none; }
+.hint-step-card .step-label, .hint-step-card .step-badge { background: #ffffff; color: #587367; }
+.hint-desc-foil-overlay { background: linear-gradient(135deg, #edf3f0, #b8cec2); color: #193b31; }
+.foil-placeholder { color: #193b31; text-shadow: none; }
+.settings-danger-btn { background: #ffffff !important; color: #a53434 !important; }
