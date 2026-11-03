@@ -66,7 +66,7 @@ try {
   await page.waitForFunction(() => window.ksoolApp?.inventory.isRecipeUnlocked(5));
 
   await page.locator('#open-settings-btn').click();
-  for (const theme of ['blue', 'apricot', 'green']) {
+  for (const theme of ['blue', 'apricot', 'brown', 'green']) {
     await page.locator(`.ait-theme-option[data-bottle-theme="${theme}"]`).click();
     assert.equal(await page.evaluate(() => document.documentElement.dataset.bottleTheme), theme);
     await page.evaluate(() => window.ksoolApp.settingsModalView.close());

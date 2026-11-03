@@ -3,7 +3,7 @@ import '../styles/base.css';
 import './platform.css';
 import './themes.css';
 
-const bottleThemes = { green: '초록 유리', blue: '푸른 유리', apricot: '살구빛 유리' };
+const bottleThemes = { green: '초록 유리', blue: '푸른 유리', apricot: '살구빛 유리', brown: '갈색 유리' };
 let bottleTheme = 'green';
 try { const saved = localStorage.getItem('ksool_ait_bottle_theme'); if (Object.hasOwn(bottleThemes, saved)) bottleTheme = saved; } catch { /* Session-only preference when storage is unavailable. */ }
 document.documentElement.dataset.bottleTheme = bottleTheme;

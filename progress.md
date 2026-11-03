@@ -23,3 +23,5 @@ Original prompt: Read KSool_Gemini without changing it, follow updates periodica
 - Bottle composition revision: user requested green above and white below with a near-black green thick bottle base. Crafting controls now sit on green glass, ingredient inventory forms the lower white label, and the brew tab's footer/safe area uses deep green glass shading. Other screens and source snapshot remain unchanged.
 - Added a compact decorative bottle neck and curved shoulders above brew controls at the user's request. CSS/SVG mask with green reflections and a subtle lip; scales down on short screens and does not intercept taps. No game logic or source snapshot changes.
 - User preferred the previous neck-free layout: restored its CSS and added settings theme choices (green glass, blue/cyan glass, apricot glass). Decorative background/base rotate hue independently from text and art. Preference persists under a separate localStorage key with validated fallback. Added switch/reload/selected-state regression coverage.
+
+- Added persistent brown beer-bottle glass theme; picker uses a 2x2 grid. Build, integration persistence test and visual screenshot checked.

@@ -1,5 +1,6 @@
 :root {
   --bottle-hue: 0deg;
+  --bottle-depth: 1;
   --theme-accent: #16845b;
   --theme-soft: #e2f3eb;
 }
@@ -15,7 +16,14 @@
   --theme-soft: #fcf0e2;
   --primary: #a45b25;
 }
-/* Hue rotation is confined to a decorative backdrop, never art or UI text. */
+:root[data-bottle-theme="brown"] {
+  --bottle-hue: -88deg;
+  --bottle-depth: .62;
+  --theme-accent: #805026;
+  --theme-soft: #f6ece1;
+  --primary: #805026;
+}
+/* Color treatment is confined to a decorative backdrop, never art or UI text. */
 #view-brew { position: relative; isolation: isolate; background: transparent; }
 #view-brew::before {
   content: '';
@@ -27,7 +35,7 @@
     linear-gradient(90deg, rgba(7, 61, 32, .38), transparent 9%, rgba(242, 255, 223, .17) 13%, transparent 22%, transparent 76%, rgba(235, 255, 219, .12) 85%, rgba(6, 57, 29, .32)),
     radial-gradient(ellipse at 38% 0%, rgba(211, 242, 153, .52), transparent 55%),
     linear-gradient(180deg, #277d3e 0%, #48984c 30%, #2e8543 66%, #176339 100%);
-  filter: hue-rotate(var(--bottle-hue));
+  filter: hue-rotate(var(--bottle-hue)) brightness(var(--bottle-depth));
 }
 #app-container:has(#view-brew.active) .tab-bar { position: relative; isolation: isolate; background: #03170e; }
 #app-container:has(#view-brew.active) .tab-bar::before {
@@ -35,7 +43,7 @@
   background:
     linear-gradient(90deg, rgba(0, 13, 8, .65), transparent 14%, rgba(153, 218, 157, .13) 21%, transparent 35%, transparent 75%, rgba(0, 13, 8, .65)),
     linear-gradient(180deg, #16452c 0%, #092b1b 30%, #03170e 82%, #010e08 100%);
-  filter: hue-rotate(var(--bottle-hue));
+  filter: hue-rotate(var(--bottle-hue)) brightness(var(--bottle-depth));
 }
 #view-brew .brew-quiz-card { background: rgba(0, 20, 19, .32); }
 #view-brew .pot-slots-grid { background: rgba(0, 20, 19, .16); }
@@ -44,10 +52,11 @@
 #view-brew .brew-mode-tab-btn.active { color: var(--theme-accent); }
 .ait-theme-picker { border: 1px solid var(--border); border-radius: 14px; padding: 12px; margin: 0 0 16px; min-width: 0; }
 .ait-theme-picker legend { color: var(--text); font-size: 15px; font-weight: 700; padding: 0 6px; }
-.ait-theme-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.ait-theme-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .ait-theme-option { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 12px 4px; background: #fff; color: #314f43; border: 1px solid #c7dcd1; border-radius: 10px; font: inherit; font-size: 15px; cursor: pointer; }
 .ait-theme-option[aria-pressed="true"] { border: 2px solid var(--theme-accent); background: var(--theme-soft); color: var(--theme-accent); font-weight: 700; }
 .ait-theme-swatch { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(110deg, var(--swatch-dark), var(--swatch-light) 40%, var(--swatch-dark)); border: 1px solid rgba(0,0,0,.15); }
 .ait-theme-option[data-bottle-theme="green"] { --swatch-dark: #176339; --swatch-light: #89bd70; }
 .ait-theme-option[data-bottle-theme="blue"] { --swatch-dark: #245e7b; --swatch-light: #8bcee1; }
 .ait-theme-option[data-bottle-theme="apricot"] { --swatch-dark: #97551e; --swatch-light: #efbd74; }
+.ait-theme-option[data-bottle-theme="brown"] { --swatch-dark: #4d2b12; --swatch-light: #b38245; }
