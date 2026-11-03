@@ -82,6 +82,13 @@ try {
     assert(!(await page.locator('.quiz-num-badge').evaluate(el => getComputedStyle(el).fontFamily)).includes('Tossface'));
     const themeSurface = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--bg').trim());
     assert.equal(await page.locator('.quiz-num-total').evaluate(el => getComputedStyle(el).color), 'rgb(255, 255, 255)');
+    // Preview a later locked recipe without persisting fabricated progress.
+    await page.evaluate(() => { const app = window.ksoolApp; app.inventory.craftFailCount = 1; app.quizTargetRecipeId = 10; app.renderAll(); });
+    await page.waitForTimeout(400);
+    const hintStyle = await page.locator('#quiz-open-hint-btn').evaluate(el => ({ color: getComputedStyle(el).color, gradient: getComputedStyle(el).backgroundImage }));
+    assert(hintStyle.gradient.includes('linear-gradient'));
+    assert.equal(await page.locator('.brew-quiz-card').evaluate(el => getComputedStyle(el).backgroundImage.includes('linear-gradient')), true);
+    await page.screenshot({ path: join(artifacts, `theme-${theme}-brew-hint.png`) });
     await page.evaluate(() => { window.ksoolApp.inventory.unlockAllSandboxMode = true; window.ksoolApp.renderAll(); });
     for (const tab of ['collection', 'suggestions', 'party']) {
       await page.evaluate(tab => window.ksoolApp.switchTab(tab), tab);

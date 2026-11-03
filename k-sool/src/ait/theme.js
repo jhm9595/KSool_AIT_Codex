@@ -9,7 +9,7 @@ const palette = (label, accent, ink, muted, canvas, soft, border, edge, mid, lig
     'ait-on-primary': '#ffffff', 'swatch-dark': edge, 'swatch-light': light }
 });
 export const bottleThemes = Object.freeze({
-  green: palette('초록 유리', '#16845b', '#193b31', '#526f60', '#f2faf6', '#e2f3eb', '#c7dcd1', '#176339', '#48984c', '#a5cc8b', '#03170e', '#ffffff', '#e1f1e9', '#164c32'),
+  green: palette('초록 유리', '#16845b', '#193b31', '#526f60', '#f5f8ef', '#e6efd9', '#c7d7bb', '#176339', '#48984c', '#a5cc8b', '#03170e', '#f1f6e8', '#e3edcf', '#164c32'),
   blue: palette('푸른 유리', '#2177a7', '#193e60', '#506c80', '#f0f7fb', '#e5eef3', '#c7dcea', '#5ea3c2', '#ccd8e2', '#f7f9fb', '#32677c', '#2177a7', '#dcecf6', '#244b58'),
   apricot: palette('살구빛 유리', '#92552f', '#634338', '#79604d', '#fff8ef', '#fbecd8', '#ddc5a5', '#cc9551', '#efd09a', '#fae9c7', '#70452d', '#fff1d9', '#f3dfbd', '#805033'),
   brown: palette('갈색 유리', '#76501f', '#493015', '#755e41', '#fbf6eb', '#f8edcf', '#d8c393', '#351f16', '#72361c', '#d3782c', '#1e130e', '#d8b565', '#f0dca7', '#58351f'),

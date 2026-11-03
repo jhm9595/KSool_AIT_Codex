@@ -117,7 +117,7 @@ body, #app-container, .view, .party-fullscreen-wrapper { background-color: var(-
 #view-collection :is(.sool-num-badge,.sool-num-badge *,.collection-progress-pill,.collection-progress-pill *) { font-family: system-ui, sans-serif; }
 #view-collection .sool-card.level-locked { opacity: .75; }
 #view-collection .collection-header { background: color-mix(in srgb, var(--control-bg) 90%, transparent); }
-#view-collection::before { background: linear-gradient(90deg, var(--glass-edge), transparent 25%, #ffffff22 35%, transparent 70%, var(--glass-edge)), linear-gradient(180deg, var(--glass-mid), var(--glass-edge)); }
+
 
 /* Game selection uses the same bottle shell; gameplay retains meaningful state colors. */
 #view-party:not(.party-fullscreen-mode) { padding: 0; }
@@ -158,3 +158,19 @@ body, #app-container, .view, .party-fullscreen-wrapper { background-color: var(-
 #view-party .market-pill.active { background: var(--theme-soft); border-color: var(--primary); color: var(--primary-hover); box-shadow: inset 0 0 0 1px var(--primary); }
 #view-party :is(.market-start-btn,.iamground-start-btn) { border-color: var(--primary); }
 #hint-modal .bb-help-btn, #hint-modal .bb-help-btn.active { background: var(--theme-soft); border-color: var(--border); color: var(--primary); box-shadow: none; }
+
+/* Shared tinted-glass material, independent of palette and screen. */
+:root {
+  --control-material: linear-gradient(112deg, #ffffff20, transparent 25%, #ffffff0a 58%, #00000012), linear-gradient(180deg, color-mix(in srgb, var(--control-bg) 88%, white), var(--control-bg));
+  --control-rim: inset 0 1px 0 #ffffff45, inset 0 -2px 4px #00000018;
+}
+#view-brew :is(.brew-mode-tabs,.brew-quiz-card,.pot-slot.empty,.clear-pot-btn),
+#view-collection .collection-header, #view-party .party-lobby-header {
+  background: var(--control-material); box-shadow: var(--control-rim);
+}
+#view-brew .pot-slots-grid { background: linear-gradient(110deg,#ffffff33, #ffffff0d 38%, #ffffff20); box-shadow: inset 0 1px 0 #ffffff66, inset 0 -1px 4px #00000018; }
+#view-brew .quiz-infer-btn, #view-brew .quiz-infer-btn:hover {
+  background: linear-gradient(135deg,#ffffffaa,transparent), var(--theme-soft);
+  color: var(--primary-hover); border: 1px solid var(--border); box-shadow: inset 0 1px 0 #ffffffcc, 0 2px 4px #00000018;
+}
+#view-brew .quiz-infer-btn:active { background: var(--theme-soft); transform: scale(.98); }
