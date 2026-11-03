@@ -37,6 +37,14 @@ class ImageMinigameSuite {
     this._renderHiddenArtwork();
 
     this._cleanupInputHandlers = null;
+
+    // 모바일 롱프레스/빠른 다중 탭 시 브라우저 복사하기/오려두기/돋보기/컨텍스트 메뉴 원천 차단
+    this._preventCanvasCallouts = (e) => {
+      if (e.cancelable) e.preventDefault();
+      return false;
+    };
+    this.canvas.addEventListener('contextmenu', this._preventCanvasCallouts, { passive: false });
+    this.canvas.addEventListener('selectstart', this._preventCanvasCallouts, { passive: false });
   }
 
   /**
@@ -422,6 +430,14 @@ class ImageMinigameSuite {
     if (this._cleanupJoystick) {
       this._cleanupJoystick();
       this._cleanupJoystick = null;
+    }
+  }
+
+  destroy() {
+    this.stop();
+    if (this._preventCanvasCallouts && this.canvas) {
+      this.canvas.removeEventListener('contextmenu', this._preventCanvasCallouts);
+      this.canvas.removeEventListener('selectstart', this._preventCanvasCallouts);
     }
   }
 
@@ -1102,6 +1118,12 @@ class ImageMinigameSuite {
       }
     };
 
+    // 모바일 돋보기(루페) 및 롱프레스 텍스트 선택/복사 팝업 원천 차단
+    const onPreventCallout = (e) => {
+      if (e.cancelable) e.preventDefault();
+      return false;
+    };
+
     const onPointerMove = (e) => {
       if (!isPointerDragging && e.buttons === 0) return;
       movePaddle(e.clientX);
@@ -1133,6 +1155,10 @@ class ImageMinigameSuite {
     };
 
     this.canvas.addEventListener('pointerdown', onPointerDown, { passive: false });
+    this.canvas.addEventListener('touchstart', onPreventCallout, { passive: false });
+    this.canvas.addEventListener('touchend', onPreventCallout, { passive: false });
+    this.canvas.addEventListener('contextmenu', onPreventCallout, { passive: false });
+    this.canvas.addEventListener('selectstart', onPreventCallout, { passive: false });
     window.addEventListener('pointermove', onPointerMove, { passive: true });
     window.addEventListener('pointerup', onPointerUp, { passive: true });
     window.addEventListener('keydown', onKeyDown);
@@ -1140,6 +1166,10 @@ class ImageMinigameSuite {
 
     this._cleanupInputHandlers = () => {
       this.canvas.removeEventListener('pointerdown', onPointerDown);
+      this.canvas.removeEventListener('touchstart', onPreventCallout);
+      this.canvas.removeEventListener('touchend', onPreventCallout);
+      this.canvas.removeEventListener('contextmenu', onPreventCallout);
+      this.canvas.removeEventListener('selectstart', onPreventCallout);
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
       window.removeEventListener('keydown', onKeyDown);
@@ -1305,6 +1335,7 @@ class ImageMinigameSuite {
         b.vx = Math.sin(angle) * speed;
         b.vy = -Math.cos(angle) * speed;
         b.y = p.y - b.r - 1;
+        b.consecutiveBrickHits = 0;
         st.combo = 0; // 패들에 닿으면 콤보 리셋
         this.audio?.playTap?.();
         this._spawnParticles(b.x, p.y, '#fde047', 6);
@@ -1333,17 +1364,36 @@ class ImageMinigameSuite {
               this._spawnParticles(b.x, b.y, '#f97316', 6);
             }
           } else {
-            // 일반 반사 계산
+            b.consecutiveBrickHits = (b.consecutiveBrickHits || 0) + 1;
+
+            // 일반 반사 계산 및 위치 보정 (관통 및 제자리 진동 탈출)
             const overlapLeft = b.x + b.r - blk.x;
             const overlapRight = blk.x + blk.w - (b.x - b.r);
             const overlapTop = b.y + b.r - blk.y;
             const overlapBottom = blk.y + blk.h - (b.y - b.r);
             const minOverlap = Math.min(overlapLeft, overlapRight, overlapTop, overlapBottom);
 
-            if (minOverlap === overlapLeft || minOverlap === overlapRight) {
-              b.vx = -b.vx;
+            if (minOverlap === overlapLeft) {
+              b.x = blk.x - b.r - 0.5;
+              b.vx = -Math.abs(b.vx || 3);
+            } else if (minOverlap === overlapRight) {
+              b.x = blk.x + blk.w + b.r + 0.5;
+              b.vx = Math.abs(b.vx || 3);
+            } else if (minOverlap === overlapTop) {
+              b.y = blk.y - b.r - 0.5;
+              b.vy = -Math.abs(b.vy || 3);
             } else {
-              b.vy = -b.vy;
+              b.y = blk.y + blk.h + b.r + 0.5;
+              b.vy = Math.abs(b.vy || 3);
+            }
+
+            // [끼임/진동 방지 가드]
+            if (b.consecutiveBrickHits > 6) {
+              const spd = Math.max(6, Math.hypot(b.vx, b.vy));
+              const escapeAngle = (Math.random() * 0.4 + 0.3) * Math.PI;
+              b.vx = Math.cos(escapeAngle) * spd * (Math.random() > 0.5 ? 1 : -1);
+              b.vy = Math.abs(Math.sin(escapeAngle) * spd);
+              b.consecutiveBrickHits = 0;
             }
 
             if (blk.isSteel) {

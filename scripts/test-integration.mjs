@@ -119,6 +119,10 @@ try {
     await page.evaluate(() => window.ksoolApp.hintModalView.open(6, 'MINIGAME_SELECT'));
     await page.locator(`[data-start-minigame="${type}"]`).click();
     await page.waitForFunction(() => Boolean(window.ksoolApp.hintModalView.minigameInstance));
+    assert.equal(await page.evaluate(() => {
+      window.__lastHintGame = window.ksoolApp.hintModalView.minigameInstance;
+      return window.__lastHintGame.canvas.dispatchEvent(new Event('contextmenu', { cancelable: true }));
+    }), false, 'Canvas must suppress long-press context menus');
     if (type === 'NONOGRAM') {
       assert.equal(await page.evaluate(() => window.ksoolApp.hintModalView.minigameInstance.nonogramState.rows), 15);
       await page.locator('#nono-mode-mark').click();
@@ -129,6 +133,12 @@ try {
     await page.screenshot({ path: join(artifacts, `hint-${type}.png`) });
     await page.evaluate(() => window.ksoolApp.hintModalView.close());
     assert.equal(await page.evaluate(() => window.ksoolApp.hintModalView.minigameInstance), null);
+    assert.equal(await page.evaluate(() => {
+      const stopped = !window.__lastHintGame.isRunning;
+      const detached = window.__lastHintGame.canvas.dispatchEvent(new Event('contextmenu', { cancelable: true }));
+      delete window.__lastHintGame;
+      return stopped && detached;
+    }), true, 'Closing a hint must stop its game and remove canvas listeners');
   }
 
   // Native back ordering: game -> lobby -> brew. Every available party game mounts.

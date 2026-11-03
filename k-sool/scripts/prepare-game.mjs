@@ -58,6 +58,9 @@ transform(join(output, 'src'));
 const hintPath = join(output, 'src/js/ui/HintModalView.js');
 const hint = readFileSync(hintPath, 'utf8');
 writeFileSync(hintPath, hint.replace(
+  'this.minigameInstance.stop();',
+  "if (typeof this.minigameInstance.destroy === 'function') this.minigameInstance.destroy();\n      else this.minigameInstance.stop();",
+).replace(
   /(const backChoiceBtn = container\.querySelector\('#hint-back-choice-btn'\);\s*)if \(mgBackChoiceBtn\) \{\s*mgBackChoiceBtn\.onclick/,
   '$1if (backChoiceBtn) {\n      backChoiceBtn.onclick',
 ).replace(
