@@ -39,3 +39,5 @@ Original prompt: Read KSool_Gemini without changing it, follow updates periodica
 - Fixed settings audio button, percent, track fill and browser-specific slider thumbs to consume shared palette tokens. Replaced generated runtime gradient literals so open-modal theme switching updates fill immediately. Verified four theme settings captures and audio color regression assertions.
 
 - Removed upstream header settings class and rotation; settings now uses equal-width bottom-tab geometry with icon above label. Added bounding-box alignment and hover-transform regression checks. Build and integration passed; bottom navigation screenshot inspected.
+
+- Fixed color-font digits bypassing CSS text color: quiz numbers and empty-slot labels use system text fonts. Replaced fixed-color plus emoji with currentColor SVG in generated app. Verified white plus signs and numbers in blue theme screenshot; added regression checks for SVG count, color and numeric font.

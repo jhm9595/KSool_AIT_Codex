@@ -77,6 +77,9 @@ try {
     await page.waitForTimeout(400); // Let existing surface color transitions settle before visual capture.
     await page.screenshot({ path: join(artifacts, `theme-${theme}.png`) });
     assert.equal(await page.locator('.pot-slot.empty span').last().evaluate(el => getComputedStyle(el).color), 'rgb(255, 255, 255)');
+    assert.equal(await page.locator('.ait-slot-plus').count(), 4);
+    assert.equal(await page.locator('.ait-slot-plus').first().evaluate(el => getComputedStyle(el).color), 'rgb(255, 255, 255)');
+    assert(!(await page.locator('.quiz-num-badge').evaluate(el => getComputedStyle(el).fontFamily)).includes('Tossface'));
     const themeSurface = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--bg').trim());
     assert.equal(await page.locator('.quiz-num-total').evaluate(el => getComputedStyle(el).color), 'rgb(255, 255, 255)');
     await page.evaluate(() => { window.ksoolApp.inventory.unlockAllSandboxMode = true; window.ksoolApp.renderAll(); });

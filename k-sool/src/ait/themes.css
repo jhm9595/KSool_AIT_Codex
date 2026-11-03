@@ -71,3 +71,9 @@ body, #app-container, .view, .party-fullscreen-wrapper { background-color: var(-
 .tab-bar > #open-settings-btn:hover, .tab-bar > #open-settings-btn:active {
   transform: none; box-shadow: none;
 }
+
+/* Numeric text must not use color emoji glyphs, which ignore CSS text color. */
+#view-brew .quiz-num-badge, #view-brew .quiz-num-badge *, #view-brew .pot-slot.empty span {
+  font-family: system-ui, -apple-system, sans-serif; color: var(--control-ink); opacity: 1;
+}
+#view-brew .ait-slot-plus { width: 22px; height: 22px; flex-shrink: 0; color: var(--control-ink); }

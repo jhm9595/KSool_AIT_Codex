@@ -1,5 +1,6 @@
 // Generated UI only. Never apply these adaptations to vendor or upstream.
 export function adaptDesign(text) {
+  text = text.replace('<span style="font-size:1.1rem; opacity:0.35;">➕</span>', '<svg class="ait-slot-plus" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>');
   // Runtime range fill must keep palette references so an open modal updates immediately.
   text = text.replaceAll('linear-gradient(to right, #38bdf8 0%, #38bdf8 ${fillPercent}%, #334155 ${fillPercent}%, #334155 100%)', 'linear-gradient(to right, var(--primary) 0%, var(--primary) ${fillPercent}%, var(--border) ${fillPercent}%, var(--border) 100%)');
   const colors = {
