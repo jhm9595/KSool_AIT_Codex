@@ -6,8 +6,8 @@ body, #app-container, .view, .party-fullscreen-wrapper { background-color: var(-
 .tab-btn, .settings-sound-labels { color: var(--text-muted); }
 .tab-btn.active, .modal-close-x { background: var(--theme-soft); color: var(--primary-hover); }
 #ait-status { background: var(--text); color: var(--ait-on-primary); }
-#view-brew { position: relative; isolation: isolate; background: transparent; }
-#view-brew::before {
+:is(#view-brew, #view-collection) { position: relative; isolation: isolate; background: transparent; }
+:is(#view-brew, #view-collection)::before {
   content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
   background: linear-gradient(90deg, var(--glass-edge), transparent 18%, #ffffff55 27%, transparent 42%, transparent 72%, #ffffff22 84%, var(--glass-edge)), radial-gradient(ellipse at 46% 25%, var(--glass-light), transparent 68%), linear-gradient(180deg, var(--glass-mid), var(--glass-light) 45%, var(--glass-mid));
 }
@@ -34,9 +34,9 @@ body, #app-container, .view, .party-fullscreen-wrapper { background-color: var(-
 #view-brew .ing-card:active { box-shadow: inset 0 2px 5px #102b2533; }
 #view-brew .cat-chip { background: var(--card-bg); color: var(--text); border-color: var(--border); }
 #view-brew .cat-chip.active { background: var(--primary-hover); color: var(--ait-on-primary); border-color: #ffffffaa; }
-#app-container:has(#view-brew.active) .tab-bar { background: linear-gradient(90deg, #00000055, transparent 24%, #ffffff20 35%, transparent 58%, #00000066), linear-gradient(var(--glass-edge), var(--glass-base) 75%); border-color: #ffffff55; }
-#app-container:has(#view-brew.active) .tab-btn, #app-container:has(#view-brew.active) #open-settings-btn { background: transparent; color: var(--control-ink); border-color: #ffffff33; }
-#app-container:has(#view-brew.active) .tab-btn.active { background: #ffffff22; }
+#app-container:has(:is(#view-brew, #view-collection).active) .tab-bar { background: linear-gradient(90deg, #00000055, transparent 24%, #ffffff20 35%, transparent 58%, #00000066), linear-gradient(var(--glass-edge), var(--glass-base) 75%); border-color: #ffffff55; }
+#app-container:has(:is(#view-brew, #view-collection).active) .tab-btn, #app-container:has(:is(#view-brew, #view-collection).active) #open-settings-btn { background: transparent; color: var(--control-ink); border-color: #ffffff33; }
+#app-container:has(:is(#view-brew, #view-collection).active) .tab-btn.active { background: #ffffff22; }
 .ait-theme-picker { border: 1px solid var(--border); border-radius: 14px; padding: 12px; margin: 0 0 16px; min-width: 0; }
 .ait-theme-picker legend { color: var(--text); font-size: 15px; font-weight: 700; padding: 0 6px; }
 .ait-theme-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
@@ -77,3 +77,29 @@ body, #app-container, .view, .party-fullscreen-wrapper { background-color: var(-
   font-family: system-ui, -apple-system, sans-serif; color: var(--control-ink); opacity: 1;
 }
 #view-brew .ait-slot-plus { width: 22px; height: 22px; flex-shrink: 0; color: var(--control-ink); }
+
+/* Collection shares the brewing bottle shell and ingredient-shelf proportions. */
+#view-collection { padding: 0; gap: 12px; }
+#view-collection .collection-header {
+  margin: 12px 10px 0; padding: 16px 12px; border-radius: 12px;
+  background: var(--control-bg); border: 1px solid #ffffff88; flex-shrink: 0;
+}
+#view-collection .collection-top-row { gap: 12px; }
+#view-collection .cat-filter-btn { background: var(--card-bg); color: var(--text); border-color: var(--border); box-shadow: none; }
+#view-collection .cat-filter-btn.active { background: var(--primary); color: var(--ait-on-primary); border-color: #ffffff99; }
+#view-collection .collection-progress-pill { background: #ffffff22; border-color: #ffffff88; color: var(--control-ink); }
+#view-collection .collection-progress-pill * { font-family: system-ui, sans-serif; color: inherit; }
+#view-collection .sool-grid {
+  margin: 0 10px 18px; padding: 18px 12px 24px; gap: 12px; min-height: 0;
+  border-radius: 12px; border: 1px solid #ffffffa6;
+  background: linear-gradient(112deg, #ffffff88, transparent 28%, #ffffff30 43%, transparent 56%, #ffffff50), var(--shelf-tint);
+  box-shadow: inset 0 2px 0 #ffffff99, inset 0 -3px 8px #392a181a;
+  grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr));
+}
+#view-collection .sool-card {
+  background: linear-gradient(125deg, #ffffffee, #ffffff66 40%, transparent 65%), var(--card-tint);
+  color: var(--card-ink); border-color: var(--border); border-radius: 12px;
+  box-shadow: inset 0 2px 0 #ffffffcc, 0 3px 7px #102b2520;
+}
+#view-collection .sool-card:hover { border-color: var(--primary); box-shadow: 0 0 0 2px var(--theme-soft); }
+#view-collection .sool-num-badge { background: var(--card-bg); color: var(--text-muted); border-color: var(--border); font-family: system-ui, sans-serif; }

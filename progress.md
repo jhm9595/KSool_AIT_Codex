@@ -41,3 +41,5 @@ Original prompt: Read KSool_Gemini without changing it, follow updates periodica
 - Removed upstream header settings class and rotation; settings now uses equal-width bottom-tab geometry with icon above label. Added bounding-box alignment and hover-transform regression checks. Build and integration passed; bottom navigation screenshot inspected.
 
 - Fixed color-font digits bypassing CSS text color: quiz numbers and empty-slot labels use system text fonts. Replaced fixed-color plus emoji with currentColor SVG in generated app. Verified white plus signs and numbers in blue theme screenshot; added regression checks for SVG count, color and numeric font.
+
+- Unified collection with brewing bottle background, dark glass bottom navigation, matching 10px outer margins and shelf treatment. Themed collection filters, progress and glass cards; removed purple card paint while retaining difficulty badges. Build/integration passed; blue/brown collection captures inspected.
