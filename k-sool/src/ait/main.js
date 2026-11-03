@@ -10,7 +10,11 @@ applyBottleTheme(bottleTheme);
 
 const settingsControl = document.getElementById('open-settings-btn');
 if (settingsControl) {
-  settingsControl.textContent = '설정';
+  settingsControl.classList.remove('header-settings-btn');
+  settingsControl.replaceChildren();
+  const settingsIcon = document.createElement('span'); settingsIcon.textContent = '⚙️'; settingsIcon.setAttribute('aria-hidden', 'true');
+  const settingsLabel = document.createElement('span'); settingsLabel.textContent = '설정';
+  settingsControl.append(settingsIcon, settingsLabel);
   document.querySelector('.tab-bar')?.append(settingsControl);
 }
 // Keep source click handlers and text intact while replacing UI glyph icons.

@@ -37,3 +37,5 @@ Original prompt: Read KSool_Gemini without changing it, follow updates periodica
 - Replaced accumulated per-theme overrides with a single semantic palette registry (theme.js), shared token-driven surfaces, and generated legacy UI color adaptation. Themes now cover all main tabs, settings and game surfaces. Brewing numbers/slots are white; mix and locked-hint controls use themed enabled/disabled roles. Added cross-tab palette regression captures and docs/THEMES.md. Build, integration and 54-screen design audit passed.
 
 - Fixed settings audio button, percent, track fill and browser-specific slider thumbs to consume shared palette tokens. Replaced generated runtime gradient literals so open-modal theme switching updates fill immediately. Verified four theme settings captures and audio color regression assertions.
+
+- Removed upstream header settings class and rotation; settings now uses equal-width bottom-tab geometry with icon above label. Added bounding-box alignment and hover-transform regression checks. Build and integration passed; bottom navigation screenshot inspected.

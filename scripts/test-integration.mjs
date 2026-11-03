@@ -50,6 +50,10 @@ try {
   assert.equal(await page.title(), 'K-Sool');
   assert.equal(await page.locator('.brand h1').innerText(), 'K-Sool');
   assert.equal(await page.locator('#mix-btn').isDisabled(), true);
+  const tabBounds = await page.locator('.tab-bar .tab-btn, .tab-bar #open-settings-btn').evaluateAll(elements => elements.filter(el => el.checkVisibility()).map(el => { const r = el.getBoundingClientRect(); return { y: r.y, height: r.height, width: r.width }; }));
+  assert(tabBounds.every(r => Math.abs(r.y - tabBounds[0].y) < 1 && Math.abs(r.height - tabBounds[0].height) < 1 && Math.abs(r.width - tabBounds[0].width) < 1));
+  await page.locator('#open-settings-btn').hover();
+  assert.equal(await page.locator('#open-settings-btn').evaluate(el => getComputedStyle(el).transform), 'none');
   await page.screenshot({ path: join(artifacts, '01-mobile-start.png') });
 
   // Actual input -> first recipe -> persistent unlock, using visible controls.

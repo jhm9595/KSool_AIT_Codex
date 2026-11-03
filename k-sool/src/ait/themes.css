@@ -59,3 +59,15 @@ body, #app-container, .view, .party-fullscreen-wrapper { background-color: var(-
 #settings-modal .settings-sound-range:active::-webkit-slider-thumb { background: var(--primary-hover); box-shadow: 0 0 0 4px var(--theme-soft); }
 #settings-modal .settings-sound-range::-moz-range-thumb { background: var(--primary); border-color: var(--primary-hover); box-shadow: 0 2px 5px #00000030; }
 #settings-modal .settings-sound-range:active::-moz-range-thumb { background: var(--primary-hover); box-shadow: 0 0 0 4px var(--theme-soft); }
+
+/* Settings is a bottom tab, not the upstream floating header button. */
+.tab-bar > #open-settings-btn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  flex: 1; align-self: stretch; width: auto; height: auto; min-height: 54px;
+  padding: 6px 4px; gap: 3px; margin: 0; border: 0; border-radius: 0;
+  box-shadow: none; transform: none; transition: background-color .15s ease;
+  font-size: 15px; font-weight: 700; line-height: normal;
+}
+.tab-bar > #open-settings-btn:hover, .tab-bar > #open-settings-btn:active {
+  transform: none; box-shadow: none;
+}
