@@ -116,7 +116,7 @@ html { color-scheme: light; }
 .foil-placeholder { color: #193b31; text-shadow: none; }
 .settings-danger-btn { background: #ffffff !important; color: #a53434 !important; }
 
-/* First-screen bottle glass: white paper label over a softly refracting green. */
+/* Bottle composition: green shoulder, lower white label, thick dark glass base. */
 #view-brew {
   background-color: #237d45;
   background-image:
@@ -125,18 +125,37 @@ html { color-scheme: light; }
     linear-gradient(180deg, #277d3e 0%, #48984c 30%, #2e8543 66%, #176339 100%);
 }
 #view-brew .pot-section {
-  margin: 28px 10px 0;
+  margin: 12px 10px 0;
   padding: 16px 12px;
-  background: #ffffff;
-  border: 1px solid rgba(255, 255, 255, .84);
+  background: transparent;
+  border: 0;
   border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(8, 56, 29, .12);
+  box-shadow: none;
 }
-#view-brew .inventory-section { background: transparent; padding-top: 12px; padding-bottom: 24px; }
-#view-brew .ing-card { background: rgba(255, 255, 255, .97); border-color: rgba(255, 255, 255, .72); }
-#view-brew .cat-chip { background: #ffffff; border-color: rgba(255, 255, 255, .72); color: #245b3f; }
-#view-brew .cat-chip.active { background: #115f40; color: #ffffff; border-color: rgba(255, 255, 255, .85); }
-#view-brew .brew-quiz-card { background: #f5fbf7; }
+#view-brew .inventory-section { margin: 12px 10px 18px; padding: 18px 12px 24px; background: #ffffff; border-radius: 12px; }
+#view-brew .ing-card { background: #f2faf6; border-color: #c7dcd1; }
+#view-brew .cat-chip { background: #ffffff; border-color: #c7dcd1; color: #245b3f; }
+#view-brew .cat-chip.active { background: #115f40; color: #ffffff; border-color: #115f40; }
+#view-brew .brew-quiz-card { background: rgba(7, 60, 32, .46); border-color: rgba(234, 255, 226, .52); }
+#view-brew .quiz-target-title, #view-brew .quiz-num-badge, #view-brew .quiz-num-total,
+#view-brew .quiz-target-hint, #view-brew .quiz-hint-text, #view-brew .quiz-desc-text { color: #ffffff; }
+#view-brew .pot-slots-grid { background: rgba(5, 48, 26, .18); border-color: rgba(255, 255, 255, .42); }
+#view-brew .brew-mode-tabs { background: rgba(6, 55, 29, .36); border-color: rgba(255, 255, 255, .38); }
+#view-brew .brew-mode-tab-btn { color: #ffffff; }
+#view-brew .brew-mode-tab-btn.active { background: #ffffff; color: #115f40; box-shadow: none; }
+#view-brew .pot-slot.empty { background: rgba(6, 55, 29, .28); border-color: rgba(255, 255, 255, .6); color: #ffffff; }
+#view-brew .clear-pot-btn { background: rgba(6, 55, 29, .32); color: #ffffff; border-color: rgba(255, 255, 255, .65); }
+#view-brew .quiz-nav-btn { background: #ffffff; color: #245b3f; }
+#app-container:has(#view-brew.active) .tab-bar {
+  background:
+    linear-gradient(90deg, rgba(0, 13, 8, .65), transparent 14%, rgba(153, 218, 157, .13) 21%, transparent 35%, transparent 75%, rgba(0, 13, 8, .65)),
+    linear-gradient(180deg, #16452c 0%, #092b1b 30%, #03170e 82%, #010e08 100%);
+  border-top: 1px solid #76a47e;
+  box-shadow: inset 0 2px 0 rgba(207, 241, 192, .22);
+}
+#app-container:has(#view-brew.active) .tab-btn,
+#app-container:has(#view-brew.active) .tab-bar > #open-settings-btn { background: transparent; color: #e6f7eb; border-color: rgba(255, 255, 255, .18); }
+#app-container:has(#view-brew.active) .tab-btn.active { background: rgba(176, 230, 181, .16); color: #ffffff; }
 @media (max-height: 650px) {
-  #view-brew .pot-section { margin-top: 18px; padding: 12px 10px; }
+  #view-brew .pot-section { margin-top: 6px; padding: 12px 10px; }
 }
