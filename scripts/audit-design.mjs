@@ -2,7 +2,8 @@ import { chromium } from 'playwright';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 import { resolve } from 'node:path';
-const artifacts = 'test-results/design';
+const theme = process.env.KSOOL_THEME || 'green';
+const artifacts = theme === 'green' ? 'test-results/design' : `test-results/design-${theme}`;
 mkdirSync(artifacts, { recursive: true });
 const app = resolve(import.meta.dirname, '../k-sool');
 const url = process.env.KSOOL_URL || 'http://127.0.0.1:4176';
@@ -19,6 +20,7 @@ try {
   browser = await chromium.launch();
   for (const viewport of [{width:320,height:568},{width:390,height:844},{width:844,height:390}]) {
     const page = await browser.newPage({ viewport });
+    await page.addInitScript(theme => localStorage.setItem('ksool_ait_bottle_theme', theme), theme);
     await page.goto(url);
     await page.waitForFunction(() => window.ksoolApp?.recipeBook.recipes.size > 0);
     await page.evaluate(() => { window.ksoolApp.inventory.unlockAllSandboxMode = true; window.ksoolApp.renderAll(); });

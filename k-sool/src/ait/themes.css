@@ -6,8 +6,8 @@ body, #app-container, .view, .party-fullscreen-wrapper { background-color: var(-
 .tab-btn, .settings-sound-labels { color: var(--text-muted); }
 .tab-btn.active, .modal-close-x { background: var(--theme-soft); color: var(--primary-hover); }
 #ait-status { background: var(--text); color: var(--ait-on-primary); }
-:is(#view-brew, #view-collection) { position: relative; isolation: isolate; background: transparent; }
-:is(#view-brew, #view-collection)::before {
+:is(#view-brew, #view-collection, #view-party) { position: relative; isolation: isolate; background: transparent; }
+:is(#view-brew, #view-collection, #view-party)::before {
   content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
   background: linear-gradient(90deg, var(--glass-edge), transparent 18%, #ffffff55 27%, transparent 42%, transparent 72%, #ffffff22 84%, var(--glass-edge)), radial-gradient(ellipse at 46% 25%, var(--glass-light), transparent 68%), linear-gradient(180deg, var(--glass-mid), var(--glass-light) 45%, var(--glass-mid));
 }
@@ -34,9 +34,9 @@ body, #app-container, .view, .party-fullscreen-wrapper { background-color: var(-
 #view-brew .ing-card:active { box-shadow: inset 0 2px 5px #102b2533; }
 #view-brew .cat-chip { background: var(--card-bg); color: var(--text); border-color: var(--border); }
 #view-brew .cat-chip.active { background: var(--primary-hover); color: var(--ait-on-primary); border-color: #ffffffaa; }
-#app-container:has(:is(#view-brew, #view-collection).active) .tab-bar { background: linear-gradient(90deg, #00000055, transparent 24%, #ffffff20 35%, transparent 58%, #00000066), linear-gradient(var(--glass-edge), var(--glass-base) 75%); border-color: #ffffff55; }
-#app-container:has(:is(#view-brew, #view-collection).active) .tab-btn, #app-container:has(:is(#view-brew, #view-collection).active) #open-settings-btn { background: transparent; color: var(--control-ink); border-color: #ffffff33; }
-#app-container:has(:is(#view-brew, #view-collection).active) .tab-btn.active { background: #ffffff22; }
+#app-container:has(:is(#view-brew, #view-collection, #view-party).active) .tab-bar { background: linear-gradient(90deg, #00000055, transparent 24%, #ffffff20 35%, transparent 58%, #00000066), linear-gradient(var(--glass-edge), var(--glass-base) 75%); border-color: #ffffff55; }
+#app-container:has(:is(#view-brew, #view-collection, #view-party).active) .tab-btn, #app-container:has(:is(#view-brew, #view-collection, #view-party).active) #open-settings-btn { background: transparent; color: var(--control-ink); border-color: #ffffff33; }
+#app-container:has(:is(#view-brew, #view-collection, #view-party).active) .tab-btn.active { background: #ffffff22; }
 .ait-theme-picker { border: 1px solid var(--border); border-radius: 14px; padding: 12px; margin: 0 0 16px; min-width: 0; }
 .ait-theme-picker legend { color: var(--text); font-size: 15px; font-weight: 700; padding: 0 6px; }
 .ait-theme-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
@@ -94,7 +94,7 @@ body, #app-container, .view, .party-fullscreen-wrapper { background-color: var(-
   border-radius: 12px; border: 1px solid #ffffffa6;
   background: linear-gradient(112deg, #ffffff88, transparent 28%, #ffffff30 43%, transparent 56%, #ffffff50), var(--shelf-tint);
   box-shadow: inset 0 2px 0 #ffffff99, inset 0 -3px 8px #392a181a;
-  grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(124px, 100%), 1fr));
 }
 #view-collection .sool-card {
   background: linear-gradient(125deg, #ffffffee, #ffffff66 40%, transparent 65%), var(--card-tint);
@@ -103,3 +103,58 @@ body, #app-container, .view, .party-fullscreen-wrapper { background-color: var(-
 }
 #view-collection .sool-card:hover { border-color: var(--primary); box-shadow: 0 0 0 2px var(--theme-soft); }
 #view-collection .sool-num-badge { background: var(--card-bg); color: var(--text-muted); border-color: var(--border); font-family: system-ui, sans-serif; }
+
+/* A quieter collection: image first, compact metadata and consistent card rhythm. */
+#view-collection .sool-grid { grid-auto-rows: minmax(180px, auto); align-items: stretch; }
+#view-collection .sool-card { min-height: 180px; padding: 40px 10px 14px; gap: 8px; justify-content: flex-start; }
+#view-collection .sool-card .sool-num-badge { top: 10px; left: 10px; border: 0; padding: 2px 0; background: transparent; }
+#view-collection .sool-card .diff-badge { top: 12px; right: 10px; padding: 2px 5px; font-size: 12px; max-width: none; }
+#view-collection .sool-card .diff-EASY { background: var(--theme-soft); color: var(--text-muted); }
+#view-collection .sool-emoji { min-height: 62px; color: var(--text-muted); font-size: 40px; }
+#view-collection .sool-emoji > :is(svg,img,canvas) { width: 52px !important; height: 52px !important; image-rendering: pixelated; }
+#view-collection .sool-name { font-size: 16px; line-height: 1.4; }
+#view-collection .sool-hint-status { color: var(--primary); font-size: 12px; font-weight: 400; }
+#view-collection :is(.sool-num-badge,.sool-num-badge *,.collection-progress-pill,.collection-progress-pill *) { font-family: system-ui, sans-serif; }
+#view-collection .sool-card.level-locked { opacity: .75; }
+#view-collection .collection-header { background: color-mix(in srgb, var(--control-bg) 90%, transparent); }
+#view-collection::before { background: linear-gradient(90deg, var(--glass-edge), transparent 25%, #ffffff22 35%, transparent 70%, var(--glass-edge)), linear-gradient(180deg, var(--glass-mid), var(--glass-edge)); }
+
+/* Game selection uses the same bottle shell; gameplay retains meaningful state colors. */
+#view-party:not(.party-fullscreen-mode) { padding: 0; }
+#view-party .party-lobby-container { max-width: none; margin: 0; padding: 12px 10px 18px; background: transparent; gap: 12px; }
+#view-party .party-lobby-header { margin: 0; padding: 16px 54px 16px 16px; background: var(--control-bg); border: 1px solid #ffffff88; border-radius: 12px; box-shadow: none; }
+#view-party .party-lobby-title { color: var(--control-ink); font-size: 18px; line-height: 1.4; }
+#view-party .party-games-grid-menu { gap: 12px; padding: 12px; border-radius: 12px; border: 1px solid #ffffff88; background: linear-gradient(112deg,#ffffff66,transparent 50%,#ffffff33), var(--shelf-tint); }
+#view-party .party-lobby-card, #view-party .party-lobby-card:hover {
+  padding: 16px 12px; gap: 14px; min-height: 108px;
+  background: linear-gradient(125deg,#ffffffee,#ffffff66 55%,transparent), var(--card-tint);
+  border: 1px solid #ffffffbb; border-radius: 12px; box-shadow: inset 0 1px 0 #ffffffcc, 0 2px 6px #00000016; transform: none;
+}
+#view-party .party-lobby-card::before { display: none; }
+#view-party .lobby-card-emoji-wrap { width: 52px; height: 52px; border: 1px solid var(--border); background: var(--card-bg); box-shadow: none; border-radius: 14px; }
+#view-party .lobby-card-badge { color: var(--text-muted) !important; border: 0; background: transparent; padding: 0; font-weight: 400; font-size: 12px; }
+#view-party .lobby-card-title { color: var(--text); font-size: 17px; line-height: 1.4; }
+#view-party .lobby-card-desc { color: var(--text-muted); line-height: 1.5; }
+#view-party .party-sound-toggle-btn, #view-party .party-back-btn { background: var(--card-bg); color: var(--primary); border-color: var(--border); box-shadow: none; }
+#view-party .party-fullscreen-wrapper { background: linear-gradient(150deg,var(--theme-soft),var(--bg)); }
+#view-party .party-game-top-bar { background: var(--card-bg); border-color: var(--border); }
+#view-party .party-active-game-pill { color: var(--text); }
+#view-party :is(.party-number-display,.party-num-key,.lobby-card-title,.lobby-card-badge) { font-family: system-ui, sans-serif; }
+
+/* Hint surfaces and actions inherit the selected palette, including numeric text. */
+#hint-modal .modal-card { border: 1px solid var(--border); box-shadow: 0 12px 32px #00000026; }
+#hint-modal :is(.bb-target-info-card,.hint-section-box,.bb-help-popover,.hint-desc-card) { background: var(--bg); border-color: var(--border); color: var(--text); }
+#hint-modal :is(.bb-go-brew-btn,.bb-submit-icon-btn):not(:disabled) { background: var(--primary); color: var(--ait-on-primary); box-shadow: none; }
+#hint-modal :is(.bb-all-solved-card,.updown-ing-btn.selected,.bb-option-btn.picked) { background: var(--theme-soft); border-color: var(--primary); color: var(--primary-hover); }
+#hint-modal :is(.bb-target-num,.bb-target-num *,.num-btn,.bb-slot-card,.bb-slot-card *) { font-family: system-ui, sans-serif; }
+#hint-modal .hint-step-card { box-shadow: none; border-radius: 12px; }
+#hint-modal :is(.step-purple,.step-gold,.step-cyan) { background: var(--bg); border-color: var(--border); color: var(--text); }
+#hint-modal .step-active { border-color: var(--primary); }
+#view-party :is(.fridge-box,.market-setup-card,.iamground-setup-card) { background: var(--card-bg); border: 1px solid var(--border); color: var(--text); border-radius: 16px; box-shadow: 0 6px 20px #00000012; }
+#view-party :is(.market-start-btn,.iamground-start-btn,.fridge-random-btn) { background: var(--primary); color: var(--ait-on-primary); box-shadow: none; }
+#view-party :is(.market-time-btn.active,.iamground-sel-btn.active,.bottle-tab-pill.active) { background: var(--primary); color: var(--ait-on-primary); border-color: var(--primary); box-shadow: none; }
+#view-party .bottle-tab-pill { background: var(--card-bg); color: var(--text); border-color: var(--border); }
+#view-party :is(.market-setup-card,.iamground-setup-card,.fridge-box) { font-family: system-ui, sans-serif; }
+#view-party .market-pill.active { background: var(--theme-soft); border-color: var(--primary); color: var(--primary-hover); box-shadow: inset 0 0 0 1px var(--primary); }
+#view-party :is(.market-start-btn,.iamground-start-btn) { border-color: var(--primary); }
+#hint-modal .bb-help-btn, #hint-modal .bb-help-btn.active { background: var(--theme-soft); border-color: var(--border); color: var(--primary); box-shadow: none; }

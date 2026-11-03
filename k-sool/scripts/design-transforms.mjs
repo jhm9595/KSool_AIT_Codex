@@ -3,6 +3,7 @@ export function adaptDesign(text) {
   text = text.replace('<span style="font-size:1.1rem; opacity:0.35;">➕</span>', '<svg class="ait-slot-plus" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>');
   // Runtime range fill must keep palette references so an open modal updates immediately.
   text = text.replaceAll('linear-gradient(to right, #38bdf8 0%, #38bdf8 ${fillPercent}%, #334155 ${fillPercent}%, #334155 100%)', 'linear-gradient(to right, var(--primary) 0%, var(--primary) ${fillPercent}%, var(--border) ${fillPercent}%, var(--border) 100%)');
+  text = text.replace(/: '❓';\r?\n\r?\n      const numBadge/, ": '<svg class=\"ait-locked-art\" viewBox=\"0 0 48 48\" aria-hidden=\"true\"><rect x=\"13\" y=\"21\" width=\"22\" height=\"20\" rx=\"5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/><path d=\"M17 21v-7a7 7 0 0 1 14 0v7M24 29v5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"/></svg>';\n\n      const numBadge");
   const colors = {
     '#3182f6': '#16845b', '#3b82f6': '#16845b', '#2563eb': '#116a49',
     '#60a5fa': '#116a49', '#93c5fd': '#116a49', '#1d4ed8': '#0d573c',
