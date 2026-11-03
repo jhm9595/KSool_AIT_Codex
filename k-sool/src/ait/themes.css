@@ -1,150 +1,48 @@
-:root {
-  --bottle-hue: 0deg;
-  --bottle-depth: 1;
-  --theme-accent: #16845b;
-  --theme-soft: #e2f3eb;
-}
-:root[data-bottle-theme="blue"] {
-  --bottle-hue: 65deg;
-  --theme-accent: #247a91;
-  --theme-soft: #e6f3f7;
-  --primary: #247a91;
-}
-:root[data-bottle-theme="apricot"] {
-  --bottle-hue: -82deg;
-  --theme-accent: #a45b25;
-  --theme-soft: #fcf0e2;
-  --primary: #a45b25;
-}
-:root[data-bottle-theme="brown"] {
-  --bottle-hue: -88deg;
-  --bottle-depth: .62;
-  --theme-accent: #805026;
-  --theme-soft: #f6ece1;
-  --primary: #805026;
-}
-/* Color treatment is confined to a decorative backdrop, never art or UI text. */
+/* All palette values live in theme.js; screens share semantic tokens. */
+body, #app-container, .view, .party-fullscreen-wrapper { background-color: var(--bg); color: var(--text); }
+#view-party.active.party-fullscreen-mode { background: var(--bg) !important; }
+.modal-card, .party-game-top-bar { background: var(--card-bg); color: var(--text); }
+.tab-bar { background: var(--card-bg); border-color: var(--border); }
+.tab-btn, .settings-sound-labels { color: var(--text-muted); }
+.tab-btn.active, .modal-close-x { background: var(--theme-soft); color: var(--primary-hover); }
+#ait-status { background: var(--text); color: var(--ait-on-primary); }
 #view-brew { position: relative; isolation: isolate; background: transparent; }
 #view-brew::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    linear-gradient(90deg, rgba(7, 61, 32, .38), transparent 9%, rgba(242, 255, 223, .17) 13%, transparent 22%, transparent 76%, rgba(235, 255, 219, .12) 85%, rgba(6, 57, 29, .32)),
-    radial-gradient(ellipse at 38% 0%, rgba(211, 242, 153, .52), transparent 55%),
-    linear-gradient(180deg, #277d3e 0%, #48984c 30%, #2e8543 66%, #176339 100%);
-  filter: hue-rotate(var(--bottle-hue)) brightness(var(--bottle-depth));
-}
-#app-container:has(#view-brew.active) .tab-bar { position: relative; isolation: isolate; background: #03170e; }
-#app-container:has(#view-brew.active) .tab-bar::before {
   content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
-  background:
-    linear-gradient(90deg, rgba(0, 13, 8, .65), transparent 14%, rgba(153, 218, 157, .13) 21%, transparent 35%, transparent 75%, rgba(0, 13, 8, .65)),
-    linear-gradient(180deg, #16452c 0%, #092b1b 30%, #03170e 82%, #010e08 100%);
-  filter: hue-rotate(var(--bottle-hue)) brightness(var(--bottle-depth));
+  background: linear-gradient(90deg, var(--glass-edge), transparent 18%, #ffffff55 27%, transparent 42%, transparent 72%, #ffffff22 84%, var(--glass-edge)), radial-gradient(ellipse at 46% 25%, var(--glass-light), transparent 68%), linear-gradient(180deg, var(--glass-mid), var(--glass-light) 45%, var(--glass-mid));
 }
-#view-brew .brew-quiz-card { background: rgba(0, 20, 19, .32); }
-#view-brew .pot-slots-grid { background: rgba(0, 20, 19, .16); }
-#view-brew .pot-slot.empty, #view-brew .brew-mode-tabs, #view-brew .clear-pot-btn { background: rgba(0, 20, 19, .25); }
-#view-brew .cat-chip.active { background: var(--theme-accent); border-color: var(--theme-accent); }
-#view-brew .brew-mode-tab-btn.active { color: var(--theme-accent); }
+#view-brew .pot-section { margin: 12px 10px 0; padding: 16px 12px; background: transparent; border: 0; border-radius: 12px; box-shadow: none; }
+#view-brew .brew-quiz-card, #view-brew .brew-mode-tabs { background: var(--control-bg); border-color: #ffffff88; }
+#view-brew .pot-slots-grid { background: #ffffff22; border-color: #ffffff88; }
+#view-brew .pot-slot.empty, #view-brew .clear-pot-btn { background: var(--control-bg); border-color: #ffffffaa; }
+#view-brew .brew-quiz-card, #view-brew .quiz-num-badge, #view-brew .quiz-num-badge *, #view-brew .quiz-num-total,
+#view-brew .quiz-target-title, #view-brew .quiz-target-hint, #view-brew .quiz-hint-text, #view-brew .quiz-desc-text,
+#view-brew .pot-slot.empty, #view-brew .pot-slot.empty *, #view-brew .clear-pot-btn, #view-brew .brew-mode-tab-btn { color: var(--control-ink); opacity: 1; }
+#view-brew .quiz-nav-btn, #view-brew .brew-mode-tab-btn.active { background: var(--card-bg); color: var(--primary-hover); }
+#view-brew .mix-btn { background: var(--primary); color: var(--ait-on-primary); border: 1px solid #ffffff99; }
+#view-brew .mix-btn:disabled { background: var(--disabled-bg); color: var(--disabled-ink); opacity: 1; }
+#view-brew .quiz-hint-locked { background: var(--disabled-bg); color: var(--disabled-ink); }
+#view-brew .inventory-section {
+  margin: 12px 10px 18px; padding: 18px 12px 24px; border-radius: 12px;
+  background: linear-gradient(112deg, #ffffff88, #ffffff12 18%, transparent 28%, #ffffff30 43%, transparent 56%, #ffffff18 78%, #ffffff50), radial-gradient(ellipse at 12% 0%, #ffffff66, transparent 65%), var(--shelf-tint);
+  border: 1px solid #ffffffa6; box-shadow: inset 0 2px 0 #ffffff99, inset 2px 0 4px #ffffff40, inset -2px -3px 8px #392a181a, 0 8px 18px #102b251a;
+}
+#view-brew .ing-card {
+  background: linear-gradient(125deg, #ffffffee, #ffffff77 22%, transparent 23%, #ffffff33 42%, transparent 65%), linear-gradient(180deg, #ffffffbd, #ffffff55 55%, #ffffff88), var(--card-tint);
+  color: var(--card-ink); border: 1px solid #ffffffcc; box-shadow: inset 0 2px 0 #ffffffdd, inset 0 -2px 3px #ffffff88, 0 3px 7px #102b2526;
+}
+#view-brew .ing-card:active { box-shadow: inset 0 2px 5px #102b2533; }
+#view-brew .cat-chip { background: var(--card-bg); color: var(--text); border-color: var(--border); }
+#view-brew .cat-chip.active { background: var(--primary-hover); color: var(--ait-on-primary); border-color: #ffffffaa; }
+#app-container:has(#view-brew.active) .tab-bar { background: linear-gradient(90deg, #00000055, transparent 24%, #ffffff20 35%, transparent 58%, #00000066), linear-gradient(var(--glass-edge), var(--glass-base) 75%); border-color: #ffffff55; }
+#app-container:has(#view-brew.active) .tab-btn, #app-container:has(#view-brew.active) #open-settings-btn { background: transparent; color: var(--control-ink); border-color: #ffffff33; }
+#app-container:has(#view-brew.active) .tab-btn.active { background: #ffffff22; }
 .ait-theme-picker { border: 1px solid var(--border); border-radius: 14px; padding: 12px; margin: 0 0 16px; min-width: 0; }
 .ait-theme-picker legend { color: var(--text); font-size: 15px; font-weight: 700; padding: 0 6px; }
 .ait-theme-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.ait-theme-option { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 12px 4px; background: #fff; color: #314f43; border: 1px solid #c7dcd1; border-radius: 10px; font: inherit; font-size: 15px; cursor: pointer; }
-.ait-theme-option[aria-pressed="true"] { border: 2px solid var(--theme-accent); background: var(--theme-soft); color: var(--theme-accent); font-weight: 700; }
-.ait-theme-swatch { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(110deg, var(--swatch-dark), var(--swatch-light) 40%, var(--swatch-dark)); border: 1px solid rgba(0,0,0,.15); }
-.ait-theme-option[data-bottle-theme="green"] { --swatch-dark: #176339; --swatch-light: #89bd70; }
-.ait-theme-option[data-bottle-theme="blue"] { --swatch-dark: #245e7b; --swatch-light: #8bcee1; }
-.ait-theme-option[data-bottle-theme="apricot"] { --swatch-dark: #97551e; --swatch-light: #efbd74; }
-.ait-theme-option[data-bottle-theme="brown"] { --swatch-dark: #4d2b12; --swatch-light: #b38245; }
-
-/* Reference-photo palette samples: glass and paper are independent surfaces. */
-:root[data-bottle-theme="blue"] {
-  --glass-edge: #5ea3c2; --glass-mid: #ccd8e2; --glass-light: #f7f9fb;
-  --glass-base: #32677c; --label-bg: #2177a7; --label-ink: #ffffff;
-  --theme-accent: #2177a7; --theme-soft: #e5eef3; --primary: #2177a7;
-}
-:root[data-bottle-theme="apricot"] {
-  --glass-edge: #d49f40; --glass-mid: #eecf79; --glass-light: #f4e3ad;
-  --glass-base: #88532f; --label-bg: #fef5e2; --label-ink: #634338;
-}
-:root[data-bottle-theme="brown"] {
-  --glass-edge: #351f16; --glass-mid: #72361c; --glass-light: #d3782c;
-  --glass-base: #1e130e; --label-bg: #d8b565; --label-ink: #493015;
-  --theme-accent: #76501f; --theme-soft: #f8edcf; --primary: #76501f;
-}
-:root:is([data-bottle-theme="blue"], [data-bottle-theme="apricot"], [data-bottle-theme="brown"]) #view-brew::before {
-  filter: none;
-  background:
-    linear-gradient(90deg, var(--glass-edge), transparent 18%, #ffffff55 27%, transparent 42%, transparent 72%, #ffffff22 84%, var(--glass-edge)),
-    radial-gradient(ellipse at 46% 25%, var(--glass-light), transparent 68%),
-    linear-gradient(180deg, var(--glass-mid), var(--glass-light) 45%, var(--glass-mid));
-}
-:root:is([data-bottle-theme="blue"], [data-bottle-theme="apricot"], [data-bottle-theme="brown"]) #app-container:has(#view-brew.active) .tab-bar::before {
-  filter: none;
-  background: linear-gradient(90deg, #00000055, transparent 24%, #ffffff20 35%, transparent 58%, #00000066), linear-gradient(var(--glass-edge), var(--glass-base) 75%);
-}
-:root:is([data-bottle-theme="blue"], [data-bottle-theme="apricot"], [data-bottle-theme="brown"]) #view-brew .inventory-section {
-  background: linear-gradient(110deg, #ffffff12, transparent 45%), var(--label-bg);
-  color: var(--label-ink); border: 1px solid #ffffff66;
-}
-:root:is([data-bottle-theme="blue"], [data-bottle-theme="apricot"]) #view-brew .brew-quiz-card,
-:root:is([data-bottle-theme="blue"], [data-bottle-theme="apricot"]) #view-brew .pot-slots-grid,
-:root:is([data-bottle-theme="blue"], [data-bottle-theme="apricot"]) #view-brew .brew-mode-tabs { background: #183d4bd9; }
-:root[data-bottle-theme="blue"] #view-brew .ing-card { background: #f1f7fc; border-color: #c7dcea; color: #193e60; }
-:root[data-bottle-theme="blue"] #view-brew .cat-chip { color: #154c76; border-color: #c7dcea; }
-:root[data-bottle-theme="blue"] #view-brew .cat-chip.active { background: #ffffff; color: #154c76; border-color: #ffffff; box-shadow: 0 0 0 2px #ffffff66; }
-:root[data-bottle-theme="brown"] #view-brew .ing-card { background: #fff8e8; border-color: #b99349; color: #493015; }
-:root[data-bottle-theme="brown"] #view-brew .cat-chip { background: #fff8e8; color: #654019; border-color: #b99349; }
-:root[data-bottle-theme="brown"] #view-brew .cat-chip.active { background: #654019; color: #ffffff; border-color: #654019; }
-:root[data-bottle-theme="apricot"] #view-brew .ing-card { background: #fffaf0; border-color: #dfcaaa; color: #634338; }
-.ait-theme-option[data-bottle-theme="blue"] { --swatch-dark: #5ea3c2; --swatch-light: #f7f9fb; }
-.ait-theme-option[data-bottle-theme="apricot"] { --swatch-dark: #d49f40; --swatch-light: #f4e3ad; }
-.ait-theme-option[data-bottle-theme="brown"] { --swatch-dark: #351f16; --swatch-light: #d3782c; }
-:root:is([data-bottle-theme="blue"], [data-bottle-theme="apricot"]) #view-brew .pot-slot.empty,
-:root:is([data-bottle-theme="blue"], [data-bottle-theme="apricot"]) #view-brew .clear-pot-btn { background: #244b58; }
-:root[data-bottle-theme="blue"] #view-brew .cat-chip.active { background: #083a61; color: #ffffff; border-color: #ffffff; }
-
-/* Layered reflections and inset rims give the ingredient shelf a glass finish. */
-:root { --shelf-tint: #ffffff; --card-tint: #e1f1e9; --card-ink: #234d3a; }
-:root[data-bottle-theme="blue"] { --shelf-tint: #2177a7; --card-tint: #dcecf6; --card-ink: #193e60; }
-:root[data-bottle-theme="apricot"] { --shelf-tint: #fef5e2; --card-tint: #f5e5c8; --card-ink: #634338; }
-:root[data-bottle-theme="brown"] { --shelf-tint: #d8b565; --card-tint: #f0dca7; --card-ink: #493015; }
-:root[data-bottle-theme] #view-brew .inventory-section {
-  background:
-    linear-gradient(112deg, #ffffff88 0%, #ffffff12 18%, transparent 28%, #ffffff30 43%, transparent 56%, #ffffff18 78%, #ffffff50 100%),
-    radial-gradient(ellipse at 12% 0%, #ffffff66, transparent 65%),
-    var(--shelf-tint);
-  border: 1px solid #ffffffa6;
-  box-shadow: inset 0 2px 0 #ffffff99, inset 2px 0 4px #ffffff40, inset -2px -3px 8px #392a181a, 0 8px 18px #102b251a;
-}
-:root[data-bottle-theme] #view-brew .ing-card {
-  background:
-    linear-gradient(125deg, #ffffffee 0%, #ffffff77 22%, transparent 23%, #ffffff33 42%, transparent 65%),
-    linear-gradient(180deg, #ffffffbd, #ffffff55 55%, #ffffff88),
-    var(--card-tint);
-  color: var(--card-ink);
-  border: 1px solid #ffffffcc;
-  box-shadow: inset 0 2px 0 #ffffffdd, inset 0 -2px 3px #ffffff88, 0 3px 7px #102b2526;
-}
-:root[data-bottle-theme] #view-brew .ing-card:active { box-shadow: inset 0 2px 5px #102b2533; }
-
-/* Apricot controls share the warm glass and cream-label palette. */
-:root[data-bottle-theme="apricot"] {
-  --theme-accent: #92552f; --theme-soft: #fbecd8; --primary: #92552f;
-  --glass-edge: #cc9551; --glass-mid: #efd09a; --glass-light: #fae9c7;
-  --glass-base: #70452d; --shelf-tint: #fff1d9; --card-tint: #f3dfbd;
-}
-:root[data-bottle-theme="apricot"] #view-brew .brew-quiz-card,
-:root[data-bottle-theme="apricot"] #view-brew .brew-mode-tabs { background: #72472ed9; border-color: #fff1d9aa; }
-:root[data-bottle-theme="apricot"] #view-brew .pot-slots-grid { background: #8b5c393d; border-color: #fff1d9aa; }
-:root[data-bottle-theme="apricot"] #view-brew .pot-slot.empty,
-:root[data-bottle-theme="apricot"] #view-brew .clear-pot-btn { background: #805033; color: #fff8ed; border-color: #fff1d9aa; }
-:root[data-bottle-theme="apricot"] #view-brew .quiz-nav-btn,
-:root[data-bottle-theme="apricot"] #view-brew .brew-mode-tab-btn.active { background: #fff8ed; color: #805033; }
-:root[data-bottle-theme="apricot"] #view-brew .mix-btn:disabled { background: #eaddc7; color: #76604b; }
-:root[data-bottle-theme="apricot"] #view-brew .cat-chip { background: #fff8ed; color: #805033; border-color: #ddc5a5; }
-:root[data-bottle-theme="apricot"] #view-brew .cat-chip.active { background: #92552f; color: #ffffff; border-color: #92552f; }
+.ait-theme-option { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 12px 4px; background: var(--card-bg); color: var(--text); border: 1px solid var(--border); border-radius: 10px; font: inherit; font-size: 15px; cursor: pointer; }
+.ait-theme-option[aria-pressed="true"] { border: 2px solid var(--primary); background: var(--theme-soft); color: var(--primary); font-weight: 700; }
+.ait-theme-swatch { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(110deg, var(--swatch-dark), var(--swatch-light) 40%, var(--swatch-dark)); border: 1px solid #00000026; }
+@media (max-height: 650px) { #view-brew .pot-section { margin-top: 6px; padding: 12px 10px; } }
+#view-brew .quiz-desc-locked { background: var(--disabled-bg); color: var(--disabled-ink); }
+#view-brew .quiz-desc-locked .quiz-lock-label { color: var(--disabled-ink); }

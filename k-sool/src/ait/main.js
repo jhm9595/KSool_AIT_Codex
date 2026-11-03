@@ -3,10 +3,10 @@ import '../styles/base.css';
 import './platform.css';
 import './themes.css';
 
-const bottleThemes = { green: '초록 유리', blue: '푸른 유리', apricot: '살구빛 유리', brown: '갈색 유리' };
+import { bottleThemes, applyBottleTheme } from './theme.js';
 let bottleTheme = 'green';
 try { const saved = localStorage.getItem('ksool_ait_bottle_theme'); if (Object.hasOwn(bottleThemes, saved)) bottleTheme = saved; } catch { /* Session-only preference when storage is unavailable. */ }
-document.documentElement.dataset.bottleTheme = bottleTheme;
+applyBottleTheme(bottleTheme);
 
 const settingsControl = document.getElementById('open-settings-btn');
 if (settingsControl) {
@@ -137,13 +137,13 @@ if (settings) {
     picker.className = 'ait-theme-picker';
     const legend = document.createElement('legend'); legend.textContent = '테마 변경'; picker.append(legend);
     const options = document.createElement('div'); options.className = 'ait-theme-options'; picker.append(options);
-    for (const [id, label] of Object.entries(bottleThemes)) {
+    for (const [id, theme] of Object.entries(bottleThemes)) {
       const option = document.createElement('button'); option.type = 'button'; option.className = 'ait-theme-option'; option.dataset.bottleTheme = id;
       option.setAttribute('aria-pressed', String(id === bottleTheme));
-      const swatch = document.createElement('span'); swatch.className = 'ait-theme-swatch'; swatch.setAttribute('aria-hidden', 'true');
-      option.append(swatch, document.createTextNode(label));
+      const swatch = document.createElement('span'); swatch.className = 'ait-theme-swatch'; swatch.setAttribute('aria-hidden', 'true'); swatch.style.setProperty('--swatch-dark', theme.tokens['swatch-dark']); swatch.style.setProperty('--swatch-light', theme.tokens['swatch-light']);
+      option.append(swatch, document.createTextNode(theme.label));
       option.onclick = () => {
-        bottleTheme = id; document.documentElement.dataset.bottleTheme = id;
+        bottleTheme = id; applyBottleTheme(id);
         options.querySelectorAll('button').forEach(button => button.setAttribute('aria-pressed', String(button === option)));
         try { localStorage.setItem('ksool_ait_bottle_theme', id); } catch { notice('테마는 적용했지만 저장하지 못했어요. 다시 접속하면 기본 테마로 열려요.'); }
       };

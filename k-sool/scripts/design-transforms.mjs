@@ -28,5 +28,8 @@ export function adaptDesign(text) {
     const px = Number(number) * (unit === 'px' ? 1 : 16);
     return px > 0 && px < 15 ? 'font-size: 15px' : match;
   });
+  text = text.replace(/((?:color|background(?:-color)?|border(?:-color)?|box-shadow)\s*:\s*)([^;\n{}]+)/gi, (match, property, value) => property + value.replace(/#[a-f0-9]{3,8}\b/gi, hex => ({ '#16845b':'var(--primary)', '#116a49':'var(--primary-hover)', '#0d573c':'var(--primary-hover)', '#f2faf6':'var(--bg)', '#ffffff':'var(--card-bg)', '#e6f4ee':'var(--theme-soft)', '#e2f3eb':'var(--card-hover)', '#c7dcd1':'var(--border)', '#193b31':'var(--text)', '#314f43':'var(--text)', '#466356':'var(--text-muted)', '#587367':'var(--text-muted)' }[hex.toLowerCase()] || hex)));
+  text = text.replace(/rgba\(242,\s*250,\s*246,\s*([.\d]+)\)/g, (_, alpha) => `color-mix(in srgb, var(--bg) ${Number(alpha) * 100}%, transparent)`);
+  text = text.replace(/rgba\(22,\s*132,\s*91,\s*([.\d]+)\)/g, (_, alpha) => `color-mix(in srgb, var(--primary) ${Number(alpha) * 100}%, transparent)`);
   return text.replace(/font-weight\s*:\s*(?:800|900|1000)\b/g, 'font-weight: 700');
 }

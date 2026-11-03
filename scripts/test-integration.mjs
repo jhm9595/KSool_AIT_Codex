@@ -72,6 +72,18 @@ try {
     await page.evaluate(() => window.ksoolApp.settingsModalView.close());
     await page.waitForTimeout(400); // Let existing surface color transitions settle before visual capture.
     await page.screenshot({ path: join(artifacts, `theme-${theme}.png`) });
+    assert.equal(await page.locator('.pot-slot.empty span').last().evaluate(el => getComputedStyle(el).color), 'rgb(255, 255, 255)');
+    const themeSurface = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--bg').trim());
+    assert.equal(await page.locator('.quiz-num-total').evaluate(el => getComputedStyle(el).color), 'rgb(255, 255, 255)');
+    await page.evaluate(() => { window.ksoolApp.inventory.unlockAllSandboxMode = true; window.ksoolApp.renderAll(); });
+    for (const tab of ['collection', 'suggestions', 'party']) {
+      await page.evaluate(tab => window.ksoolApp.switchTab(tab), tab);
+      await page.waitForTimeout(400);
+      assert.equal(await page.locator(`#view-${tab}`).evaluate(el => el.classList.contains('active')), true);
+      assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()), themeSurface);
+      await page.screenshot({ path: join(artifacts, `theme-${theme}-${tab}.png`) });
+    }
+    await page.evaluate(() => window.ksoolApp.switchTab('brew'));
     await page.reload();
     await page.waitForFunction(() => window.ksoolApp?.recipeBook.recipes.size > 0);
     assert.equal(await page.evaluate(() => document.documentElement.dataset.bottleTheme), theme);

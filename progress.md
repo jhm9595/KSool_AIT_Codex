@@ -33,3 +33,5 @@ Original prompt: Read KSool_Gemini without changing it, follow updates periodica
 - Added theme-aware layered glass reflections to the ingredient shelf and ingredient cards, with bright inset rims and soft depth shadows. Build and integration tests passed; mobile render inspected.
 
 - Unified apricot theme controls, glass, cream shelf and category colors in a warm apricot/brown palette. Removed cool teal surfaces. Let CSS color transitions settle before theme screenshots. Build and integration tests passed; final apricot capture inspected.
+
+- Replaced accumulated per-theme overrides with a single semantic palette registry (theme.js), shared token-driven surfaces, and generated legacy UI color adaptation. Themes now cover all main tabs, settings and game surfaces. Brewing numbers/slots are white; mix and locked-hint controls use themed enabled/disabled roles. Added cross-tab palette regression captures and docs/THEMES.md. Build, integration and 54-screen design audit passed.
