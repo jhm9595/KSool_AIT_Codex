@@ -131,3 +131,20 @@
   box-shadow: inset 0 2px 0 #ffffffdd, inset 0 -2px 3px #ffffff88, 0 3px 7px #102b2526;
 }
 :root[data-bottle-theme] #view-brew .ing-card:active { box-shadow: inset 0 2px 5px #102b2533; }
+
+/* Apricot controls share the warm glass and cream-label palette. */
+:root[data-bottle-theme="apricot"] {
+  --theme-accent: #92552f; --theme-soft: #fbecd8; --primary: #92552f;
+  --glass-edge: #cc9551; --glass-mid: #efd09a; --glass-light: #fae9c7;
+  --glass-base: #70452d; --shelf-tint: #fff1d9; --card-tint: #f3dfbd;
+}
+:root[data-bottle-theme="apricot"] #view-brew .brew-quiz-card,
+:root[data-bottle-theme="apricot"] #view-brew .brew-mode-tabs { background: #72472ed9; border-color: #fff1d9aa; }
+:root[data-bottle-theme="apricot"] #view-brew .pot-slots-grid { background: #8b5c393d; border-color: #fff1d9aa; }
+:root[data-bottle-theme="apricot"] #view-brew .pot-slot.empty,
+:root[data-bottle-theme="apricot"] #view-brew .clear-pot-btn { background: #805033; color: #fff8ed; border-color: #fff1d9aa; }
+:root[data-bottle-theme="apricot"] #view-brew .quiz-nav-btn,
+:root[data-bottle-theme="apricot"] #view-brew .brew-mode-tab-btn.active { background: #fff8ed; color: #805033; }
+:root[data-bottle-theme="apricot"] #view-brew .mix-btn:disabled { background: #eaddc7; color: #76604b; }
+:root[data-bottle-theme="apricot"] #view-brew .cat-chip { background: #fff8ed; color: #805033; border-color: #ddc5a5; }
+:root[data-bottle-theme="apricot"] #view-brew .cat-chip.active { background: #92552f; color: #ffffff; border-color: #92552f; }

@@ -70,6 +70,7 @@ try {
     await page.locator(`.ait-theme-option[data-bottle-theme="${theme}"]`).click();
     assert.equal(await page.evaluate(() => document.documentElement.dataset.bottleTheme), theme);
     await page.evaluate(() => window.ksoolApp.settingsModalView.close());
+    await page.waitForTimeout(400); // Let existing surface color transitions settle before visual capture.
     await page.screenshot({ path: join(artifacts, `theme-${theme}.png`) });
     await page.reload();
     await page.waitForFunction(() => window.ksoolApp?.recipeBook.recipes.size > 0);

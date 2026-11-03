@@ -31,3 +31,5 @@ Original prompt: Read KSool_Gemini without changing it, follow updates periodica
 - Changed beer theme label from blue to warm gold with ivory ingredient cards and brown selection accents. Build and integration tests passed; mobile screenshot inspected.
 
 - Added theme-aware layered glass reflections to the ingredient shelf and ingredient cards, with bright inset rims and soft depth shadows. Build and integration tests passed; mobile render inspected.
+
+- Unified apricot theme controls, glass, cream shelf and category colors in a warm apricot/brown palette. Removed cool teal surfaces. Let CSS color transitions settle before theme screenshots. Build and integration tests passed; final apricot capture inspected.
