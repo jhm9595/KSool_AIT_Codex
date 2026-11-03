@@ -115,3 +115,28 @@ html { color-scheme: light; }
 .hint-desc-foil-overlay { background: linear-gradient(135deg, #edf3f0, #b8cec2); color: #193b31; }
 .foil-placeholder { color: #193b31; text-shadow: none; }
 .settings-danger-btn { background: #ffffff !important; color: #a53434 !important; }
+
+/* First-screen bottle glass: white paper label over a softly refracting green. */
+#view-brew {
+  background-color: #237d45;
+  background-image:
+    linear-gradient(90deg, rgba(7, 61, 32, .38), transparent 9%, rgba(242, 255, 223, .17) 13%, transparent 22%, transparent 76%, rgba(235, 255, 219, .12) 85%, rgba(6, 57, 29, .32)),
+    radial-gradient(ellipse at 38% 0%, rgba(211, 242, 153, .52), transparent 55%),
+    linear-gradient(180deg, #277d3e 0%, #48984c 30%, #2e8543 66%, #176339 100%);
+}
+#view-brew .pot-section {
+  margin: 28px 10px 0;
+  padding: 16px 12px;
+  background: #ffffff;
+  border: 1px solid rgba(255, 255, 255, .84);
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(8, 56, 29, .12);
+}
+#view-brew .inventory-section { background: transparent; padding-top: 12px; padding-bottom: 24px; }
+#view-brew .ing-card { background: rgba(255, 255, 255, .97); border-color: rgba(255, 255, 255, .72); }
+#view-brew .cat-chip { background: #ffffff; border-color: rgba(255, 255, 255, .72); color: #245b3f; }
+#view-brew .cat-chip.active { background: #115f40; color: #ffffff; border-color: rgba(255, 255, 255, .85); }
+#view-brew .brew-quiz-card { background: #f5fbf7; }
+@media (max-height: 650px) {
+  #view-brew .pot-section { margin-top: 18px; padding: 12px 10px; }
+}
