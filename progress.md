@@ -29,3 +29,5 @@ Original prompt: Read KSool_Gemini without changing it, follow updates periodica
 - Sampled attached bottle photos with Pillow quantization; separated sky-glass/blue label, golden-apricot glass/cream label, and amber-brown glass/blue label palettes. Preserved green theme and improved light-glass control contrast. Build and integration tests passed.
 
 - Changed beer theme label from blue to warm gold with ivory ingredient cards and brown selection accents. Build and integration tests passed; mobile screenshot inspected.
+
+- Added theme-aware layered glass reflections to the ingredient shelf and ingredient cards, with bright inset rims and soft depth shadows. Build and integration tests passed; mobile render inspected.

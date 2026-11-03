@@ -107,3 +107,27 @@
 :root:is([data-bottle-theme="blue"], [data-bottle-theme="apricot"]) #view-brew .pot-slot.empty,
 :root:is([data-bottle-theme="blue"], [data-bottle-theme="apricot"]) #view-brew .clear-pot-btn { background: #244b58; }
 :root[data-bottle-theme="blue"] #view-brew .cat-chip.active { background: #083a61; color: #ffffff; border-color: #ffffff; }
+
+/* Layered reflections and inset rims give the ingredient shelf a glass finish. */
+:root { --shelf-tint: #ffffff; --card-tint: #e1f1e9; --card-ink: #234d3a; }
+:root[data-bottle-theme="blue"] { --shelf-tint: #2177a7; --card-tint: #dcecf6; --card-ink: #193e60; }
+:root[data-bottle-theme="apricot"] { --shelf-tint: #fef5e2; --card-tint: #f5e5c8; --card-ink: #634338; }
+:root[data-bottle-theme="brown"] { --shelf-tint: #d8b565; --card-tint: #f0dca7; --card-ink: #493015; }
+:root[data-bottle-theme] #view-brew .inventory-section {
+  background:
+    linear-gradient(112deg, #ffffff88 0%, #ffffff12 18%, transparent 28%, #ffffff30 43%, transparent 56%, #ffffff18 78%, #ffffff50 100%),
+    radial-gradient(ellipse at 12% 0%, #ffffff66, transparent 65%),
+    var(--shelf-tint);
+  border: 1px solid #ffffffa6;
+  box-shadow: inset 0 2px 0 #ffffff99, inset 2px 0 4px #ffffff40, inset -2px -3px 8px #392a181a, 0 8px 18px #102b251a;
+}
+:root[data-bottle-theme] #view-brew .ing-card {
+  background:
+    linear-gradient(125deg, #ffffffee 0%, #ffffff77 22%, transparent 23%, #ffffff33 42%, transparent 65%),
+    linear-gradient(180deg, #ffffffbd, #ffffff55 55%, #ffffff88),
+    var(--card-tint);
+  color: var(--card-ink);
+  border: 1px solid #ffffffcc;
+  box-shadow: inset 0 2px 0 #ffffffdd, inset 0 -2px 3px #ffffff88, 0 3px 7px #102b2526;
+}
+:root[data-bottle-theme] #view-brew .ing-card:active { box-shadow: inset 0 2px 5px #102b2533; }
