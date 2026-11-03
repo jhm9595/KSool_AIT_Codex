@@ -66,6 +66,17 @@ try {
   await page.waitForFunction(() => window.ksoolApp?.inventory.isRecipeUnlocked(5));
 
   await page.locator('#open-settings-btn').click();
+  for (const theme of ['blue', 'apricot', 'green']) {
+    await page.locator(`.ait-theme-option[data-bottle-theme="${theme}"]`).click();
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.bottleTheme), theme);
+    await page.evaluate(() => window.ksoolApp.settingsModalView.close());
+    await page.screenshot({ path: join(artifacts, `theme-${theme}.png`) });
+    await page.reload();
+    await page.waitForFunction(() => window.ksoolApp?.recipeBook.recipes.size > 0);
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.bottleTheme), theme);
+    await page.locator('#open-settings-btn').click();
+    assert.equal(await page.locator(`.ait-theme-option[data-bottle-theme="${theme}"]`).getAttribute('aria-pressed'), 'true');
+  }
   await page.locator('#settings-sound-mute-btn').click();
   const muted = await page.evaluate(() => window.ksoolApp.audio.isMutedState());
   await page.locator('#ait-exit').waitFor();

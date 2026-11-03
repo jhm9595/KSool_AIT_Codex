@@ -118,29 +118,11 @@ html { color-scheme: light; }
 
 /* Bottle composition: green shoulder, lower white label, thick dark glass base. */
 #view-brew {
-  --bottle-neck-height: clamp(40px, 8vh, 64px);
-  position: relative;
   background-color: #237d45;
   background-image:
-    linear-gradient(#f2faf6, #f2faf6),
     linear-gradient(90deg, rgba(7, 61, 32, .38), transparent 9%, rgba(242, 255, 223, .17) 13%, transparent 22%, transparent 76%, rgba(235, 255, 219, .12) 85%, rgba(6, 57, 29, .32)),
     radial-gradient(ellipse at 38% 0%, rgba(211, 242, 153, .52), transparent 55%),
     linear-gradient(180deg, #277d3e 0%, #48984c 30%, #2e8543 66%, #176339 100%);
-  background-size: 100% var(--bottle-neck-height), auto, auto, auto;
-  background-repeat: no-repeat;
-}
-#view-brew::before {
-  content: '';
-  display: block;
-  flex: 0 0 var(--bottle-neck-height);
-  width: 100%;
-  height: var(--bottle-neck-height);
-  pointer-events: none;
-  background:
-    linear-gradient(180deg, rgba(4, 49, 22, .65), transparent 8%, rgba(211, 245, 178, .38) 11%, rgba(4, 49, 22, .4) 15%, transparent 19%),
-    linear-gradient(90deg, #155e32, #4c994b 27%, #8cbe6b 40%, #539e4d 53%, #26753b 73%, #125b31);
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 64' preserveAspectRatio='none'%3E%3Cpath d='M136 0H264V15C264 38 319 35 355 49C375 56 390 61 400 64H0C10 61 25 56 45 49C81 35 136 38 136 15Z'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 64' preserveAspectRatio='none'%3E%3Cpath d='M136 0H264V15C264 38 319 35 355 49C375 56 390 61 400 64H0C10 61 25 56 45 49C81 35 136 38 136 15Z'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
 }
 #view-brew .pot-section {
   margin: 12px 10px 0;
