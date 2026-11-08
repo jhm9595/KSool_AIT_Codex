@@ -407,12 +407,20 @@
   background: rgba(30, 41, 59, 0.45);
   border: 1px solid #334155;
   border-radius: 10px;
+  max-height: 230px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 /* 모든 탭 중 가장 높이가 높은 탭의 높이에 자동 고정시키는 CSS Grid 오버레이 컨테이너 */
 .bb-options-pool.bb-stacked-pool {
   display: grid;
   grid-template-columns: 1fr;
+  max-height: 230px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .bb-cat-pane {
@@ -1507,6 +1515,9 @@
   background: #1e293b;
   border: 1px solid #475569;
   color: #e2e8f0;
+  white-space: nowrap;
+  word-break: keep-all;
+  padding: 10px 8px;
 }
 
 .nono-action-btn.active {
@@ -1517,7 +1528,12 @@
 }
 
 .nono-action-btn.reset {
-  max-width: 90px;
+  flex: 0 0 auto;
+  min-width: fit-content;
+  max-width: none;
+  white-space: nowrap;
+  word-break: keep-all;
+  padding: 10px 14px;
 }
 
 /* 4. 미니게임 선택 로비 (MINIGAME_SELECT) */
@@ -1883,6 +1899,27 @@
   z-index: 2;
   border-radius: 10px;
   transition: opacity 0.65s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.scratch-guide-hint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  pointer-events: none;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #0f172a;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+  user-select: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.scratch-guide-hint.hidden {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.95);
 }
 
 

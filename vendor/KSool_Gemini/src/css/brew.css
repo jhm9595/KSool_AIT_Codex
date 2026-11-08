@@ -70,6 +70,12 @@
   box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
 }
 
+.brew-mode-tab-btn.shop-mode-btn.active {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #090d16;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+}
+
 .brew-quiz-card {
   background: rgba(15, 23, 42, 0.9);
   border: 1px solid #3b82f6;
@@ -647,15 +653,22 @@
 }
 
 .cat-chip {
-  padding: 6px 11px;
+  min-height: 40px;
+  padding: 8px 14px;
   border-radius: 999px;
   border: 1px solid #334155;
   background: #1e293b;
   color: #cbd5e1;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 700;
   white-space: nowrap;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  touch-action: manipulation;
+  transition: all 0.15s ease;
 }
 
 .cat-chip.active {
@@ -1144,4 +1157,333 @@
 
 .quiz-desc-locked:hover .quiz-lock-label {
   color: #7dd3fc;
+}
+
+/* =========================================================================
+   연구실(Research Lab) 점포 자금 바 & 재료 구매 상점 연동 스타일
+   ========================================================================= */
+.brew-lab-economy-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  background: rgba(9, 13, 22, 0.88);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 10px;
+  padding: 5px 8px;
+  margin-bottom: 5px;
+}
+
+.lab-econ-left {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.lab-stage-tag {
+  font-size: 0.68rem;
+  font-weight: 900;
+  color: #7dd3fc;
+  white-space: nowrap;
+}
+
+.lab-wallet-tag {
+  font-size: 0.72rem;
+  color: #e2e8f0;
+  white-space: nowrap;
+}
+
+.lab-wallet-tag b {
+  color: #fde047;
+}
+
+.lab-econ-right {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.lab-quick-btn {
+  padding: 4px 8px;
+  border-radius: 7px;
+  font-size: 0.65rem;
+  font-weight: 900;
+  cursor: pointer;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.lab-quick-btn.shop-btn {
+  background: rgba(245, 158, 11, 0.22);
+  border-color: #f59e0b;
+  color: #fde047;
+}
+
+.lab-quick-btn.shop-btn.active {
+  background: #f59e0b;
+  color: #090d16;
+}
+
+.lab-quick-btn.tycoon-btn {
+  background: rgba(16, 185, 129, 0.22);
+  border-color: #10b981;
+  color: #6ee7b7;
+}
+
+.quiz-shop-needed-banner {
+  width: 100%;
+  margin-top: 4px;
+  padding: 5px 8px;
+  border-radius: 7px;
+  background: rgba(245, 158, 11, 0.16);
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  color: #fde047;
+  font-size: 0.66rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.quiz-shop-needed-banner b {
+  color: #ffffff;
+  background: #d97706;
+  padding: 2px 6px;
+  border-radius: 5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.cat-chip.lab-shop-cat-chip {
+  border-color: rgba(245, 158, 11, 0.65);
+  color: #fde047;
+  background: rgba(120, 53, 15, 0.35);
+}
+
+.cat-chip.lab-shop-cat-chip.active {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  border-color: #fde047;
+  color: #090d16;
+}
+
+.ing-card.lab-shop-card {
+  padding-top: 20px;
+}
+
+.ing-card.lab-shop-card.can-buy {
+  border-color: #f59e0b;
+  background: linear-gradient(160deg, rgba(120, 53, 15, 0.32), rgba(15, 23, 42, 0.95));
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.22);
+}
+
+.ing-card.lab-shop-card.locked-funds {
+  opacity: 0.62;
+  border-style: dashed;
+}
+
+.ing-card.lab-shop-card.is-owned {
+  border-color: rgba(52, 211, 153, 0.45);
+}
+
+.shop-card-price-tag {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  font-size: 0.56rem;
+  font-weight: 900;
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: #1e293b;
+  color: #94a3b8;
+  border: 1px solid #475569;
+}
+
+.shop-card-price-tag.buyable {
+  background: #f59e0b;
+  color: #090d16;
+  border-color: #fde047;
+}
+
+.shop-card-price-tag.owned {
+  background: rgba(16, 185, 129, 0.22);
+  color: #6ee7b7;
+  border-color: #10b981;
+}
+
+.shop-card-sub {
+  font-size: 0.56rem;
+  font-weight: 900;
+  color: #fde047;
+}
+
+/* 연구실 상단 토글 🛒 재료 상점 전용 뷰 */
+.ingredients-grid.is-shop-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 14px 20px;
+}
+
+.lab-shop-starter-banner {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.38);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 0.72rem;
+  color: #a7f3d0;
+  text-align: center;
+}
+
+.lab-shop-starter-banner b {
+  color: #34d399;
+}
+
+.lab-shop-stage-group {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lab-shop-stage-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #fde047;
+  padding: 0 2px 6px;
+  border-bottom: 1px dashed rgba(148, 163, 184, 0.22);
+}
+
+.lab-shop-stage-header b {
+  color: #93c5fd;
+  font-size: 0.7rem;
+}
+
+.lab-shop-stage-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lab-shop-row-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 11px;
+  border-radius: 10px;
+  background: #131c31;
+  border: 1px solid #293548;
+  text-align: left;
+  color: #f8fafc;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+
+.lab-shop-row-card.can-buy {
+  cursor: pointer;
+  border-color: rgba(245, 158, 11, 0.75);
+  background: linear-gradient(135deg, rgba(120, 53, 15, 0.28), rgba(15, 23, 42, 0.95));
+}
+
+.lab-shop-row-card.can-buy:active {
+  transform: scale(0.985);
+}
+
+.lab-shop-row-card.locked-funds {
+  cursor: pointer;
+  opacity: 0.68;
+  border-style: dashed;
+}
+
+.lab-shop-row-card.is-owned {
+  border-color: rgba(52, 211, 153, 0.4);
+  background: rgba(6, 78, 59, 0.18);
+}
+
+.lab-shop-row-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.lab-shop-row-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  background: #0f172a;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  flex-shrink: 0;
+}
+
+.lab-shop-row-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.lab-shop-row-name {
+  font-size: 0.82rem;
+  font-weight: 900;
+  color: #f8fafc;
+}
+
+.lab-shop-row-hint {
+  font-size: 0.66rem;
+  color: #94a3b8;
+  line-height: 1.25;
+}
+
+.lab-shop-buy-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 900;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.lab-shop-buy-pill small {
+  font-size: 0.58rem;
+  font-weight: 800;
+  margin-top: 1px;
+}
+
+.lab-shop-buy-pill.buyable {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #090d16;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+.lab-shop-buy-pill.disabled {
+  background: #1e293b;
+  color: #94a3b8;
+  border: 1px solid #475569;
+}
+
+.lab-shop-buy-pill.owned {
+  background: rgba(16, 185, 129, 0.2);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.45);
 }

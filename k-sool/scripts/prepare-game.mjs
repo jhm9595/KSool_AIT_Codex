@@ -29,6 +29,9 @@ for (const name of ['_fetchRemoteSuggestions', '_syncRemoteUpsert', '_syncRemote
 }
 service = service.replace(/this\.SUPABASE_(?:URL|KEY)\s*=\s*[^;]+;/g, '');
 writeFileSync(servicePath, service);
+// Rankings remain on this device. Never load upstream production credentials
+// or execute its remote leaderboard implementation in the Apps in Toss bundle.
+cpSync(join(app, 'src/ait/tycoon-leaderboard.js'), join(output, 'src/js/core/tycoon/TycoonLeaderboardService.js'));
 
 // Free hints are intentionally offered without ads in this initial edition.
 writeFileSync(join(output, 'src/js/services/AdService.js'), `window.KSool = window.KSool || {};
@@ -43,7 +46,9 @@ function transform(dir) {
     if (entry.isDirectory()) transform(file);
     else if (/\.(js|css)$/.test(file)) {
       let text = readFileSync(file, 'utf8');
+      if (file.endsWith('RecipeAnalysisIntegrator.js')) text = text.replace(/totalTargetFilled,\s*minR,\s*minC/, 'totalTargetFilled, minR: 0, minC: 0');
       text = text.replaceAll('./assets/', '/game/assets/').replaceAll('./data/', '/game/data/');
+      text = text.replaceAll('글로벌 Top 100', '이 기기 Top 100').replaceAll('글로벌 랭킹', '이 기기 랭킹').replaceAll('전체 유저', '이 기기 기록');
       text = text.replaceAll('광고 시청', '무료 힌트').replaceAll('광고를 시청', '힌트를 확인').replaceAll('광고 보고', '무료로').replaceAll('광고 보기', '힌트 보기');
       text = text.replaceAll('<span class="ad-tag">AD</span>', '<span class="ad-tag">무료</span>').replaceAll('은박 복권 긁기(AD)', '무료 은박 복권 긁기');
       if (file.endsWith('.css') || file.includes(`${join('js', 'ui')}`) || file.endsWith('app.js')) text = adaptDesign(text);

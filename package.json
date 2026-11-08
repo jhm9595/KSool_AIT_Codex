@@ -6,7 +6,7 @@
     "audit:design": "node scripts/audit-design.mjs",
     "dev": "npm --prefix k-sool run dev",
     "build": "npm --prefix k-sool run build",
-    "test": "node scripts/test-integration.mjs",
+    "test": "node scripts/test-tycoon-integration.mjs",
     "upstream:check": "node scripts/upstream.mjs --check",
     "upstream:sync": "node scripts/upstream.mjs --sync"
   },

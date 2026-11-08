@@ -10,18 +10,19 @@
   <link rel="apple-touch-icon" sizes="192x192" href="./assets/app_icon_192.png">
   <meta property="og:type" content="website">
   <meta property="og:title" content="K-술: 한국의 술자리 연금술">
-  <meta property="og:description" content="소주, 맥주, 막걸리부터 이색 칵테일까지! 나만의 황금비율 술자리 연금술 도감을 완성해보세요.">
+  <meta property="og:description" content="길거리 노점 음료수부터 미래도시 바의 특산 명주까지! 나만의 황금비율 주막 타이쿤 & 연금술 도감을 완성해보세요.">
   <meta property="og:image" content="https://jhm9595.github.io/KSool_Gemini/assets/og_image.png">
   <meta property="og:url" content="https://jhm9595.github.io/KSool_Gemini/">
   <!-- 모듈형 스타일시트 -->
-  <link rel="stylesheet" href="./src/css/variables.css?v=20261101_4">
-  <link rel="stylesheet" href="./src/css/layout.css?v=20261102_05">
-  <link rel="stylesheet" href="./src/css/brew.css?v=20261103_01">
+  <link rel="stylesheet" href="./src/css/variables.css?v=20261107_02">
+  <link rel="stylesheet" href="./src/css/layout.css?v=20261107_02">
+  <link rel="stylesheet" href="./src/css/brew.css?v=20261108_04">
   <link rel="stylesheet" href="./src/css/pickers/picker_common.css?v=20261101_3">
-  <link rel="stylesheet" href="./src/css/hint_center.css?v=20261103_3">
+  <link rel="stylesheet" href="./src/css/hint_center.css?v=20261107_02">
   <link rel="stylesheet" href="./src/css/fridge_recommender.css?v=20261102_13">
   <link rel="stylesheet" href="./src/css/suggestion_board.css?v=20261102_01">
   <link rel="stylesheet" href="./src/css/party_games.css?v=20261102_16">
+  <link rel="stylesheet" href="./src/css/tycoon.css?v=20261108_03">
 </head>
 <body>
 
@@ -50,20 +51,23 @@
     </div>
   </header>
 
-  <!-- [탭 1] 주조실 (Crafting View) -->
-  <section id="view-brew" class="view active">
+  <!-- [탭 1] 점포 영업 (Tycoon Main Game View - 기본 메인 화면) -->
+  <section id="view-tycoon" class="view active"></section>
+
+  <!-- [탭 2] 연구실 (Research Lab / Crafting View) -->
+  <section id="view-brew" class="view">
     <div class="pot-section">
-      <!-- 단계별 넘버링 퀴즈 모드 & 자유 주조 모드 전환 패널 -->
+      <!-- 단계별 넘버링 연구 모드 & 재료 상점 토글 전환 패널 -->
       <div id="brew-step-quiz-bar" class="brew-step-quiz-bar"></div>
 
       <!-- 동적 조합 슬롯 (초안 4칸, 무제한 확장 가능) -->
       <div id="pot-slots-grid" class="pot-slots-grid"></div>
 
-      <!-- 기 주조 레시피 실시간 감지 알림 바 -->
+      <!-- 기 연구 레시피 실시간 감지 알림 바 -->
       <div id="pot-match-notice" class="pot-match-notice"></div>
 
       <div class="pot-actions">
-        <button id="mix-btn" class="mix-btn" disabled>⚗️ 조합하기</button>
+        <button id="mix-btn" class="mix-btn" disabled>🔬 조합하기</button>
         <button id="clear-pot-btn" class="clear-pot-btn">비우기</button>
       </div>
     </div>
@@ -75,47 +79,56 @@
     </div>
   </section>
 
-  <!-- [탭 2] 도감 & 3대 힌트 센터 진입 뷰 -->
+  <!-- [탭 3] 도감 & 3대 힌트 센터 진입 뷰 -->
   <section id="view-collection" class="view">
     <div class="collection-header">
       <div class="collection-top-row">
         <div id="recipe-cat-bar" class="cat-filter-bar"></div>
         <div class="progress-pill collection-progress-pill">
-          도감 <span id="unlocked-count">0 / 56</span>
+          도감 <span id="unlocked-count">0 / 84</span>
         </div>
       </div>
     </div>
     <div id="sool-grid" class="sool-grid"></div>
   </section>
 
-  <!-- [탭 3] 내 냉장고 술 조합 추천기 & 랜덤 고르기 뷰 -->
+  <!-- [탭 4] 내 냉장고 술 조합 추천기 & 랜덤 고르기 뷰 -->
   <section id="view-fridge" class="view"></section>
 
-  <!-- [탭 4] 초간단 조합 추천 & 관리자 '딸깍' 뷰 -->
+  <!-- [탭 5] 초간단 조합 추천 & 관리자 '딸깍' 뷰 -->
   <section id="view-suggestions" class="view"></section>
 
-  <!-- [탭 5] 오프라인 술자리 패스앤플레이 미니게임 뷰 -->
+  <!-- [탭 6] 오프라인 술자리 패스앤플레이 미니게임 뷰 -->
   <section id="view-party" class="view"></section>
 
   <!-- 모바일 하단 메인 탭 네비게이션 (Bottom Bar) -->
   <nav class="tab-bar">
-    <button class="tab-btn active" data-tab-target="brew">
-      <span style="font-size:1.15rem;">⚗️</span>
-      <span>주조실</span>
+    <button class="tab-btn active" data-tab-target="tycoon">
+      <span style="font-size:1.15rem;">🏪</span>
+      <span>점포</span>
+    </button>
+    <button class="tab-btn" data-tab-target="brew">
+      <span style="font-size:1.15rem;">🔬</span>
+      <span>연구실</span>
     </button>
     <button class="tab-btn" data-tab-target="collection">
-      <span style="font-size:1.15rem;">📜</span>
+      <span style="font-size:1.15rem;">📖</span>
       <span>도감·힌트</span>
-    </button>
-    <button class="tab-btn" data-tab-target="suggestions">
-      <span style="font-size:1.15rem;">👍</span>
-      <span>추천</span>
     </button>
     <button class="tab-btn" data-tab-target="party">
       <span style="font-size:1.15rem;">🍻</span>
       <span>술게임</span>
     </button>
+    <button class="tab-btn" data-tab-target="suggestions" style="display:none;">
+      <span style="font-size:1.15rem;">👍</span>
+      <span>추천</span>
+    </button>
   </nav>
+
+  <!-- [모달 0] 프롤로그 스토리 & 애니메이션 튜토리얼 컷신 모달 -->
+  <div id="story-tutorial-modal" class="modal-overlay story-cutscene-overlay">
+    <div id="story-tutorial-content" class="story-cutscene-modal-card"></div>
+  </div>
 
   <!-- [모달 1] 대표 재료별 전용 상세 재료 선택 모달 (팔도 지도 / 소주 쇼케이스 등) -->
   <div id="detail-picker-modal" class="modal-overlay">
@@ -149,33 +162,34 @@
 </div>
 
 <!-- OOP 모듈 로드 (오프라인/로컬 file:// 및 웹서버 100% 호환) -->
-<script src="./src/js/config/SeedDataBundle.js?v=20261103_20"></script>
+<script src="./src/js/config/SeedDataBundle.js?v=20261108_01"></script>
 <script src="./src/js/services/PixelIconRegistry.js?v=20261102_06"></script>
 <script src="./src/js/config/GameConfig.js?v=20261101_7"></script>
 <script src="./src/js/services/BrandResolver.js?v=20261101_7"></script>
-<script src="./src/js/services/StorageService.js?v=20261103_20"></script>
+<script src="./src/js/services/StorageService.js?v=20261105_01"></script>
 <script src="./src/js/services/AdService.js?v=20261101_1"></script>
 <script src="./src/js/core/CraftingPot.js?v=20261101_7"></script>
-<script src="./src/js/core/ProgressionEngine.js?v=20261101_9"></script>
+<script src="./src/js/core/ProgressionEngine.js?v=20261108_01"></script>
 <script src="./src/js/core/RecipeBook.js?v=20261102_01"></script>
-<script src="./src/js/core/InventoryManager.js?v=20261102_02"></script>
+<script src="./src/js/core/InventoryManager.js?v=20261108_03"></script>
 <script src="./src/js/core/hint/FeedbackHintStrategy.js?v=20261101_7"></script>
 <script src="./src/js/core/hint/BaseballHintEngine.js?v=20261101_7"></script>
 <script src="./src/js/core/hint/RatioHintProvider.js?v=20261101_7"></script>
 <script src="./src/js/core/hint/ImageMinigameSuite.js?v=20261103_3"></script>
 <script src="./src/js/core/fridge/FridgeMatcherEngine.js?v=20261101_7"></script>
 <script src="./src/js/core/suggestion/SuggestionService.js?v=20261101_10"></script>
-<script src="./src/js/core/AlchemyEngine.js?v=20261101_7"></script>
+<script src="./src/js/core/AlchemyEngine.js?v=20261107_01"></script>
 <script src="./src/js/ui/pickers/DetailPickerRegistry.js?v=20261102_01"></script>
-<script src="./src/js/ui/ScratchCardView.js?v=20261103_20"></script>
-<script src="./src/js/ui/HintModalView.js?v=20261103_20"></script>
+<script src="./src/js/ui/ScratchCardView.js?v=20261107_01"></script>
+<script src="./src/js/ui/HintModalView.js?v=20261107_02"></script>
 <script src="./src/js/ui/FridgeRecommenderView.js?v=20261102_01"></script>
 <script src="./src/js/services/RecipeAnalysisIntegrator.js?v=20261103_01"></script>
 <script src="./src/js/ui/RecipeInspectorModalView.js?v=20261102_02"></script>
 <script src="./src/js/ui/SuggestionBoardView.js?v=20261102_02"></script>
-<script src="./src/js/ui/SettingsModalView.js?v=20261101_4"></script>
+<script src="./src/js/ui/SettingsModalView.js?v=20261108_03"></script>
+<script src="./src/js/ui/StoryTutorialModalView.js?v=20261108_04"></script>
 <script src="./src/js/ui/party/PartySoundSynth.js?v=20261102_02"></script>
-<script src="./src/js/ui/party/games/UpAndDownGame.js?v=20261102_05"></script>
+<script src="./src/js/ui/party/games/UpAndDownGame.js?v=20261106_01"></script>
 <script src="./src/js/ui/party/games/CapFlickGame.js?v=20261103_20"></script>
 <script src="./src/js/ui/party/games/SurfaceTensionGame.js?v=20261101_9"></script>
 <script src="./src/js/ui/party/games/BottleSpinGame.js?v=20261102_01"></script>
@@ -186,6 +200,10 @@
 <script src="./src/js/ui/party/games/MarketMemoryGame.js?v=20261102_03"></script>
 <script src="./src/js/ui/party/games/IamGroundGame.js?v=20261102_05"></script>
 <script src="./src/js/ui/party/PartyGameHubView.js?v=20261103_20"></script>
-<script src="./src/js/app.js?v=20261103_02"></script>
+<script src="./src/js/core/tycoon/TycoonCustomerPool.js?v=20261105_05"></script>
+<script src="./src/js/core/tycoon/TycoonLeaderboardService.js?v=20261103_01"></script>
+<script src="./src/js/core/tycoon/TycoonEngine.js?v=20261108_03"></script>
+<script src="./src/js/ui/TycoonView.js?v=20261108_03"></script>
+<script src="./src/js/app.js?v=20261108_04"></script>
 </body>
 </html>

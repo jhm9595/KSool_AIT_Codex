@@ -2,6 +2,7 @@ import { User, Screen, graniteEvent } from '@apps-in-toss/web-framework';
 import '../styles/base.css';
 import './platform.css';
 import './themes.css';
+import './tycoon.css';
 
 import { bottleThemes, applyBottleTheme } from './theme.js';
 let bottleTheme = 'green';
@@ -90,11 +91,18 @@ async function exit() {
 }
 function back() {
   const app = window.ksoolApp;
+  if (document.getElementById('live-interactive-tutorial-layer')) {
+    app?.storyTutorialModalView?.stopInteractiveTutorial(true); return;
+  }
+  if (document.getElementById('tycoon-close-submodal')) {
+    document.getElementById('tycoon-close-submodal').click(); return;
+  }
   const overlays = [...document.querySelectorAll('.modal-overlay.active')];
   if (overlays.length) {
     const overlay = overlays.at(-1);
     if (overlay.id === 'hint-modal') app?.hintModalView.close();
     else if (overlay.id === 'settings-modal') app?.settingsModalView.close();
+    else if (overlay.id === 'story-tutorial-modal') app?.storyTutorialModalView.close(true);
     else {
       const close = overlay.querySelector('.modal-close-x, #result-close-btn, [aria-label="닫기"]');
       if (close) close.click(); else overlay.classList.remove('active');
@@ -104,7 +112,10 @@ function back() {
   if (app?.currentTab === 'party' && app.partyGameHubView?.activeGameKey) {
     app.partyGameHubView.openLobby(); return;
   }
-  if (app && app.currentTab !== 'brew') { app.switchTab('brew'); return; }
+  if (app?.currentTab === 'tycoon' && app.tycoonView?.engine?.session.status === 'PLAYING') {
+    document.getElementById('tycoon-back-lobby-btn')?.click(); return;
+  }
+  if (app && app.currentTab !== 'tycoon') { app.switchTab('tycoon'); return; }
   void exit();
 }
 const cleanup = [];
@@ -160,7 +171,7 @@ if (settings) {
     document.getElementById(this.contentId)?.append(button);
     const note = document.createElement('p');
     note.id = 'ait-data-note';
-    note.textContent = '진행 기록과 설정은 이 기기에 저장돼요. 앱 데이터 삭제나 기기 변경 시 자동으로 복원되지 않아요. 추천 조합도 이 기기에서만 볼 수 있어요.';
+    note.textContent = '진행 기록·설정·추천 조합·랭킹은 이 기기에 저장돼요. 앱 데이터 삭제나 기기 변경 시 자동으로 복원되지 않아요.';
     button.before(note);
   };
 }

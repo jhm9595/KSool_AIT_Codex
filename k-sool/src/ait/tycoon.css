@@ -1,0 +1,35 @@
+/* Semantic palette bridge for new upstream tycoon and story surfaces. */
+body { font-family: system-ui, -apple-system, 'Malgun Gothic', sans-serif, 'Tossface'; }
+#view-tycoon, #view-tycoon .tycoon-shell { background: var(--bg); }
+.lobby-stage-info-banner { background-color: var(--glass-edge); }
+.lobby-stage-info-banner .lobby-stage-info-stats,
+.lobby-stage-info-banner .lobby-stage-info-stats b { color: #fff; }
+.tycoon-compact-pot-row { height: 100px; gap: 6px; }
+.cp-actions-col { width: 104px; }
+.cp-craft-btn { min-height: 50px; }
+.cp-clear-btn { height: 44px; flex-shrink: 0; }
+.cp-craft-btn small { white-space: normal; overflow: visible; }
+.cp-slot { background: var(--theme-soft); color: var(--text); border-color: var(--border); }
+.cp-slot :is(.cp-name, .cp-plus) { color: var(--text); }
+.counter-order-bubble, .counter-order-bubble .bubble-drink-name { color: var(--text) !important; }
+.coach-message-card { background: var(--card-bg); color: var(--text); border-color: var(--primary); }
+.coach-message-card :is(.coach-card-title, .coach-card-desc, .coach-card-desc b, .coach-card-desc em, .coach-action-hint) { color: var(--text); }
+.coach-step-badge { color: var(--primary-hover); background: var(--theme-soft); }
+.tycoon-shell, .tycoon-submodal-card, .live-coach-callout { color: var(--text); }
+.tycoon-lobby-container, .tycoon-submodal-card, .notebook-recipe-row,
+.shop-ing-row, .tycoon-stage-card { background-color: var(--card-bg); border-color: var(--border); }
+.tycoon-submodal-card, .tycoon-submodal-card :is(h3, small, .shop-ing-name) { color: var(--text); }
+.tycoon-submodal-card :is(.shop-wallet-bar, .shop-free-starter-notice) { background: var(--theme-soft); color: var(--text); }
+.tycoon-submodal-card .shop-ing-hint { color: var(--text-muted); }
+.tycoon-compact-hud { color: var(--text); background: var(--card-bg); }
+.hud-stat, .hud-stage-pill, .hud-icon-btn { color: var(--text); }
+.hud-icon-btn, .submodal-close-btn, .lab-hud-btn, .quiz-nav-btn,
+.quiz-open-hint-btn, .brew-mode-tab-btn { min-width: 44px; min-height: 44px; }
+.cutscene-player-stage { max-height: calc(100dvh - 24px); overflow-y: auto; }
+.cutscene-dialogue-lines, .hint-desc-text { color: var(--text); }
+.hint-desc-card.is-revealed .hint-desc-text { color: var(--text); text-shadow: none; }
+@media (max-width: 380px) {
+  .hint-step-header, .hint-step-title-group { flex-wrap: wrap; min-width: 0; }
+  .hint-step-title { flex: 1 0 100%; white-space: normal; }
+  .foil-scratch-strip { flex-wrap: wrap; height: auto; }
+}

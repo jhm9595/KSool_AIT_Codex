@@ -83,6 +83,7 @@ class UpAndDownGame {
   }
 
   handleDigitPress(digit) {
+    if (digit === null || digit === undefined || !/^\d$/.test(String(digit))) return;
     if (this.isFinished) {
       this.reset();
       return;
@@ -440,7 +441,8 @@ class UpAndDownGame {
       };
     });
 
-    document.querySelectorAll('.party-num-key').forEach(key => {
+    // 숫자 키만 바인딩 (↺ / ↵ 액션 키도 party-num-key 클래스를 공유하므로 data-digit 보유 키로 한정)
+    document.querySelectorAll('.party-num-key[data-digit]').forEach(key => {
       key.onclick = (e) => {
         e.stopPropagation();
         const d = e.currentTarget.getAttribute('data-digit');

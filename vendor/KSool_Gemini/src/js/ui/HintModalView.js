@@ -45,7 +45,7 @@ class HintModalView {
       this.viewMode = 'CHOICE';
       const isImageUnlocked = this.inventory.isRecipeUnlocked(this.activeRecipeId) || this.inventory.isRecipeImageUnlocked(this.activeRecipeId);
       const isDescUnlocked = this.inventory.isRecipeDescUnlocked(this.activeRecipeId);
-      if (isImageUnlocked && !isDescUnlocked) {
+      if (!isDescUnlocked) {
         // 1단계 그림이 이미 해금된 상태면 보상형 광고 모달 띄우고 바로 복권 긁기 오픈
         if (window.KSool?.AdService) {
           window.KSool.AdService.showRewardedAd({
@@ -65,7 +65,7 @@ class HintModalView {
       const isImageUnlocked = this.inventory.isRecipeImageUnlocked(this.activeRecipeId);
       const isRecipeUnlocked = this.inventory.isRecipeUnlocked(this.activeRecipeId);
       const isSandbox = Boolean(this.inventory.unlockAllSandboxMode);
-      this.viewMode = (isImageUnlocked || isRecipeUnlocked || isSandbox) ? 'BASEBALL' : 'CHOICE';
+      this.viewMode = ((isImageUnlocked && this.inventory.isRecipeDescUnlocked(this.activeRecipeId)) || isRecipeUnlocked || isSandbox) ? 'BASEBALL' : 'CHOICE';
     } else {
       // 전체 해금 샌드박스 모드일 때만 BASEBALL 직행, 그 외에는 항상 2단계 선택 화면(CHOICE)
       this.viewMode = this.inventory.unlockAllSandboxMode ? 'BASEBALL' : 'CHOICE';
@@ -160,7 +160,7 @@ class HintModalView {
       const isBaseballDoneChoice = this.baseballEngine.isAllStagesCleared(this.activeRecipeId);
       const needsRatioGameChoice = this.ratioProvider.requiresRatioGame(this.activeRecipeId);
       const isUpAndDownChoice = isBaseballDoneChoice && needsRatioGameChoice;
-      const isBaseballUnlocked = isImageUnlocked || isRecipeUnlocked || Boolean(this.inventory.unlockAllSandboxMode);
+      const isBaseballUnlocked = (isImageUnlocked && isDescUnlocked) || isRecipeUnlocked || Boolean(this.inventory.unlockAllSandboxMode);
 
       // 1. 외부 힌트 (있을 경우만)
       let extHintCardHtml = '';
@@ -744,13 +744,13 @@ class HintModalView {
       const allSolvedBannerHtml = isAllRatiosSolved ? `
         <div class="bb-all-solved-card animate-pop">
           <div class="bb-all-solved-title">🎉 모든 재료의 황금비율 완성!</div>
-          <div class="bb-all-solved-desc">모든 재료와 비율을 완벽히 알아냈습니다. 아래 버튼을 눌러 주조실에 자동 세팅해보세요!</div>
+          <div class="bb-all-solved-desc">모든 재료와 비율을 완벽히 알아냈습니다. 아래 버튼을 눌러 연구실에 자동 세팅해보세요!</div>
         </div>
       ` : '';
 
       const goToBrewBtnHtml = isAllRatiosSolved ? `
         <button class="mix-btn bb-go-brew-btn" id="bb-go-brew-btn">
-          ⚗️ 주조실로 가기 (자동 세팅)
+          🔬 연구실로 가기 (자동 세팅)
         </button>
       ` : '';
 
@@ -1039,9 +1039,9 @@ class HintModalView {
         const isRecipeUnlocked = this.inventory.isRecipeUnlocked(this.activeRecipeId);
         const isSandbox = Boolean(this.inventory.unlockAllSandboxMode);
 
-        if (!isImageUnlocked && !isRecipeUnlocked && !isSandbox) {
+        const isDescUnlocked = this.inventory.isRecipeDescUnlocked(this.activeRecipeId);
+        if ((!isImageUnlocked || !isDescUnlocked) && !isRecipeUnlocked && !isSandbox) {
           this.audio?.playTap?.();
-          alert('🔒 1단계 외형 그림 미니게임을 먼저 클리어해야 베이스볼 추리에 입장할 수 있습니다!');
           return;
         }
 
@@ -1121,6 +1121,12 @@ class HintModalView {
     const goBaseballBtn = container.querySelector('#mg-go-baseball-btn');
     if (goBaseballBtn) {
       goBaseballBtn.onclick = () => {
+        if (!this.inventory.isRecipeDescUnlocked(this.activeRecipeId) && !this.inventory.isRecipeUnlocked(this.activeRecipeId) && !this.inventory.unlockAllSandboxMode) {
+          this.viewMode = 'CHOICE';
+          this.audio.playTap();
+          this.render();
+          return;
+        }
         this._clearActiveRecipeHistory();
         this._resetGuessSlots();
         this.viewMode = 'BASEBALL';

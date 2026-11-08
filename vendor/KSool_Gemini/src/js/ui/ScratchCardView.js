@@ -27,6 +27,7 @@
      */
     init(cardEl) {
       if (!cardEl) return;
+      this.cardEl = cardEl;
       this.isCompleted = false;
       this.canvas = cardEl.querySelector('.scratch-overlay-canvas');
       if (!this.canvas) return;
@@ -109,12 +110,24 @@
       ctx.strokeRect(3, 3, width - 6, height - 6);
       ctx.setLineDash([]);
 
-      // 스크래치 안내 문구 및 동전 아이콘
-      ctx.fillStyle = '#0f172a';
-      ctx.font = 'bold 12.5px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('🪙 손가락이나 마우스로 긁어보세요!', width / 2, height / 2);
+      // 캔버스 자체에 텍스트를 직접 그리면 긁을 때 텍스트 픽셀과 하단 힌트가 겹쳐 보임.
+      // 따라서 긁기 시작 시 즉시 사라지는 HTML 오버레이 가이드로 분리하여 겹침 원천 방지!
+      let guideEl = box.querySelector('.scratch-guide-hint');
+      if (!guideEl) {
+        guideEl = document.createElement('div');
+        guideEl.className = 'scratch-guide-hint';
+        guideEl.textContent = '🪙 손가락이나 마우스로 긁어보세요!';
+        box.appendChild(guideEl);
+      } else {
+        guideEl.classList.remove('hidden');
+      }
+    }
+
+    _hideGuideText() {
+      const guideEl = this.cardEl?.querySelector('.scratch-guide-hint');
+      if (guideEl) {
+        guideEl.classList.add('hidden');
+      }
     }
 
     _bindPointerEvents() {
@@ -131,6 +144,7 @@
       const startScratch = (e) => {
         if (this.isCompleted) return;
         this.isDrawing = true;
+        this._hideGuideText();
         this.canvas.setPointerCapture?.(e.pointerId);
         this.lastPoint = getPoint(e);
         this._scratchCircle(this.lastPoint.x, this.lastPoint.y);
@@ -138,6 +152,7 @@
 
       const moveScratch = (e) => {
         if (!this.isDrawing || this.isCompleted) return;
+        this._hideGuideText();
         const pt = getPoint(e);
         this._scratchLine(this.lastPoint, pt);
         this.lastPoint = pt;
@@ -215,6 +230,11 @@
     revealAll() {
       if (this.isCompleted) return;
       this.isCompleted = true;
+      this._hideGuideText();
+      const guideEl = this.cardEl?.querySelector('.scratch-guide-hint');
+      if (guideEl) {
+        guideEl.remove();
+      }
 
       if (this.canvas) {
         // 은박지가 서서히 옅어지며 뒤쪽 설명이 투명하게 드러나는 페이드아웃 애니메이션

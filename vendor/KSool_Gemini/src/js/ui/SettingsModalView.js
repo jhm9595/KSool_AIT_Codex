@@ -14,14 +14,29 @@
       this.contentId = contentId;
       this.app = app;
       this.isOpen = false;
+      this._lastActiveElement = null;
+      this._boundKeyHandler = this._handleKeyDown.bind(this);
     }
 
     open() {
       const modal = document.getElementById(this.modalId);
       if (!modal) return;
+      this._lastActiveElement = document.activeElement;
       this.isOpen = true;
       modal.classList.add('active');
+      modal.setAttribute('role', 'dialog');
+      modal.setAttribute('aria-modal', 'true');
       this.render();
+
+      window.addEventListener('keydown', this._boundKeyHandler);
+
+      // 모달 내부의 첫 번째 포커스 가능한 요소로 이동
+      requestAnimationFrame(() => {
+        const focusable = this._getFocusableElements();
+        if (focusable.length > 0) {
+          focusable[0].focus();
+        }
+      });
     }
 
     close() {
@@ -29,6 +44,64 @@
       if (!modal) return;
       this.isOpen = false;
       modal.classList.remove('active');
+      window.removeEventListener('keydown', this._boundKeyHandler);
+
+      // 모달 열기 전 포커스되어 있던 위치로 복귀
+      if (this._lastActiveElement && typeof this._lastActiveElement.focus === 'function') {
+        try {
+          this._lastActiveElement.focus();
+        } catch (_) {}
+      }
+      this._lastActiveElement = null;
+    }
+
+    _getFocusableElements() {
+      const modal = document.getElementById(this.modalId);
+      if (!modal) return [];
+      const selector = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+      return Array.from(modal.querySelectorAll(selector)).filter(el => {
+        return el.offsetWidth > 0 || el.offsetHeight > 0 || el === document.activeElement;
+      });
+    }
+
+    _handleKeyDown(e) {
+      if (!this.isOpen) return;
+
+      // 1. ESC 누르면 모달 닫기
+      if (e.key === 'Escape' || e.keyCode === 27) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.app?.audio?.playTap?.();
+        this.close();
+        return;
+      }
+
+      // 2. Tab 누를 때 모달 내부에서만 포커스 순환 (Focus Trap)
+      if (e.key === 'Tab' || e.keyCode === 9) {
+        const focusables = this._getFocusableElements();
+        if (focusables.length === 0) {
+          e.preventDefault();
+          return;
+        }
+
+        const firstEl = focusables[0];
+        const lastEl = focusables[focusables.length - 1];
+        const activeEl = document.activeElement;
+
+        if (e.shiftKey) {
+          // Shift + Tab: 첫 요소에서 역방향으로 나가려 할 때 마지막 요소로 순환
+          if (activeEl === firstEl || !focusables.includes(activeEl)) {
+            e.preventDefault();
+            lastEl.focus();
+          }
+        } else {
+          // Tab: 마지막 요소에서 나가려 할 때 첫 요소로 순환
+          if (activeEl === lastEl || !focusables.includes(activeEl)) {
+            e.preventDefault();
+            firstEl.focus();
+          }
+        }
+      }
     }
 
     _getSoundIcon(isMuted, volPercent) {
@@ -80,7 +153,20 @@
             </div>
           </div>
 
-          <!-- 2. 전체 진행도 초기화 -->
+          <!-- 2. 게임 가이드 & 튜토리얼 -->
+          <div class="settings-section">
+            <div class="settings-section-title">게임 가이드 & 튜토리얼</div>
+            <div class="settings-guide-actions">
+              <button type="button" class="settings-guide-btn guide-popup-btn" id="settings-open-guide-btn">
+                📖 게임 가이드 보기 (요약 카드)
+              </button>
+              <button type="button" class="settings-guide-btn live-tutorial-btn" id="settings-start-live-tutorial-btn">
+                🎓 실전 조작 튜토리얼 다시하기
+              </button>
+            </div>
+          </div>
+
+          <!-- 3. 전체 진행도 초기화 -->
           <div class="settings-section settings-danger-section">
             <div class="settings-section-title" style="color:#f87171;">진행도 초기화</div>
             <div class="settings-reset-card" style="border-bottom:none; padding:0;">
@@ -213,35 +299,35 @@
         };
       }
 
-      // 3. 전체 진행도 리셋
+      // 3. 게임 가이드 & 실전 튜토리얼 열기
+      const openGuideBtn = container.querySelector('#settings-open-guide-btn');
+      if (openGuideBtn) {
+        openGuideBtn.onclick = () => {
+          audioService?.playTap?.();
+          this.close();
+          app?.storyTutorialModalView?.openTutorialOnly?.();
+        };
+      }
+
+      const startLiveTutBtn = container.querySelector('#settings-start-live-tutorial-btn');
+      if (startLiveTutBtn) {
+        startLiveTutBtn.onclick = () => {
+          audioService?.playTap?.();
+          this.close();
+          app?.storyTutorialModalView?.startInteractiveTutorial?.();
+        };
+      }
+
+      // 4. 전체 진행도 리셋
       const resetAllBtn = container.querySelector('#settings-reset-all-btn');
       if (resetAllBtn) {
         resetAllBtn.onclick = () => {
-          if (confirm('정말로 모든 해금 기록을 초기 상태로 리셋하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.')) {
+          if (confirm('정말로 모든 해금 기록과 점포 자금을 초기 상태로 리셋하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.')) {
             if (app) {
-              app.storage?.clearState();
-              app.craftingPot?.clear();
-              app.inventory.unlockAllSandboxMode = false;
-              app.inventory.userLevel = 1;
-              app.inventory.craftFailCount = 0;
-              app.inventory.shownTabIntros = { collection: false, fridge: false, suggestions: false, detailPicker: false };
-              app.pendingTabIntroQueue = [];
-              app.inventory.unlockedImageRecipeIds.clear();
-              app.inventory.unlockedDescRecipeIds?.clear();
-              app.inventory.hintProgressByRecipe = {};
-              app.inventory.promotedCustomRecipes = [];
-              app.inventory.init();
-              app.inventory.save();
-              const nextQuiz = app.inventory.getNextQuizRecipe();
-              app.quizTargetRecipeId = nextQuiz ? nextQuiz.recipe_id : 5;
-              app.quizHintRevealed = false;
-              app.brewMode = 'QUIZ';
-              app.fridgeEngine?.clearAll();
-              app.selectedIngCategory = 'NATURE';
-              app.audio?.playTap();
               this.close();
-              app.renderAll();
-              alert('모든 진행도가 처음 상태로 초기화되었습니다.');
+              if (typeof app.resetAllGameProgress === 'function') {
+                app.resetAllGameProgress();
+              }
             }
           }
         };

@@ -48,7 +48,7 @@ class AlchemyEngine {
         ? this.feedbackStrategy.getFailFeedback(slots, this.recipeBook)
         : null;
       const usedSlots = [...slots];
-      this.craftingPot.clear();
+      // 실패 시에는 조합 가마솥을 비우지 않고 유지하여, '다시 도전하기' 시 재료를 다시 넣지 않고 수정/재시도 가능하게 함
       return {
         ok: true,
         isSuccess: false,
