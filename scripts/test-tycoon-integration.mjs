@@ -74,6 +74,29 @@ try {
   // Current upstream requires three sellable drinks before opening the shop.
   await page.evaluate(() => window.ksoolApp.switchTab('brew'));
   for (const recipe of [58, 14]) {
+    // Intermediate ingredients now have persistent consumable stock. Rebuild
+    // depleted inputs through the actual crafting engine before the next UI craft.
+    await page.evaluate(id => {
+      const a = window.ksoolApp;
+      const ensure = (ingredientId, count) => {
+        if (a.recipeBook.isLeafIngredient(ingredientId)) return;
+        while (a.inventory.getIngredientStock(ingredientId) < count) {
+          const producer = a.recipeBook.producerRecipesByIngId.get(ingredientId)?.[0];
+          if (!producer) throw Error(`Missing producer for ${ingredientId}`);
+          const items = a.recipeBook.getRecipeItems(producer);
+          for (const item of items) ensure(item.ingredient_id, item.ratio);
+          a.craftingPot.clear();
+          for (const item of items) for (let n = 0; n < item.ratio; n++) {
+            const added = a.craftingPot.tapIngredient(item.ingredient_id, item.detail_ingredient_id, a.inventory.getCurrentStepConfig());
+            if (!added.ok) throw Error('Cannot replenish intermediate stock');
+          }
+          if (!a.alchemyEngine.executeCraft(producer).isSuccess) throw Error('Stock craft failed');
+        }
+      };
+      for (const item of a.recipeBook.getRecipeItems(id)) ensure(item.ingredient_id, item.ratio);
+      a.craftingPot.clear();
+      a.renderBrewView();
+    }, recipe);
     const items = await page.evaluate(id => window.ksoolApp.recipeBook.getRecipeItems(id).map(it => ({ id: it.ingredient_id, cat: window.ksoolApp.recipeBook.getBaseIngredient(it.ingredient_id).category_id })), recipe);
     for (const item of items) {
       await page.locator(`[data-ing-cat="${item.cat}"]`).click();
@@ -84,6 +107,17 @@ try {
     await page.locator('#result-close-btn').click();
     await page.evaluate(() => { const a = window.ksoolApp; a.pendingTabIntroQueue = []; document.querySelectorAll('.modal-overlay.active').forEach(el => el.classList.remove('active')); });
   }
+  assert.equal(await page.evaluate(() => window.ksoolApp.inventory.getIngredientStock(204)), 0, 'Carbonated water consumed by soda and lemonade');
+  await page.reload();
+  await page.waitForFunction(() => window.ksoolApp?.inventory.isRecipeUnlocked(14));
+  assert.equal(await page.evaluate(() => window.ksoolApp.inventory.getIngredientStock(204)), 0, 'Zero stock survives reload without legacy refill');
+  await page.evaluate(() => {
+    const a = window.ksoolApp;
+    a.switchTab('brew'); a.selectedIngCategory = 'DRINK'; a.renderBrewView();
+  });
+  assert.equal(await page.locator('[data-base-ing-id="204"]').getAttribute('aria-disabled'), 'true', 'Zero-stock card is disabled');
+  await page.locator('[data-base-ing-id="204"]').click();
+  assert.equal(await page.evaluate(() => window.ksoolApp.craftingPot.getSlots().length), 0, 'Zero-stock input cannot enter pot');
 
   const results = await page.evaluate(async () => {
     const a = window.ksoolApp, e = a.tycoonView.engine, inv = a.inventory;
@@ -148,13 +182,35 @@ try {
     const assert = (v, m) => { if (!v) throw Error(m); };
     e.persistentWallet = 1000000;
     const stages = [];
+    const craft = (recipeId, depth = 0) => {
+      assert(depth < 100, 'Stock producer cycle');
+      const items = a.recipeBook.getRecipeItems(recipeId);
+      const required = new Map();
+      for (const it of items) required.set(it.ingredient_id, (required.get(it.ingredient_id) || 0) + it.ratio);
+      for (let attempt = 0; ; attempt++) {
+        assert(attempt < 100, 'Unable to prepare intermediate stock');
+        const missing = [...required].filter(([id, count]) => inv.getIngredientStock(id) < count);
+        if (!missing.length) break;
+        for (const [id, count] of missing) while (inv.getIngredientStock(id) < count) {
+          const producer = a.recipeBook.producerRecipesByIngId.get(id)?.[0];
+          assert(producer, `No stock producer ${id}`);
+          craft(producer, depth + 1);
+        }
+      }
+      a.craftingPot.clear();
+      for (const it of items) for (let n = 0; n < it.ratio; n++) {
+        assert(a.craftingPot.tapIngredient(it.ingredient_id, it.detail_ingredient_id, inv.getCurrentStepConfig()).ok, 'Stock recipe input');
+      }
+      const result = a.alchemyEngine.executeCraft(recipeId);
+      assert(result.isSuccess && result.recipe.recipe_id === recipeId, `Stock recipe failed ${recipeId}`);
+    };
     for (let n = 1; n <= 6; n++) {
       if (n > 1) assert(e.unlockMapStage(`stage_${n}`).ok, 'Unlock stage');
       for (const it of a.recipeBook.progression.getShopIngredientsForStep(n)) if (!inv.isBaseIngredientPurchased(it.id)) assert(inv.purchaseBaseIngredient(it.id, e).ok, 'Stage purchase');
       let progress = true;
       while (progress) {
         progress = false;
-        for (const r of a.recipeBook.getAllRecipes().filter(r => r.step_id === n)) if (!inv.isRecipeUnlocked(r.recipe_id) && inv.isRecipeChallengeable(r)) { inv.unlockRecipe(r.recipe_id); progress = true; }
+        for (const r of a.recipeBook.getAllRecipes().filter(r => r.step_id === n)) if (!inv.isRecipeUnlocked(r.recipe_id) && inv.isRecipeChallengeable(r)) { craft(r.recipe_id); progress = true; }
       }
       const state = inv.getStageCompletionStatus(n);
       assert(state.isStageMastered, `Unreachable stage ${n}`);
@@ -184,6 +240,7 @@ try {
   await legacy.goto(url);
   await legacy.waitForFunction(() => window.ksoolApp?.inventory.isRecipeUnlocked(5));
   assert(await legacy.evaluate(() => window.ksoolApp.inventory.isIngredientAvailable(203)));
+  assert.equal(await legacy.evaluate(() => window.ksoolApp.inventory.getIngredientStock(204)), 1, 'Legacy intermediate stock migrates once');
   assert(await legacy.evaluate(() => window.ksoolApp.audio.isMuted));
   assert.equal(forbidden.length, 0, `Upstream request: ${forbidden}`);
   assert.deepEqual(errors, []);

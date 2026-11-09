@@ -1,8 +1,14 @@
 window.KSool = window.KSool || {};
 
 class CraftingPot {
-  constructor(gameConfig) {
-    this.config = gameConfig;
+  constructor(gameConfig = null) {
+    this.config = gameConfig || {
+      getEffectiveMaxSlots: () => 4,
+      maxTotalCount: 10
+    };
+    if (typeof this.config.getEffectiveMaxSlots !== 'function') {
+      this.config.getEffectiveMaxSlots = () => 4;
+    }
     /** @type {Array<{baseId: number, detailId: number|null, count: number}>} */
     this.slots = [];
   }
@@ -85,6 +91,21 @@ class CraftingPot {
     if (this.slots[index].count <= 0) {
       this.slots.splice(index, 1);
     }
+  }
+
+  incrementSlot(index, stepConfig = null) {
+    if (index < 0 || index >= this.slots.length) return { ok: false };
+    const maxPerSlot = stepConfig ? stepConfig.maxCountPerSlot : this.config.maxTotalCount;
+    const maxTotal = stepConfig ? stepConfig.maxTotalCount : this.config.maxTotalCount;
+    const slot = this.slots[index];
+    if (slot.count >= maxPerSlot) {
+      return { ok: false, message: `현재 한 재료당 최대 ${maxPerSlot}개까지만 넣을 수 있습니다!` };
+    }
+    if (this.getTotalCount() >= maxTotal) {
+      return { ok: false, message: `현재 단계에서 재료 총 개수 합계는 최대 ${maxTotal}개까지만 넣을 수 있습니다!` };
+    }
+    slot.count += 1;
+    return { ok: true, slot };
   }
 
   removeSlot(index) {

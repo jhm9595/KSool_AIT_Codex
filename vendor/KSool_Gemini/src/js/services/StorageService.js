@@ -577,27 +577,149 @@ class AudioService {
 class StorageService {
   constructor() {
     this.KEY = 'ksool_alchemy_v2_state';
+    this.BACKUP_KEY = 'ksool_alchemy_v2_state_bak';
+    this.lastLoadStatus = {
+      hasExistingSave: false,
+      isCorrupted: false,
+      fromBackup: false,
+      quarantined: false
+    };
+  }
+
+  /**
+   * 저장소 데이터 구조 유효성 검증 (하위 호환성을 보장하면서 파싱 가능한 손상 데이터 거정)
+   */
+  validateSaveStructure(stateObj) {
+    if (!stateObj || typeof stateObj !== 'object' || Array.isArray(stateObj)) {
+      return false;
+    }
+    // unlockedRecipeIds 필드가 있으면 반드시 배열이어야 함
+    if ('unlockedRecipeIds' in stateObj && !Array.isArray(stateObj.unlockedRecipeIds)) {
+      return false;
+    }
+    // purchasedIngredientIds 필드가 있으면 반드시 배열이어야 함
+    if ('purchasedIngredientIds' in stateObj && !Array.isArray(stateObj.purchasedIngredientIds)) {
+      return false;
+    }
+    // unlockedIngredientIds 필드가 있으면 반드시 배열이어야 함
+    if ('unlockedIngredientIds' in stateObj && !Array.isArray(stateObj.unlockedIngredientIds)) {
+      return false;
+    }
+    // unlockedStepId 필드가 있으면 반드시 숫자여야 함
+    if ('unlockedStepId' in stateObj && typeof stateObj.unlockedStepId !== 'number') {
+      return false;
+    }
+    // userLevel 필드가 있으면 반드시 숫자여야 함
+    if ('userLevel' in stateObj && typeof stateObj.userLevel !== 'number') {
+      return false;
+    }
+    // ingredientStock 필드가 있다면 객체(배열 아님)이어야 함
+    if ('ingredientStock' in stateObj && (typeof stateObj.ingredientStock !== 'object' || Array.isArray(stateObj.ingredientStock))) {
+      return false;
+    }
+    return true;
   }
 
   loadState() {
+    let raw = null;
     try {
-      const raw = localStorage.getItem(this.KEY);
-      if (!raw) return null;
-      return JSON.parse(raw);
+      raw = localStorage.getItem(this.KEY);
     } catch (e) {
-      return null;
+      console.error('[StorageService] Error reading localStorage KEY:', e);
     }
+
+    let bakRaw = null;
+    try {
+      bakRaw = localStorage.getItem(this.BACKUP_KEY);
+    } catch (e) {}
+
+    const hasRaw = Boolean(raw);
+    const hasBak = Boolean(bakRaw);
+
+    this.lastLoadStatus = {
+      hasExistingSave: hasRaw || hasBak,
+      isCorrupted: false,
+      fromBackup: false,
+      quarantined: false
+    };
+
+    // 1. Try parsing primary key and validating its structure
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (this.validateSaveStructure(parsed)) {
+          return parsed;
+        } else {
+          console.warn('[StorageService] Primary save has invalid schema/structure, attempting recovery from backup...');
+        }
+      } catch (e) {
+        console.warn('[StorageService] Primary save JSON parse failed, attempting recovery from backup...', e);
+      }
+    }
+
+    // 2. Try recovering from backup
+    if (bakRaw) {
+      try {
+        const bakParsed = JSON.parse(bakRaw);
+        if (this.validateSaveStructure(bakParsed)) {
+          console.info('[StorageService] Successfully recovered save from backup!');
+          this.lastLoadStatus.fromBackup = true;
+          // Heal primary key immediately with valid backup data
+          try {
+            localStorage.setItem(this.KEY, bakRaw);
+          } catch (_) {}
+          return bakParsed;
+        } else {
+          console.warn('[StorageService] Backup save also has invalid schema/structure.');
+        }
+      } catch (e) {
+        console.warn('[StorageService] Backup save JSON parse failed:', e);
+      }
+    }
+
+    // 3. Existing data existed but both primary and backup failed to parse or validate: Quarantine!
+    if (hasRaw || hasBak) {
+      console.error('[StorageService] Save state corrupted and unrecoverable. Quarantining to prevent overwrite.');
+      this.lastLoadStatus.isCorrupted = true;
+      this.lastLoadStatus.quarantined = true;
+      try {
+        const ts = Date.now();
+        if (raw) localStorage.setItem(`ksool_alchemy_v2_corrupt_${ts}`, raw);
+        if (bakRaw) localStorage.setItem(`ksool_alchemy_v2_bak_corrupt_${ts}`, bakRaw);
+      } catch (_) {}
+    }
+
+    return null;
   }
 
   saveState(stateObj) {
+    if (!stateObj) return;
     try {
-      localStorage.setItem(this.KEY, JSON.stringify(stateObj));
-    } catch (e) {}
+      const serialized = JSON.stringify(stateObj);
+      const existing = localStorage.getItem(this.KEY);
+      if (existing) {
+        try {
+          // Only copy to BACKUP_KEY if existing data is structurally valid!
+          const parsed = JSON.parse(existing);
+          if (this.validateSaveStructure(parsed)) {
+            localStorage.setItem(this.BACKUP_KEY, existing);
+          } else {
+            console.warn('[StorageService] Existing save has invalid structure; skipping backup overwrite to protect healthy backup.');
+          }
+        } catch (_) {
+          console.warn('[StorageService] Existing save corrupted; skipping backup overwrite to preserve healthy backup.');
+        }
+      }
+      localStorage.setItem(this.KEY, serialized);
+    } catch (e) {
+      console.error('[StorageService] saveState failed:', e);
+    }
   }
 
   clearState() {
     try {
       localStorage.removeItem(this.KEY);
+      localStorage.removeItem(this.BACKUP_KEY);
     } catch (e) {}
   }
 }

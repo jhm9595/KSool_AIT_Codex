@@ -56,18 +56,18 @@ class StoryTutorialModalView {
       {
         type: 'TUTORIAL',
         guideKey: 'LAB_CRAFT',
-        stepLabel: 'GUIDE 01 · 연구실 조합 & 해금',
+        stepLabel: 'GUIDE 01 · 연구실 조합 & 재료상점 탭',
         speaker: '조작 가이드 1/4',
-        line1: '① [🔬 연구실]에서 재료를 골라 담고 [조합하기]를 눌러 음료를 해금하세요!',
-        line2: '잘못 담은 재료는 [비우기]로 비우고, 판매 수익(💰)으로 [🛒 재료구매]에서 새 재료를 늘려갑니다.'
+        line1: '① [🔬 연구실]에서 재료를 골라 담고 [🔬 조합하기]를 눌러 음료를 해금하세요!',
+        line2: '잘못 담은 재료는 [비우기]로 초기화하고, 영업 수익(💰)으로 하단 [🛒 재료상점] 탭에서 새 재료를 구매합니다.'
       },
       {
         type: 'TUTORIAL',
         guideKey: 'LAB_HINT',
-        stepLabel: 'GUIDE 02 · 막힐 때 힌트 쓰는 법',
+        stepLabel: 'GUIDE 02 · [힌트] 버튼 위치 & 힌트 화면',
         speaker: '조작 가이드 2/4',
-        line1: '② 조합이 어려울 땐 문제 카드의 3가지 힌트 위치를 활용하세요!',
-        line2: '[❓아이콘]은 외형 그림, [🔒설명란]은 은박 복권 단서, [힌트] 버튼은 들어가는 재료·개수를 알려줍니다.'
+        line1: '② 조합이 막힐 땐 문제 카드 왼쪽의 [힌트] 버튼을 눌러 힌트 팝업을 여세요!',
+        line2: '힌트 팝업에서 [은박 복권 설명 단서], [STEP 1 외형 그림 미니게임], [STEP 2 베이스볼 재료·비율 추리]를 이용할 수 있어요.'
       },
       {
         type: 'TUTORIAL',
@@ -75,7 +75,7 @@ class StoryTutorialModalView {
         stepLabel: 'GUIDE 03 · 주점 제조 & 종(🛎️) 서빙',
         speaker: '조작 가이드 3/4',
         line1: '③ 손님 주문을 보고 하단에서 [⚗️조합]한 뒤, 오른쪽 [🛎️종]을 눌러 서빙하세요!',
-        line2: '조합하면 카운터 중앙 접시에 올라갑니다. 그 상태에서 오른쪽 종을 터치하면 판매 완료!'
+        line2: '조합하면 카운터 중앙 접시 위에 완성 음료가 올라갑니다. 그 상태에서 오른쪽 종을 터치하면 판매 완료!'
       },
       {
         type: 'TUTORIAL',
@@ -199,36 +199,27 @@ class StoryTutorialModalView {
     if (guideKey === 'LAB_CRAFT') {
       return `
         <div class="guide-screen-mockup lab-mockup">
-          <!-- 실제 연구실 화면 레이아웃 -->
-          <div class="gm-lab-top-bar">
-            <span class="gm-pill">🍋 길거리 노점</span>
-            <span class="gm-gold">💰 120원</span>
-          </div>
-
-          <div class="gm-cat-row" style="margin-bottom:4px;">
-            <span class="gm-cat active" style="flex:1; text-align:center;">🎯 단계별 연구 모드</span>
-            <span class="gm-cat gm-shop-btn gm-highlight-target target-amber" style="flex:1; text-align:center;">
-              🛒 재료 상점
-              <span class="gm-badge-num badge-amber">③</span>
-            </span>
-          </div>
-
+          <!-- 문제 카드 -->
           <div class="gm-quiz-box">
-            <div class="gm-quiz-icon">🥤</div>
+            <div class="gm-quiz-col-left">
+              <div class="gm-quiz-icon">🫧</div>
+              <div class="gm-hint-btn-mini">힌트</div>
+            </div>
             <div class="gm-quiz-info">
-              <div class="gm-quiz-title">탄산수 <small>No.02 / 84</small></div>
+              <div class="gm-quiz-title">탄산수 <small>◀ No.02 / 84 ▶</small></div>
               <div class="gm-quiz-desc">💡 물과 공기가 만나 톡 쏘는 탄산수가 됩니다.</div>
             </div>
           </div>
 
-          <div class="gm-pot-area">
+          <!-- 실제 연구실과 동일한 가마솥 4슬롯 + 하단 [🔬 조합하기 | 비우기] -->
+          <div class="gm-pot-stack">
             <div class="gm-pot-slots">
               <div class="gm-slot filled">💧<span>물</span><b>1</b></div>
               <div class="gm-slot filled">💨<span>공기</span><b>1</b></div>
-              <div class="gm-slot">➕</div>
-              <div class="gm-slot">➕</div>
+              <div class="gm-slot">➕<span>빈 슬롯 3</span></div>
+              <div class="gm-slot">➕<span>빈 슬롯 4</span></div>
             </div>
-            <div class="gm-pot-btns">
+            <div class="gm-pot-action-row">
               <div class="gm-mix-btn gm-highlight-target target-emerald">
                 🔬 조합하기
                 <span class="gm-badge-num badge-emerald">②</span>
@@ -239,35 +230,36 @@ class StoryTutorialModalView {
             </div>
           </div>
 
+          <!-- 하단 재료 카테고리 & 재료 그리드 -->
           <div class="gm-ings-section">
             <div class="gm-cat-row">
-              <span class="gm-cat active">원소/자연</span>
-              <span class="gm-cat">감미료</span>
+              <span class="gm-cat active">자연</span>
               <span class="gm-cat">과일</span>
+              <span class="gm-cat">기타</span>
             </div>
             <div class="gm-ings-grid gm-highlight-target target-sky">
               <span class="gm-badge-num badge-sky">①</span>
-              <div class="gm-ing selected">💧<span>물</span></div>
+              <div class="gm-ing selected">💧<span>물</span><b>1</b></div>
               <div class="gm-ing">❄️<span>눈</span></div>
-              <div class="gm-ing selected">💨<span>공기</span></div>
+              <div class="gm-ing selected">💨<span>공기</span><b>1</b></div>
               <div class="gm-ing">🍬<span>설탕</span></div>
               <div class="gm-ing">🍋<span>레몬</span></div>
             </div>
           </div>
 
-          <!-- 반투명 오버레이 설명 카드 레이어 -->
-          <div class="gm-translucent-callouts-layer">
-            <div class="gm-callout-card callout-sky" style="bottom: 62px; left: 8px;">
-              <b>① 재료 선택 & 비우기</b>
-              <span>하단 재료를 눌러 슬롯에 담고, 잘못 담았을 땐 <em>[비우기]</em>로 초기화!</span>
+          <!-- 버튼과 전혀 겹치지 않는 하단 번호별 요약 바 -->
+          <div class="gm-nonoverlap-legend-grid">
+            <div class="gm-legend-chip chip-sky">
+              <b>① 재료 선택 / [비우기]</b>
+              <span>하단 재료를 눌러 슬롯에 담고, 실수 시 [비우기]</span>
             </div>
-            <div class="gm-callout-card callout-emerald" style="top: 44px; right: 8px;">
-              <b>② [🔬 조합하기]로 음료 해금</b>
-              <span>조합이 맞으면 새 음료가 해금되어 점포에서 팔 수 있어요! (최소 3종 해금)</span>
+            <div class="gm-legend-chip chip-emerald">
+              <b>② [🔬 조합하기] 해금</b>
+              <span>정답 비율이면 새 음료 해금! (점포 영업 최소 3종)</span>
             </div>
-            <div class="gm-callout-card callout-amber" style="bottom: 118px; right: 8px;">
-              <b>③ 상단 [🛒 재료 상점] 토글에서 재료 구매</b>
-              <span>점포에서 번 자금으로 상점 재료를 하나씩 구매!</span>
+            <div class="gm-legend-chip chip-amber">
+              <b>③ 하단 [🛒 재료상점] 탭</b>
+              <span>영업 수익(💰)으로 새로운 재료를 구매!</span>
             </div>
           </div>
         </div>
@@ -277,52 +269,72 @@ class StoryTutorialModalView {
     if (guideKey === 'LAB_HINT') {
       return `
         <div class="guide-screen-mockup hint-mockup">
-          <!-- 실제 연구실 문제 카드 & 힌트 버튼 위치 -->
-          <div class="gm-section-label">🔬 연구실 상단 문제 카드 (힌트 위치 3곳)</div>
-          <div class="gm-quiz-box gm-quiz-large">
-            <div class="gm-quiz-col-left">
-              <div class="gm-quiz-icon locked gm-highlight-target target-sky">
-                ❓
-                <span class="gm-badge-num badge-sky">①</span>
+          <!-- 1) 먼저 연구실 문제 카드에서 [힌트] 버튼 위치 표시 -->
+          <div class="gm-hint-step1-bar">
+            <div class="gm-quiz-box gm-quiz-compact">
+              <div class="gm-quiz-col-left">
+                <div class="gm-quiz-icon locked">❓</div>
+                <div class="gm-hint-btn gm-highlight-target target-amber">
+                  힌트
+                  <span class="gm-badge-num badge-amber">①</span>
+                </div>
               </div>
-              <div class="gm-hint-btn gm-highlight-target target-amber">
-                힌트
-                <span class="gm-badge-num badge-amber">③</span>
+              <div class="gm-quiz-info">
+                <div class="gm-quiz-title">사이다 <small>◀ No.03 / 84 ▶</small></div>
+                <div class="gm-locked-desc-bar">🔒 설명 힌트 잠김</div>
               </div>
             </div>
-            <div class="gm-quiz-info">
-              <div class="gm-quiz-title">레모네이드 <small>No.05 / 84</small></div>
-              <div class="gm-locked-desc-bar gm-highlight-target target-emerald">
-                🔒 설명 힌트 잠김 (클릭하여 해금)
-                <span class="gm-badge-num badge-emerald">②</span>
-              </div>
+            <div class="gm-hint-arrow-banner">
+              <b>① 문제 카드 왼쪽의 [힌트] 버튼 터치!</b> ➔ 아래 <b>[🕵️ 단계별 힌트 추리]</b> 팝업이 열립니다 ▼
             </div>
           </div>
 
-          <!-- 힌트 팝업 미리보기 + 반투명 오버레이 -->
-          <div class="gm-hint-popup-preview">
-            <div class="gm-popup-hdr">💡 힌트 팝업에서 제공되는 3가지 도움말</div>
-            <div class="gm-hint-explain-list">
-              <div class="gm-hint-explain-item item-sky">
-                <span class="gm-step-circle sky">①</span>
-                <div>
-                  <b>[❓ 아이콘] 터치 → 외형 그림 힌트</b>
-                  <small>미니게임을 통해 완성될 음료의 생김새(아이콘)를 미리 확인합니다.</small>
-                </div>
+          <!-- 2) [힌트] 버튼을 눌렀을 때 실제로 열리는 모달 화면 기준 설명 -->
+          <div class="gm-actual-hint-modal-box">
+            <div class="gm-ahm-header">
+              <span>🕵️ 단계별 힌트 추리</span>
+              <span class="gm-ahm-close">✕</span>
+            </div>
+
+            <!-- 은박 복권 영역 (②) -->
+            <div class="gm-ahm-target-card">
+              <div class="gm-ahm-target-top">
+                <span class="gm-ahm-q">❓</span>
+                <span class="gm-ahm-num">No.03</span>
+                <span class="gm-ahm-name">사이다</span>
               </div>
-              <div class="gm-hint-explain-item item-emerald">
-                <span class="gm-step-circle emerald">②</span>
-                <div>
-                  <b>[🔒 설명 힌트 잠김] 터치 → 은박 복권 단서</b>
-                  <small>은박지를 긁어 어떤 재료가 들어가는지 문장 힌트를 확인합니다.</small>
-                </div>
+              <div class="gm-ahm-foil-strip gm-highlight-target target-emerald">
+                <span class="gm-badge-num badge-emerald">②</span>
+                <span>🪙 은박 복권을 긁어 설명 힌트 확인</span>
+                <span class="gm-ahm-foil-btn"><b>AD</b> 복권 긁기 ➔</span>
               </div>
-              <div class="gm-hint-explain-item item-amber">
-                <span class="gm-step-circle amber">③</span>
-                <div>
-                  <b>[힌트] 버튼 터치 → 베이스볼 재료·비율 추리</b>
-                  <small>투입한 재료 중 몇 종류가 맞았는지(S/B) 추리하여 정답 조합을 찾습니다.</small>
+            </div>
+
+            <!-- STEP 1: 외형 그림 미니게임 (③) -->
+            <div class="gm-ahm-step-card step-purple gm-highlight-target target-sky">
+              <span class="gm-badge-num badge-sky">③</span>
+              <span class="gm-ahm-step-ico">🎮</span>
+              <div class="gm-ahm-step-body">
+                <div class="gm-ahm-step-hdr">
+                  <span class="gm-ahm-badge purple">STEP 1</span>
+                  <b>외형 그림</b>
+                  <span class="gm-ahm-tag">도전 ➔</span>
                 </div>
+                <small>벽돌깨기·땅따먹기·네모로직으로 완성 음료 아이콘 확인</small>
+              </div>
+            </div>
+
+            <!-- STEP 2: 베이스볼 / 업앤다운 추리 (④) -->
+            <div class="gm-ahm-step-card step-cyan gm-highlight-target target-amber">
+              <span class="gm-badge-num badge-amber">④</span>
+              <span class="gm-ahm-step-ico">⚾</span>
+              <div class="gm-ahm-step-body">
+                <div class="gm-ahm-step-hdr">
+                  <span class="gm-ahm-badge cyan">STEP 2</span>
+                  <b>베이스볼 추리</b>
+                  <span class="gm-ahm-tag">입장 ➔</span>
+                </div>
+                <small>투입한 재료 종류·비율(S/B)을 추리해 정답 조합 공식 확인</small>
               </div>
             </div>
           </div>
@@ -333,67 +345,90 @@ class StoryTutorialModalView {
     if (guideKey === 'TYCOON_SERVE') {
       return `
         <div class="guide-screen-mockup tycoon-mockup">
-          <!-- 상단 실제 주점 카운터 화면 -->
+          <!-- 상단 실제 주점 카운터 화면 (겹치지 않는 상단 2열 콜아웃 + 중앙 접시 위 완성 음료 + 오른쪽 서빙 종) -->
           <div class="gm-counter-scene" style="background-image: url('./assets/tycoon/bg_stage_1.jpg?v=2');">
             <div class="gm-counter-dim"></div>
 
-            <!-- 손님 & 주문 말풍선 -->
-            <div class="gm-cust-avatar">🧑‍🌾</div>
+            <!-- 상단 좌/우 분리형 콜아웃 (서로 절대 겹치지 않음) -->
+            <div class="gm-counter-top-callouts">
+              <div class="gm-callout-card callout-sky gm-static-callout">
+                <b>② 중앙 접시 확인</b>
+                <span>조합 완성 시 접시 위에 음료가 올라감</span>
+              </div>
+              <div class="gm-callout-card callout-amber gm-static-callout">
+                <b>③ 오른쪽 [🛎️종] 서빙!</b>
+                <span>접시에 올린 뒤 종을 터치해 판매!</span>
+              </div>
+            </div>
+
+            <!-- 손님 주문 말풍선 (패러디 가짜 이름 '사이다' 사용) -->
             <div class="gm-order-bubble">
-              <span class="gm-bubble-drink">🥤 칠성사이다</span>
+              <span class="gm-bubble-drink">🥤 사이다</span>
               <div class="gm-bubble-gauge"><div class="gm-gauge-fill" style="width:78%;"></div></div>
             </div>
 
-            <!-- 중앙 접시 (②) -->
+            <!-- 카운터 왼쪽 메뉴판 -->
+            <div class="gm-menu-board-passive">📋 메뉴판</div>
+
+            <!-- 카운터 중앙 접시 위 완성 음료 아이콘 (사람 모양 제거, 실제 완성된 음료 '사이다' 표시) -->
             <div class="gm-plate-spot gm-highlight-target target-sky">
               <span class="gm-badge-num badge-sky">②</span>
-              <span class="gm-plate-drink">🥤</span>
-              <small>칠성사이다</small>
+              <div class="gm-plated-drink-icon">🥤</div>
+              <span class="gm-plated-drink-name">사이다</span>
             </div>
 
-            <!-- 오른쪽 종 (③) -->
+            <!-- 카운터 오른쪽 종 (③) -->
             <div class="gm-bell-spot gm-highlight-target target-amber">
               <span class="gm-badge-num badge-amber">③</span>
               <span class="gm-bell-ring-txt">🛎️ 종 터치!</span>
             </div>
-
-            <!-- 상단 카운터 반투명 오버레이 콜아웃 -->
-            <div class="gm-callout-card callout-sky" style="top: 8px; left: 8px;">
-              <b>② 중앙 접시 확인</b>
-              <span>조합 완성 시 카운터 중앙 접시 위에 올라감</span>
-            </div>
-            <div class="gm-callout-card callout-amber" style="top: 8px; right: 8px;">
-              <b>③ 오른쪽 [🛎️종] 서빙!</b>
-              <span>접시에 올린 뒤 종을 터치하면 서빙 완료!</span>
-            </div>
           </div>
 
-          <!-- 하단 실제 주점 조리대 화면 -->
+          <!-- 하단 실제 주점 조리대 화면 (실제 인게임 UI와 동일한 4칸 정사각형 슬롯 + 우측 조합/비우기 + 카테고리 칩 + 재료 카드) -->
           <div class="gm-tycoon-bottom">
             <div class="gm-tycoon-pot-row">
-              <div class="gm-mini-slots">
-                <div class="gm-mini-slot">🥤 탄산수 <b>1</b></div>
-                <div class="gm-mini-slot">🍬 설탕 <b>1</b></div>
-                <div class="gm-mini-slot empty">➕</div>
-              </div>
-              <div class="gm-mini-actions">
-                <div class="gm-mini-craft gm-highlight-target target-emerald">
-                  ⚗️조합
-                  <span class="gm-badge-num badge-emerald">①</span>
+              <div class="gm-mini-slots-4">
+                <div class="gm-cp-slot filled">
+                  <span class="gm-cp-ico">🫧</span>
+                  <span class="gm-cp-nm">탄산수</span>
+                  <b>1</b>
                 </div>
-                <div class="gm-mini-clear">비우기</div>
+                <div class="gm-cp-slot filled">
+                  <span class="gm-cp-ico">🍬</span>
+                  <span class="gm-cp-nm">설탕</span>
+                  <b>1</b>
+                </div>
+                <div class="gm-cp-slot empty">➕</div>
+                <div class="gm-cp-slot empty">➕</div>
+              </div>
+              <div class="gm-cp-actions-col">
+                <div class="gm-cp-craft-btn gm-highlight-target target-emerald">
+                  <span class="gm-badge-num badge-emerald">①</span>
+                  <b>⚗️조합</b>
+                  <small>🍽️사이다</small>
+                </div>
+                <div class="gm-cp-clear-btn">비우기</div>
               </div>
             </div>
-            <div class="gm-tycoon-ings-row gm-highlight-target target-emerald">
-              <div class="gm-mini-ing">💧 물</div>
-              <div class="gm-mini-ing">💨 공기</div>
-              <div class="gm-mini-ing active">🥤 탄산수</div>
-              <div class="gm-mini-ing active">🍬 설탕</div>
-              <div class="gm-mini-ing">🍋 레몬</div>
+
+            <div class="gm-cat-row gm-tycoon-cats">
+              <span class="gm-cat active">음료</span>
+              <span class="gm-cat">자연</span>
+              <span class="gm-cat">과일</span>
+              <span class="gm-cat">기타</span>
             </div>
+
+            <div class="gm-tycoon-ings-row gm-highlight-target target-emerald">
+              <div class="gm-mini-ing active">🫧<span>탄산수</span><b>1</b></div>
+              <div class="gm-mini-ing">💧<span>물</span></div>
+              <div class="gm-mini-ing">💨<span>공기</span></div>
+              <div class="gm-mini-ing active">🍬<span>설탕</span><b>1</b></div>
+              <div class="gm-mini-ing">🍋<span>레몬</span></div>
+            </div>
+
             <div class="gm-callout-card callout-emerald gm-bottom-Floating-callout">
-              <b>① 주문 음료 재료 선택 & [⚗️조합] (실수 시 [비우기])</b>
-              <span>손님 말풍선(칠성사이다)을 보고 외운 재료를 담아 <em>[⚗️조합]</em>을 누르세요!</span>
+              <b>① 주문 음료(사이다) 재료 선택 & [⚗️조합] (실수 시 [비우기])</b>
+              <span>하단 재료를 눌러 담고 우측 <em>[⚗️조합]</em>을 누르면 카운터 중앙 접시 위에 올라갑니다!</span>
             </div>
           </div>
         </div>
@@ -406,33 +441,36 @@ class StoryTutorialModalView {
         <div class="gm-counter-scene rules-scene" style="background-image: url('./assets/tycoon/bg_stage_1.jpg?v=2');">
           <div class="gm-counter-dim"></div>
 
-          <!-- 손님 머리 위 COMBO +3 / +36원 (②) -->
-          <div class="gm-head-combo-popup gm-highlight-target target-emerald">
-            <span class="gm-badge-num badge-emerald">②</span>
-            <div class="gm-combo-txt">COMBO +3</div>
-            <div class="gm-earn-txt">+36원</div>
+          <!-- ① 왼쪽: 메뉴판 가격 팝업 미니 프리뷰 & 메뉴판 버튼 -->
+          <div class="gm-menu-popup-mini">
+            <div class="gm-mp-title">📋 점포 메뉴판 (가격·조합법)</div>
+            <div class="gm-mp-row"><span>No.02 탄산수</span><b>💰 10원</b></div>
+            <div class="gm-mp-row"><span>No.03 사이다</span><b>💰 20원</b></div>
+            <div class="gm-mp-row"><span>No.04 레몬에이드</span><b>💰 30원</b></div>
           </div>
 
-          <!-- 손님 & 제한시간 임박 말풍선 (③) -->
-          <div class="gm-cust-avatar">🧑‍💼</div>
-          <div class="gm-order-bubble urgent gm-highlight-target target-rose">
-            <span class="gm-badge-num badge-rose">③</span>
-            <span class="gm-bubble-drink">🍋 레모네이드</span>
-            <div class="gm-bubble-gauge"><div class="gm-gauge-fill danger" style="width:22%;"></div></div>
-          </div>
-
-          <!-- 왼쪽 메뉴판 버튼 (①) -->
           <div class="gm-menu-board-spot gm-highlight-target target-sky">
             <span class="gm-badge-num badge-sky">①</span>
             📋 메뉴판
           </div>
 
-          <!-- 메뉴판 가격 팝업 미니 프리뷰 -->
-          <div class="gm-menu-popup-mini">
-            <div class="gm-mp-title">📋 점포 판매 메뉴 (가격·조합법)</div>
-            <div class="gm-mp-row"><span>No.02 탄산수</span><b>💰 24원</b></div>
-            <div class="gm-mp-row"><span>No.03 칠성사이다</span><b>💰 33원</b></div>
-            <div class="gm-mp-row"><span>No.04 레모네이드</span><b>💰 41원</b></div>
+          <!-- ② 중앙: 머리 위 COMBO +3 / +23원 & 중앙 접시 위 음료 (사람 모양 제거!) -->
+          <div class="gm-head-combo-popup gm-highlight-target target-emerald">
+            <span class="gm-badge-num badge-emerald">②</span>
+            <div class="gm-combo-txt">COMBO +3</div>
+            <div class="gm-earn-txt">+23원</div>
+          </div>
+
+          <div class="gm-plate-spot">
+            <div class="gm-plated-drink-icon">🥤</div>
+            <span class="gm-plated-drink-name">사이다</span>
+          </div>
+
+          <!-- ③ 오른쪽: 제한시간 임박 말풍선 -->
+          <div class="gm-order-bubble urgent gm-rules-bubble-right gm-highlight-target target-rose">
+            <span class="gm-badge-num badge-rose">③</span>
+            <span class="gm-bubble-drink">🍋 레몬에이드</span>
+            <div class="gm-bubble-gauge"><div class="gm-gauge-fill danger" style="width:22%;"></div></div>
           </div>
         </div>
 
@@ -441,22 +479,22 @@ class StoryTutorialModalView {
           <div class="gm-hint-explain-item item-sky">
             <span class="gm-step-circle sky">①</span>
             <div>
-              <b>음료수 가격 & 레시피 확인 → 왼쪽 [📋 메뉴판]</b>
-              <small>카운터 왼쪽 메뉴판을 누르면 음료당 가격(💰)과 조합법을 확인할 수 있습니다.</small>
+              <b>음료수당 가격 & 레시피 확인 → 왼쪽 [📋 메뉴판]</b>
+              <small>카운터 왼쪽 메뉴판을 누르면 해금한 음료의 판매 가격(💰)과 조합법을 언제든 볼 수 있습니다.</small>
             </div>
           </div>
           <div class="gm-hint-explain-item item-emerald">
             <span class="gm-step-circle emerald">②</span>
             <div>
-              <b>연속 서빙 성공 → 머리 위 [COMBO +N] 보너스!</b>
-              <small>연속 정답 시 콤보 수만큼 보너스 금액(예: 3콤보 = 음료 가격 + 3원)을 추가로 받습니다.</small>
+              <b>연속 정답 서빙 → 머리 위 [COMBO +N] 보너스!</b>
+              <small>연속으로 올바르게 서빙하면 콤보 수만큼 보너스 금액(예: 3콤보 = 사이다 20원 + 3원)을 추가로 받습니다.</small>
             </div>
           </div>
           <div class="gm-hint-explain-item item-rose">
             <span class="gm-step-circle rose">③</span>
             <div>
-              <b>주의! 제한시간 초과 · 오답 서빙 시 손님 퇴장 & 콤보 초기화</b>
-              <small>시간 게이지가 다 닳거나 다른 음료를 내면 손님이 집으로 돌아가고 콤보가 끊깁니다!</small>
+              <b>주의! 제한시간 초과 · 오답 서빙 시 손님 귀가 & 콤보 초기화</b>
+              <small>제한시간 게이지가 다 닳거나 다른 음료를 내면 손님이 집으로 돌아가고 쌓인 콤보가 끊깁니다!</small>
             </div>
           </div>
         </div>
@@ -558,6 +596,7 @@ class StoryTutorialModalView {
 
   startInteractiveTutorial(onComplete = null) {
     this.stopInteractiveTutorial(false);
+    this._isLiveTutorialActive = true;
     this._liveTutorialCompleteCb = onComplete;
     this._liveStepIdx = 0;
 
@@ -590,6 +629,7 @@ class StoryTutorialModalView {
   }
 
   stopInteractiveTutorial(triggerCallback = true) {
+    this._isLiveTutorialActive = false;
     const layer = document.getElementById('live-interactive-tutorial-layer');
     if (layer) layer.remove();
 
@@ -601,8 +641,12 @@ class StoryTutorialModalView {
     if (this.inventory) {
       this.inventory._forceTutorialLockedHintPreview = false;
       this.inventory._forceTutorialLockedRecipe12 = false;
-      // 튜토리얼 종료 시 기본 스타터 레시피(얼음·탄산수·사이다·레모네이드) 해금 보장
-      [11, 12, 58, 14].forEach(rId => this.inventory.unlockedRecipeIds.add(rId));
+      // 튜토리얼에서 직접 조합한 탄산수(No.02)만 해금 유지 (얼음·사이다·레모네이드 강제 해금 제거)
+      this.inventory.unlockedRecipeIds.add(12);
+      const nextQuiz = this.inventory.getNextQuizRecipe();
+      if (this.app && nextQuiz) {
+        this.app.quizTargetRecipeId = nextQuiz.recipe_id;
+      }
       this.inventory._syncStepAndIngredients?.();
       this.inventory.markIntroTutorialSeen();
       this.inventory.save();
@@ -640,18 +684,16 @@ class StoryTutorialModalView {
           }
         }
       },
-      // STEP 2: 연구실 화면 -> 문제 카드의 3가지 힌트 위치 스포트라이트 안내 (힌트 미니게임 진입 없이 위치만 설명)
+      // STEP 2: 연구실 화면 -> 문제 카드 왼쪽의 [힌트] 버튼 위치 안내 & 눌렀을 때 열리는 힌트 팝업 설명
       {
-        stepBadge: 'STEP 2 / 12 · 막힐 때 힌트 쓰는 법',
-        title: '② 조합이 어려울 땐 문제 카드의 3곳을 활용하세요!',
-        desc: '<b>① 왼쪽 [❓ 아이콘]</b>: 완성 음료 외형 그림 힌트<br/><b>② 중앙 [🔒 설명 힌트 잠김]</b>: 은박지를 긁어 보는 재료 문장 단서<br/><b>③ 아래 [힌트] 버튼</b>: 베이스볼 추리로 재료 종류·비율 확인',
+        stepBadge: 'STEP 2 / 12 · [힌트] 버튼 위치 & 힌트 화면 안내',
+        title: '② 조합이 어려울 땐 문제 카드 왼쪽 [힌트] 버튼을 누르세요!',
+        desc: '문제 카드 왼쪽의 <b>[힌트]</b> 버튼을 누르면 <b>[🕵️ 단계별 힌트 추리]</b> 팝업이 열립니다!<br/>• <b>은박 복권 긁기</b>: 어떤 재료가 들어가는지 문장 단서 확인<br/>• <b>STEP 1 (외형 그림)</b>: 미니게임으로 완성 음료 아이콘 확인<br/>• <b>STEP 2 (베이스볼 추리)</b>: 재료 종류·비율(S/B) 정답 추리',
         targetSelector: '#brew-step-quiz-bar .brew-quiz-card',
         mode: 'NEXT_BTN',
         nextBtnLabel: '다음: 직접 재료 담아보기 ▸',
         pins: [
-          { selector: '#quiz-mystery-icon', label: '① 외형 힌트', color: 'sky' },
-          { selector: '#quiz-locked-desc-btn', label: '② 설명 복권', color: 'emerald' },
-          { selector: '#quiz-open-hint-btn', label: '③ 재료·비율 힌트', color: 'amber' }
+          { selector: '#quiz-open-hint-btn', label: '💡 [힌트] 버튼 위치', color: 'amber' }
         ],
         setup: () => {
           if (!this.app || !this.inventory) return;
@@ -696,12 +738,12 @@ class StoryTutorialModalView {
       {
         stepBadge: 'STEP 5 / 12 · 조합하기 & 레시피 해금',
         title: '⑤ [🔬 조합하기] 버튼을 눌러 음료를 해금하세요!',
-        desc: '슬롯에 <b>물 1 + 공기 1</b>이 담겼습니다! 깜빡이는 <b>[🔬 조합하기]</b> 버튼을 실제로 눌러 탄산수를 해금하세요!<br/>(※ 판매 수익을 모으면 상단 <b>[🛒 재료 상점]</b> 토글 탭에서 새 재료를 구매할 수 있어요)',
+        desc: '슬롯에 <b>물 1 + 공기 1</b>이 담겼습니다! 깜빡이는 <b>[🔬 조합하기]</b> 버튼을 실제로 눌러 탄산수를 해금하세요!<br/>(※ 판매 수익을 모으면 하단 <b>[🛒 재료상점]</b> 탭에서 새 재료를 구매할 수 있어요)',
         targetSelector: '#mix-btn',
         mode: 'CLICK_TARGET',
         handLabel: '조합하기 터치!',
         pins: [
-          { selector: '.brew-mode-tab-btn[data-brew-mode="SHOP"]', label: '새 재료 구매는 [🛒재료 상점]', color: 'amber' }
+          { selector: '.tab-btn[data-tab-target="shop"]', label: '새 재료 구매는 [🛒재료상점]', color: 'amber' }
         ],
         beforeClick: () => {
           if (this.inventory) {
@@ -711,11 +753,11 @@ class StoryTutorialModalView {
         },
         afterClickDelayMs: 650,
         afterClick: () => {
-          // 결과 모달 자동 닫기 및 첫 노점 영업용 기본 음료(얼음·탄산수·사이다·레모네이드) 준비
+          // 결과 모달 자동 닫기 (직접 조합한 탄산수만 해금되고 얼음·사이다·레모네이드는 강제 해금하지 않음)
           const resModal = document.getElementById('result-modal');
           if (resModal) resModal.classList.remove('active');
           if (this.inventory) {
-            [11, 12, 58, 14].forEach(rId => this.inventory.unlockedRecipeIds.add(rId));
+            this.inventory.unlockedRecipeIds.add(12);
             this.inventory._syncStepAndIngredients?.();
             this.inventory.save();
           }
@@ -726,7 +768,7 @@ class StoryTutorialModalView {
       {
         stepBadge: 'STEP 6 / 12 · 점포로 이동',
         title: '⑥ 해금한 음료를 팔러 하단 [🏪 점포] 탭을 눌러보세요!',
-        desc: '길거리 노점에서 판매할 기본 음료가 준비되었습니다!<br/>화면 맨 아래의 <b>[🏪 점포]</b> 탭을 실제로 터치해 가게로 이동하세요!',
+        desc: '방금 직접 조합해 해금한 <b>[탄산수]</b>를 손님에게 팔아보는 연습을 해볼까요?<br/>화면 맨 아래의 <b>[🏪 점포]</b> 탭을 실제로 터치해 가게로 이동하세요!',
         targetSelector: '.tab-btn[data-tab-target="tycoon"]',
         mode: 'CLICK_TARGET',
         handLabel: '🏪 점포 터치!'
@@ -818,9 +860,18 @@ class StoryTutorialModalView {
         ],
         afterClick: () => {
           if (this.app?.tycoonView) {
-            this.app.tycoonView._isTutorialPaused = false;
+            const tv = this.app.tycoonView;
+            tv._isTutorialPaused = false;
+            // 튜토리얼 1잔 서빙 연습 종료 후 로비로 복귀 (이후 연구실에서 나머지 음료를 직접 해금하도록 유도)
+            setTimeout(() => {
+              tv._stopTimerLoop();
+              tv.engine.session.status = 'LOBBY';
+              tv._syncGlobalTabBarVisibility(false);
+              tv.render();
+              this.app?.switchTab?.('brew');
+              this.app?.showToast?.('🎉 튜토리얼 완료! 연구실에서 무료 재료로 나머지 음료(사이다·레모네이드 등 3종)를 직접 조합해 정식 영업을 시작해보세요!');
+            }, 650);
           }
-          this.app?.showToast?.('🎉 실전 튜토리얼 완료! 이제 손님들에게 음료를 만들어 판매해보세요!');
         }
       }
     ];
@@ -871,11 +922,20 @@ class StoryTutorialModalView {
     }
 
     const rect = targetEl.getBoundingClientRect();
-    const pad = 5;
-    const holeLeft = Math.max(4, Math.round(rect.left - pad));
-    const holeTop = Math.max(4, Math.round(rect.top - pad));
-    const holeWidth = Math.round(rect.width + pad * 2);
-    const holeHeight = Math.round(rect.height + pad * 2);
+    const viewportW = window.innerWidth || 390;
+    const viewportH = window.innerHeight || 720;
+    const isTabBtn = targetEl.classList.contains('tab-btn');
+    const pad = isTabBtn ? 0 : 4;
+    const rawLeft = Math.round(rect.left - pad);
+    const rawTop = Math.round(rect.top - pad);
+    const rawRight = Math.round(rect.right + pad);
+    const rawBottom = Math.round(rect.bottom + pad);
+    const holeLeft = Math.max(1, rawLeft);
+    const holeTop = Math.max(1, rawTop);
+    const holeRight = Math.min(viewportW - 1, rawRight);
+    const holeBottom = Math.min(viewportH - 1, rawBottom);
+    const holeWidth = Math.max(24, holeRight - holeLeft);
+    const holeHeight = Math.max(24, holeBottom - holeTop);
 
     // 보조 핀 배지 렌더링 (실제 DOM 요소 좌표 위에 투명하게 오버랩)
     const pinsHtml = (step.pins || []).map(p => {
@@ -896,7 +956,6 @@ class StoryTutorialModalView {
     }).join('');
 
     // 설명 카드 위치 자동 배치 (타겟이 화면 하단이면 상단에, 상단이면 하단에 배치하여 타겟을 절대 가리지 않음)
-    const viewportH = window.innerHeight || 720;
     const targetCenterY = holeTop + holeHeight / 2;
     const placeCardAtTop = targetCenterY > viewportH * 0.52;
     const cardPosStyle = placeCardAtTop

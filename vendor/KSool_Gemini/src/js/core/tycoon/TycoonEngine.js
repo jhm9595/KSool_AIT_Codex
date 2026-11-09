@@ -34,6 +34,7 @@ class TycoonEngine {
         name: '길거리 노점',
         subtitle: '햇살 가득한 골목길 무알콜 음료 & 에이드 노점',
         bgImage: './assets/tycoon/bg_stage_1.jpg?v=2',
+        quotaCount: 5,
         bellLeftPct: 66.8,
         bellBottomPct: 16.4,
         plateLeftPct: 50.8,
@@ -45,7 +46,7 @@ class TycoonEngine {
         priceMultiplier: 1.0,
         maxRecipeStep: 1,
         extraRecipeIds: [],
-        menuSummary: '탄산수·사이다·레몬에이드·밀키스·과일우유 등 무알콜 전용 (No.01~No.18)'
+        menuSummary: '탄산수·사이다·레몬에이드·밀크소다·과일우유 등 무알콜 전용 (No.01~No.18)'
       },
       {
         id: 'stage_2',
@@ -54,6 +55,7 @@ class TycoonEngine {
         name: '이모네 포장마차',
         subtitle: '정겨운 밤거리 주황 천막 포차 (기초 주류 입문)',
         bgImage: './assets/tycoon/bg_stage_2.jpg?v=2',
+        quotaCount: 6,
         bellLeftPct: 72.9,
         bellBottomPct: 9.5,
         plateLeftPct: 50.1,
@@ -65,7 +67,7 @@ class TycoonEngine {
         priceMultiplier: 1.20,
         maxRecipeStep: 2,
         extraRecipeIds: [],
-        menuSummary: '소주·맥주·소맥·매화수·레몬소주·아메리카노 등 포차 메뉴 (No.19~No.37)'
+        menuSummary: '소주·맥주·소맥·매실주·레몬소주·아메리카노 등 포차 메뉴 (No.19~No.37)'
       },
       {
         id: 'stage_3',
@@ -74,6 +76,7 @@ class TycoonEngine {
         name: '동네 목조 주막',
         subtitle: '따뜻한 조명과 나무 향기가 가득한 전통 주막',
         bgImage: './assets/tycoon/bg_stage_3.jpg?v=2',
+        quotaCount: 7,
         bellLeftPct: 72.9,
         bellBottomPct: 9.5,
         plateLeftPct: 50.1,
@@ -94,6 +97,7 @@ class TycoonEngine {
         name: '크래프트 비어 펍',
         subtitle: '네온사인과 브루어리 탱크가 빛나는 수제맥주 펍',
         bgImage: './assets/tycoon/bg_stage_4.jpg?v=2',
+        quotaCount: 8,
         bellLeftPct: 72.9,
         bellBottomPct: 9.5,
         plateLeftPct: 50.1,
@@ -101,8 +105,8 @@ class TycoonEngine {
         plateWidthPct: 23.6,
         plateHeightPct: 12.7,
         barTopBottomPct: 18.6,
-        unlockCost: 1800,
-        priceMultiplier: 1.65,
+        unlockCost: 1500,
+        priceMultiplier: 1.85,
         maxRecipeStep: 4,
         extraRecipeIds: [],
         menuSummary: '[2:1 비율 해금] 홍차주·막사·복소사·고진감래주·에너지주 (No.56~No.67)'
@@ -114,6 +118,7 @@ class TycoonEngine {
         name: '스카이라인 라운지 바',
         subtitle: '도심 야경이 내려다보이는 럭셔리 호텔 라운지',
         bgImage: './assets/tycoon/bg_stage_5.jpg?v=2',
+        quotaCount: 9,
         bellLeftPct: 68.2,
         bellBottomPct: 10.5,
         plateLeftPct: 50.5,
@@ -121,11 +126,11 @@ class TycoonEngine {
         plateWidthPct: 19.6,
         plateHeightPct: 10.5,
         barTopBottomPct: 22.3,
-        unlockCost: 3500,
-        priceMultiplier: 1.95,
+        unlockCost: 2200,
+        priceMultiplier: 2.30,
         maxRecipeStep: 5,
         extraRecipeIds: [],
-        menuSummary: '[고급 황금비율] 소토닉·기범주·황금소맥(3:7)·꿀주·프리미엄 막걸리 (No.68~No.77)'
+        menuSummary: '[고급 황금비율] 소토닉·만능열쇠 홍차주·황금소맥(3:7)·꿀주·프리미엄 막걸리 (No.68~No.77)'
       },
       {
         id: 'stage_6',
@@ -134,6 +139,7 @@ class TycoonEngine {
         name: '사이버펑크 미래도시 바',
         subtitle: '홀로그램 메뉴와 비행선이 오가는 미래도시 주막',
         bgImage: './assets/tycoon/bg_stage_6.jpg?v=2',
+        quotaCount: 10,
         bellLeftPct: 68.2,
         bellBottomPct: 10.5,
         plateLeftPct: 49.8,
@@ -141,11 +147,11 @@ class TycoonEngine {
         plateWidthPct: 20.7,
         plateHeightPct: 8.4,
         barTopBottomPct: 19.3,
-        unlockCost: 6500,
-        priceMultiplier: 2.35,
+        unlockCost: 3800,
+        priceMultiplier: 2.80,
         maxRecipeStep: 6,
         extraRecipeIds: [],
-        menuSummary: '[특산·브랜드 마스터] 테슬라·테진아·카스처럼·특산 명주 완결 (No.78~No.84)'
+        menuSummary: '[특산·브랜드 마스터] 테스형라·테진아·카아스처럼·특산 명주 완결 (No.78~No.84)'
       }
     ];
 
@@ -157,13 +163,12 @@ class TycoonEngine {
     this.knownRegularIds = new Set();
 
     this._loadPersistentData();
-    this._syncInventoryStepWithStages();
 
     this.resetSession('GROWTH');
   }
 
   _syncInventoryStepWithStages() {
-    if (!this.inventory) return;
+    if (!this.inventory || !this.inventory.isInitialized) return;
     let maxStageNum = 1;
     for (const st of this.MAP_STAGES) {
       if (this.unlockedMapStageIds.has(st.id) && st.stageNum > maxStageNum) {
@@ -221,6 +226,16 @@ class TycoonEngine {
 
   getCurrentMapStage() {
     return this.MAP_STAGES.find(m => m.id === this.selectedMapStageId) || this.MAP_STAGES[0];
+  }
+
+  /**
+   * 점포 스테이지별 일반 성장 영업(GROWTH) 목표 판매 잔수 계산
+   * - Stage가 올라갈수록 목표 판매량 점진적 증가: 5잔 ➔ 6잔 ➔ 7잔 ➔ 8잔 ➔ 9잔 ➔ 10잔
+   */
+  getStageQuotaCount(stageId = this.selectedMapStageId) {
+    const stage = this.MAP_STAGES.find(m => m.id === stageId);
+    if (!stage) return 5;
+    return Number(stage.quotaCount) || (4 + Number(stage.stageNum || 1));
   }
 
   /**
@@ -388,10 +403,42 @@ class TycoonEngine {
     };
   }
 
+  /**
+   * 현재 진행 중인 타이쿤 한 판(PLAYING 세션) 내에서 임시 보관된 특정 재료(음료/주류)의 재고 수량을 반환합니다.
+   * (타이쿤 종료 시 모두 소멸)
+   */
+  getStockCountForIngredient(ingredientId) {
+    if (!this.session || !this.session.stockMap || !this.recipeBook) return 0;
+    const producers = this.recipeBook.producerRecipesByIngId?.get(Number(ingredientId)) || [];
+    if (producers.length === 0) return 0;
+    let total = 0;
+    for (const rId of producers) {
+      total += (this.session.stockMap.get(this.buildStockKey(rId)) || 0);
+    }
+    return total;
+  }
+
+  getTotalSessionStockCount() {
+    if (!this.session || !this.session.stockMap) return 0;
+    let total = 0;
+    for (const cnt of this.session.stockMap.values()) {
+      if (cnt > 0) total += cnt;
+    }
+    return total;
+  }
+
   calculateOrderPrice(recipeId, orderType = 'NORMAL', combo = 0, wave = 1) {
-    const rec = this.recipeBook.getRecipe(recipeId);
-    const items = this.recipeBook.getRecipeItems(recipeId);
-    if (!rec || !items) return 15;
+    const rId = Number(recipeId);
+    const rec = this.recipeBook.getRecipe(rId);
+    const items = this.recipeBook.getRecipeItems(rId);
+    if (!rec || !items) return 10;
+
+    // 기초 음료 3종 기준 가격 고정: 탄산수(12)=10원, 사이다(58)=20원, 레모네이드(14)=30원
+    const fixedBasePrices = {
+      12: 10, // 탄산수
+      58: 20, // 사이다
+      14: 30  // 레모네이드
+    };
 
     const sumRatio = items.reduce((acc, it) => acc + (Number(it.ratio) || 1), 0);
     const slotCount = items.length;
@@ -403,26 +450,29 @@ class TycoonEngine {
       }
     }
 
-    const baseMaterialValue = (sumRatio * 7) + (slotCount * 5) + (craftedSubIngCount * 9);
-
-    let diffMultiplier = 1.0;
-    if (rec.difficulty === 'NORMAL') diffMultiplier = 1.38;
-    else if (rec.difficulty === 'MASTER') diffMultiplier = 1.85;
-    else if (slotCount >= 3) diffMultiplier = 1.22;
+    let baseDrinkPrice = fixedBasePrices[rId];
+    if (typeof baseDrinkPrice !== 'number') {
+      const baseMaterialValue = (sumRatio * 4) + (slotCount * 3) + (craftedSubIngCount * 7);
+      let diffMultiplier = 1.0;
+      if (rec.difficulty === 'NORMAL') diffMultiplier = 1.25;
+      else if (rec.difficulty === 'MASTER') diffMultiplier = 1.60;
+      else if (slotCount >= 3) diffMultiplier = 1.15;
+      baseDrinkPrice = Math.max(10, Math.round(baseMaterialValue * diffMultiplier));
+    }
 
     let orderTypeMultiplier = 1.0;
     let specialFlatBonus = 0;
     if (orderType === 'MEMORY') {
-      orderTypeMultiplier = 1.55;
-      specialFlatBonus = 23;
+      orderTypeMultiplier = 1.45;
+      specialFlatBonus = 15;
     }
 
     const stage = this.getCurrentMapStage();
     const stageMultiplier = stage ? (stage.priceMultiplier || 1.0) : 1.0;
 
     // 기본 음료/주류 가격은 웨이브·콤보 뻥튀기 없이 점포 배율만 적용 (콤보 보너스는 서빙 시 +콤보수 만큼 별도 합산)
-    const rawPrice = ((baseMaterialValue * diffMultiplier * orderTypeMultiplier) + specialFlatBonus) * stageMultiplier;
-    return Math.max(12, Math.round(rawPrice));
+    const rawPrice = ((baseDrinkPrice * orderTypeMultiplier) + specialFlatBonus) * stageMultiplier;
+    return Math.max(10, Math.round(rawPrice));
   }
 
   /**
@@ -439,16 +489,21 @@ class TycoonEngine {
       timeLeftSec: 0,
       elapsedSec: 0,
       servedCount: 0,
-      targetServeCount: mode === 'GROWTH' ? (this.GROWTH_QUOTA_COUNT || 5) : 0,
+      targetServeCount: mode === 'GROWTH' ? this.getStageQuotaCount(this.selectedMapStageId) : 0,
       isQuotaCleared: false,
       totalEarnings: 0,
+      baseSalesTotal: 0,
+      comboBonusTotal: 0,
+      servedReceipts: [], // 영수증 품목별 집계: [{ recipeId, name, unitPrice, count, subtotal }]
       combo: 0,
       maxCombo: 0,
       wave: 1,
       activeCustomer: null,
       activeOrder: null,
+      lastOrderedRecipeId: null,
       platedStockKey: null,
       potSlots: [],
+      stockMap: new Map(), // 타이쿤 한 판 진행 중에만 유지되는 음료·주류 임시 재고 (종료 시 자동 소멸)
       sessionCustomerVisits: new Map(),
       customerSessionRecipeMap: new Map(),
       lastLogMessage: '🏮 카운터 영업 준비가 완료되었습니다! 조합해서 접시에 올리고 종을 울려 서빙하세요!'
@@ -456,7 +511,7 @@ class TycoonEngine {
     return this.session;
   }
 
-  startGame(mode = 'GROWTH') {
+  startGame(mode = 'GROWTH', options = {}) {
     if (mode === 'INFINITE' && this.inventory && !this.inventory.isInfiniteModeUnlocked()) {
       return {
         ok: false,
@@ -467,7 +522,7 @@ class TycoonEngine {
 
     const stage = this.getCurrentMapStage();
     const unlockedOrderable = this.getStageOrderableUnlockedRecipes(stage.id);
-    const minReq = this.MIN_ORDERABLE_TO_START || 3;
+    const minReq = options?.allowTutorialSingleMenu ? 1 : (this.MIN_ORDERABLE_TO_START || 3);
     if (unlockedOrderable.length < minReq) {
       return {
         ok: false,
@@ -555,6 +610,10 @@ class TycoonEngine {
     const candidates = allCustomers.filter(c => c.id !== prevCustId);
     const availableCustomers = candidates.length > 0 ? candidates : allCustomers;
 
+    // 직전 주문 메뉴 추적: 연속 동일 메뉴 주문 방지
+    const prevOrderedRecipeId = this.session.lastOrderedRecipeId || this.session.activeOrder?.recipeId || null;
+    const nonRepeatRecipes = recipePool.filter(r => Number(r.recipe_id) !== Number(prevOrderedRecipeId));
+
     const visitedCandidates = availableCustomers.filter(
       c => (this.session.sessionCustomerVisits.get(c.id) || 0) >= 1 &&
            this.session.customerSessionRecipeMap.has(c.id) &&
@@ -567,21 +626,47 @@ class TycoonEngine {
 
     const isInfiniteMode = Boolean(this.session && this.session.mode === 'INFINITE');
     const roll = Math.random();
-    if (isInfiniteMode && visitedCandidates.length > 0 && roll < profile.probMemory) {
-      chosenCustomer = visitedCandidates[Math.floor(Math.random() * visitedCandidates.length)];
-      chosenRecipeId = this.session.customerSessionRecipeMap.get(chosenCustomer.id);
+
+    // 무한모드 기억 주문: 직전 주문과 겹치지 않는 기억 메뉴가 있다면 우선 선택
+    const visitedNonRepeatCandidates = visitedCandidates.filter(
+      c => Number(this.session.customerSessionRecipeMap.get(c.id)) !== Number(prevOrderedRecipeId)
+    );
+    const targetVisited = visitedNonRepeatCandidates.length > 0 ? visitedNonRepeatCandidates : visitedCandidates;
+
+    if (isInfiniteMode && targetVisited.length > 0 && roll < profile.probMemory) {
+      chosenCustomer = targetVisited[Math.floor(Math.random() * targetVisited.length)];
+      chosenRecipeId = Number(this.session.customerSessionRecipeMap.get(chosenCustomer.id));
       orderType = 'MEMORY';
     } else {
-      const stageMatchedCusts = availableCustomers.filter(c => stageAllowedIds.has(Number(c.preferredRecipeId)));
-      const custPool = (stageMatchedCusts.length > 0 && Math.random() < 0.7) ? stageMatchedCusts : availableCustomers;
+      // 1. 손님 매칭: 직전 주문 메뉴와 다른 선호 메뉴를 가진 손님을 우선적으로 우대
+      const stageMatchedNonRepeatCusts = availableCustomers.filter(
+        c => stageAllowedIds.has(Number(c.preferredRecipeId)) && Number(c.preferredRecipeId) !== Number(prevOrderedRecipeId)
+      );
+      const stageMatchedCusts = stageMatchedNonRepeatCusts.length > 0
+        ? stageMatchedNonRepeatCusts
+        : availableCustomers.filter(c => stageAllowedIds.has(Number(c.preferredRecipeId)));
+
+      const custPool = (stageMatchedCusts.length > 0 && Math.random() < 0.75) ? stageMatchedCusts : availableCustomers;
       chosenCustomer = custPool[Math.floor(Math.random() * custPool.length)];
 
+      // 2. 주문 레시피 선정: 가능한 경우 직전 주문 메뉴와 다른 메뉴 선정
       const prevSessionRecId = this.session.customerSessionRecipeMap.get(chosenCustomer.id);
-      if (prevSessionRecId && stageAllowedIds.has(Number(prevSessionRecId)) && Math.random() < 0.4) {
-        chosenRecipeId = Number(prevSessionRecId);
-      } else if (stageAllowedIds.has(Number(chosenCustomer.preferredRecipeId)) && Math.random() < 0.65) {
-        chosenRecipeId = Number(chosenCustomer.preferredRecipeId);
+      const candidateRecipeIds = [];
+
+      if (prevSessionRecId && stageAllowedIds.has(Number(prevSessionRecId)) && Number(prevSessionRecId) !== Number(prevOrderedRecipeId)) {
+        candidateRecipeIds.push(Number(prevSessionRecId));
+      }
+      if (stageAllowedIds.has(Number(chosenCustomer.preferredRecipeId)) && Number(chosenCustomer.preferredRecipeId) !== Number(prevOrderedRecipeId)) {
+        candidateRecipeIds.push(Number(chosenCustomer.preferredRecipeId));
+      }
+
+      if (candidateRecipeIds.length > 0 && Math.random() < 0.7) {
+        chosenRecipeId = candidateRecipeIds[Math.floor(Math.random() * candidateRecipeIds.length)];
+      } else if (nonRepeatRecipes.length > 0) {
+        const pickedRec = nonRepeatRecipes[Math.floor(Math.random() * nonRepeatRecipes.length)];
+        chosenRecipeId = Number(pickedRec.recipe_id);
       } else if (recipePool.length > 0) {
+        // 주문 가능한 레시피가 1종류뿐인 극초반의 경우에만 동일 메뉴 허용
         const pickedRec = recipePool[Math.floor(Math.random() * recipePool.length)];
         chosenRecipeId = Number(pickedRec.recipe_id);
       } else {
@@ -591,6 +676,8 @@ class TycoonEngine {
       this.session.customerSessionRecipeMap.set(chosenCustomer.id, chosenRecipeId);
       orderType = 'NORMAL';
     }
+
+    this.session.lastOrderedRecipeId = chosenRecipeId;
 
     const order = this._createOrderForCustomer(chosenCustomer, chosenRecipeId, orderType, profile.wave);
     this.session.activeCustomer = chosenCustomer;
@@ -666,6 +753,8 @@ class TycoonEngine {
       this.session.lastLogMessage = `⏰ [${custName}] 손님이 기다리다 돌아갔습니다! (남은 목숨: ${'❤️'.repeat(Math.max(0, this.session.lives))})`;
       if (this.session.lives <= 0) {
         this.session.status = 'GAMEOVER';
+        this.session.stockMap?.clear();
+        this.session.platedStockKey = null;
         return { expiredCount: 1, isGameOver: true };
       }
     } else {
@@ -767,24 +856,114 @@ class TycoonEngine {
       };
     }
 
+    // 기존에 접시 위에 올려져 있던 음료·주류가 있다면 한 판 한정 임시 재고(stockMap)로 자동 이동
+    let movedPrevToStock = null;
+    if (this.session.platedStockKey) {
+      const prevKey = this.session.platedStockKey;
+      const parsedPrev = this.parseStockKey(prevKey);
+      const prevRec = parsedPrev ? this.recipeBook.getRecipe(parsedPrev.recipeId) : null;
+      if (prevRec && this.isOrderableRecipe(prevRec)) {
+        const prevCnt = this.session.stockMap.get(prevKey) || 0;
+        this.session.stockMap.set(prevKey, prevCnt + 1);
+        movedPrevToStock = prevKey;
+      }
+    }
+
     this.session.platedStockKey = preview.stockKey;
     this.savePersistentData();
     this.clearTycoonPot();
     this.audio?.playSuccess?.();
 
     const label = preview.recipeName;
-    this.session.lastLogMessage = `🍽️ [${label}] 완성! 중앙 접시 위에 올려졌습니다. 오른쪽 종(🛎️)을 눌러 서빙하세요!`;
+    this.session.lastLogMessage = `🍽️ [${label}] 완성! 중앙 접시 위에 올려졌습니다. 오른쪽 종(🛎️)을 눌러 서빙하거나 접시를 터치해 임시 재고로 보관하세요!`;
 
     return {
       ok: true,
       crafted: preview,
       platedStockKey: preview.stockKey,
+      movedPrevToStock,
       label
     };
   }
 
   craftToStockpile() {
     return this.craftToPlate();
+  }
+
+  /**
+   * 중앙 접시 위의 완성 음료·주류를 이번 타이쿤 판 한정의 임시 재고(stockMap)로 보관합니다.
+   * (음료·주류만 보관 가능하며, 타이쿤 게임이 끝나면 모두 사라집니다)
+   */
+  storePlateToStock() {
+    if (!this.session || !this.session.platedStockKey) {
+      return { ok: false, message: '현재 접시 위에 올려진 음료/주류가 없습니다.' };
+    }
+
+    const stockKey = this.session.platedStockKey;
+    const parsed = this.parseStockKey(stockKey);
+    const rec = parsed ? this.recipeBook.getRecipe(parsed.recipeId) : null;
+    if (rec && !this.isOrderableRecipe(rec)) {
+      this.session.platedStockKey = null;
+      return { ok: true, clearedNonDrink: true };
+    }
+
+    const cur = this.session.stockMap.get(stockKey) || 0;
+    const newCount = cur + 1;
+    this.session.stockMap.set(stockKey, newCount);
+    this.session.platedStockKey = null;
+
+    const meta = this.getStockItemDisplayMeta(stockKey);
+    const label = meta ? meta.recipeName : '완성품';
+    this.session.lastLogMessage = `📦 접시 위의 [${label}]을(를) 이번 영업 임시 재고에 보관했습니다! (현재 ${newCount}개 · 영업 종료 시 소멸)`;
+
+    return {
+      ok: true,
+      storedStockKey: stockKey,
+      label,
+      newCount
+    };
+  }
+
+  /**
+   * 이번 타이쿤 판의 임시 재고(stockMap)에 보관된 음료·주류를 중앙 접시 위로 꺼냅니다.
+   */
+  moveStockToPlate(stockKey) {
+    if (!this.session || !this.session.stockMap) return { ok: false, message: '세션이 없습니다.' };
+    const availableCount = this.session.stockMap.get(stockKey) || 0;
+    if (availableCount <= 0) {
+      return { ok: false, message: '보관 중인 재고가 없습니다.' };
+    }
+
+    if (availableCount <= 1) {
+      this.session.stockMap.delete(stockKey);
+    } else {
+      this.session.stockMap.set(stockKey, availableCount - 1);
+    }
+
+    let swappedBackKey = null;
+    if (this.session.platedStockKey) {
+      const prevKey = this.session.platedStockKey;
+      const parsedPrev = this.parseStockKey(prevKey);
+      const prevRec = parsedPrev ? this.recipeBook.getRecipe(parsedPrev.recipeId) : null;
+      if (!prevRec || this.isOrderableRecipe(prevRec)) {
+        swappedBackKey = prevKey;
+        const prevCnt = this.session.stockMap.get(swappedBackKey) || 0;
+        this.session.stockMap.set(swappedBackKey, prevCnt + 1);
+      }
+    }
+
+    this.session.platedStockKey = stockKey;
+
+    const meta = this.getStockItemDisplayMeta(stockKey);
+    const label = meta ? meta.recipeName : '완성품';
+    this.session.lastLogMessage = `🍽️ 임시 재고에서 [${label}]을(를) 꺼내 중앙 접시 위에 올렸습니다!`;
+
+    return {
+      ok: true,
+      platedStockKey: stockKey,
+      swappedBackKey,
+      label
+    };
   }
 
   ringBellToServe() {
@@ -822,6 +1001,28 @@ class TycoonEngine {
       const comboBonus = this.session.combo >= 2 ? this.session.combo : 0;
       const earned = basePrice + comboBonus;
       this.session.totalEarnings += earned;
+      this.session.baseSalesTotal = (this.session.baseSalesTotal || 0) + basePrice;
+      this.session.comboBonusTotal = (this.session.comboBonusTotal || 0) + comboBonus;
+
+      if (!Array.isArray(this.session.servedReceipts)) {
+        this.session.servedReceipts = [];
+      }
+      const existingLine = this.session.servedReceipts.find(
+        it => it.recipeId === order.recipeId && it.unitPrice === basePrice
+      );
+      if (existingLine) {
+        existingLine.count += 1;
+        existingLine.subtotal += basePrice;
+      } else {
+        this.session.servedReceipts.push({
+          recipeId: order.recipeId,
+          name: order.recipeName,
+          unitPrice: basePrice,
+          count: 1,
+          subtotal: basePrice
+        });
+      }
+
       this.persistentWallet += earned;
 
       const prevVisits = this.session.sessionCustomerVisits.get(cust.id) || 0;
@@ -847,7 +1048,7 @@ class TycoonEngine {
 
       const servedLabel = order.recipeName;
 
-      // 일반 성장 영업(GROWTH): 목표 판매 잔수(5잔) 달성 시 오늘 영업 완판 종료 -> 일일 정산 화면으로 이동!
+      // 일반 성장 영업(GROWTH): 목표 판매 잔수(5잔) 달성 시 오늘 영업 완판 종료 -> 임시 재고 모두 소멸 후 일일 정산 화면으로 이동!
       if (
         this.session.mode === 'GROWTH' &&
         this.session.targetServeCount > 0 &&
@@ -857,7 +1058,24 @@ class TycoonEngine {
         this.session.isQuotaCleared = true;
         this.session.activeCustomer = null;
         this.session.activeOrder = null;
-        this.session.lastLogMessage = `🎉 오늘의 목표 판매량(${this.session.servedCount}/${this.session.targetServeCount}잔) 완판 달성! 정산서에서 새 재료를 구매하거나 연구실로 이동하세요!`;
+        this.session.stockMap?.clear();
+        this.session.platedStockKey = null;
+
+        const quotaBonusByStage = {
+          stage_1: 30,
+          stage_2: 60,
+          stage_3: 120,
+          stage_4: 250,
+          stage_5: 450,
+          stage_6: 800
+        };
+        const quotaBonus = quotaBonusByStage[this.selectedMapStageId] || 30;
+        this.session.quotaBonus = quotaBonus;
+        this.session.totalEarnings += quotaBonus;
+        this.persistentWallet += quotaBonus;
+        this.savePersistentData();
+
+        this.session.lastLogMessage = `🎉 오늘의 목표 판매량(${this.session.servedCount}/${this.session.targetServeCount}잔) 완판 달성! 완판 보너스 +${quotaBonus.toLocaleString()}원이 지급되었습니다!`;
 
         return {
           ok: true,
@@ -901,6 +1119,8 @@ class TycoonEngine {
 
         if (this.session.lives <= 0) {
           this.session.status = 'GAMEOVER';
+          this.session.stockMap?.clear();
+          this.session.platedStockKey = null;
           return {
             ok: true,
             isCorrect: false,

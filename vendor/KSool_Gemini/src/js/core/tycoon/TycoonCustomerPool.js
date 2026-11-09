@@ -279,8 +279,8 @@ class TycoonCustomerPool {
         beard: 'MUSTACHE_FLAT',
         outfit: 'VEST_KHAKI',
         accent: '#ca8a04',
-        preferredRecipeId: 73, // 밀키스주 (Stage 2)
-        greeting: '노란 모자에 뿔테안경 변사장입니다. 부드럽게 톡 쏘는 밀키스주 한 잔 말아주소!'
+        preferredRecipeId: 73, // 밀크소다주 (Stage 2)
+        greeting: '노란 모자에 뿔테안경 변사장입니다. 부드럽게 톡 쏘는 밀크소다주 한 잔 말아주소!'
       },
 
       // === Group E: 로열 & 라운지 VIP 패밀리 ===
@@ -411,7 +411,7 @@ class TycoonCustomerPool {
         beard: 'LONG_GRAY',
         outfit: 'APRON_BROWN',
         accent: '#9333ea',
-        preferredRecipeId: 60, // 비락식혜 (음료)
+        preferredRecipeId: 60, // 식혜 (음료)
         greeting: '할멈이랑 두건·안경은 같아도 난 긴 회색 수염이 있다네! 달콤시원한 식혜 한 잔 주게!'
       }
     ];

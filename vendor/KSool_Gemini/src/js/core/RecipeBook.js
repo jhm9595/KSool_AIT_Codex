@@ -26,11 +26,11 @@ class RecipeBook {
     this.producerRecipesByIngId.clear();
     this.unlockedIngIdByRecipeId.clear();
 
-    (bundleData.ingredients_base || []).forEach(ing => {
+    (bundleData.ingredients_base || bundleData.base_ingredients || []).forEach(ing => {
       this.baseIngredients.set(Number(ing.ingredient_id), ing);
     });
 
-    (bundleData.ingredients_detail || []).forEach(det => {
+    (bundleData.ingredients_detail || bundleData.detail_ingredients || []).forEach(det => {
       const dId = Number(det.detail_id);
       const bId = Number(det.base_ingredient_id);
       this.detailIngredients.set(dId, det);
@@ -42,7 +42,7 @@ class RecipeBook {
       this.recipes.set(Number(rec.recipe_id), rec);
     });
 
-    (bundleData.recipe_ingredients || []).forEach(item => {
+    (bundleData.recipe_ingredients || bundleData.recipe_items || []).forEach(item => {
       const rId = Number(item.recipe_id);
       if (!this.recipeItemsByRecipeId.has(rId)) this.recipeItemsByRecipeId.set(rId, []);
       this.recipeItemsByRecipeId.get(rId).push(item);

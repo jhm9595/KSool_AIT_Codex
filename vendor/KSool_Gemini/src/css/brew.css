@@ -130,15 +130,36 @@
   transform: scale(1.05);
 }
 
+.quiz-mystery-icon.is-disabled {
+  opacity: 0.45;
+  filter: grayscale(1);
+  border: 1px dashed #334155 !important;
+  background: #090d16 !important;
+  color: #64748b !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.quiz-mystery-icon.is-disabled:hover {
+  border-color: #334155 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
 .quiz-mystery-icon.is-unlocked {
   cursor: default;
   border: 1px solid rgba(148, 163, 184, 0.25);
 }
 
-.quiz-mystery-icon.is-unlocked:hover {
-  border-color: rgba(148, 163, 184, 0.25);
-  box-shadow: none;
-  transform: none;
+.quiz-mystery-icon.is-unlocked.is-clickable {
+  cursor: pointer;
+}
+
+.quiz-mystery-icon.is-unlocked.is-clickable:hover {
+  border-color: #34d399;
+  box-shadow: 0 0 10px rgba(52, 211, 153, 0.35);
+  transform: scale(1.05);
 }
 
 .quiz-question-body {
@@ -259,6 +280,39 @@
 
 .quiz-infer-btn:active {
   transform: scale(0.95);
+}
+
+.quiz-infer-btn.is-completed {
+  border: 1px solid rgba(34, 197, 94, 0.7);
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.22), rgba(16, 185, 129, 0.32));
+  color: #86efac;
+  box-shadow: 0 1px 4px rgba(34, 197, 94, 0.25);
+  font-weight: 800;
+}
+
+.quiz-infer-btn.is-completed:hover {
+  background: linear-gradient(135deg, #16a34a, #059669);
+  color: #ffffff;
+  border-color: #4ade80;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4);
+}
+
+.quiz-infer-btn.is-disabled,
+.quiz-infer-btn:disabled {
+  border: 1px solid #334155 !important;
+  background: rgba(30, 41, 59, 0.5) !important;
+  color: #64748b !important;
+  cursor: not-allowed !important;
+  opacity: 0.55;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.quiz-infer-btn.is-disabled:hover,
+.quiz-infer-btn:disabled:hover {
+  background: rgba(30, 41, 59, 0.5) !important;
+  border-color: #334155 !important;
+  color: #64748b !important;
 }
 
 .quiz-desc-text {
@@ -382,6 +436,49 @@
   top: -6px;
   left: -6px;
   right: auto;
+}
+
+.ing-stock-badge {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  z-index: 3;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 900;
+  border-radius: 999px;
+  border: 1.5px solid #60a5fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.55);
+  line-height: 1;
+}
+
+.ing-stock-badge.zero {
+  background: #334155;
+  color: #94a3b8;
+  border-color: #64748b;
+}
+
+.ing-card.is-disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+  filter: grayscale(0.45);
+  border-style: dashed;
+}
+
+.ing-card.is-disabled:hover {
+  background: var(--card-bg);
+  border-color: var(--border);
+}
+
+.ing-card.is-disabled:active {
+  transform: none;
 }
 
 .pot-actions {
@@ -1234,29 +1331,43 @@
 
 .quiz-shop-needed-banner {
   width: 100%;
-  margin-top: 4px;
-  padding: 5px 8px;
-  border-radius: 7px;
-  background: rgba(245, 158, 11, 0.16);
+  margin-top: 7px;
+  min-height: 38px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(245, 158, 11, 0.14);
   border: 1px solid rgba(245, 158, 11, 0.5);
   color: #fde047;
-  font-size: 0.66rem;
+  font-size: 0.72rem;
   font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
+  gap: 8px;
   cursor: pointer;
   text-align: left;
+  box-sizing: border-box;
+  transition: all 0.15s ease;
+}
+
+.quiz-shop-needed-banner:hover {
+  background: rgba(245, 158, 11, 0.22);
+  border-color: #fbbf24;
+}
+
+.quiz-shop-needed-banner:active {
+  transform: scale(0.99);
 }
 
 .quiz-shop-needed-banner b {
   color: #ffffff;
-  background: #d97706;
-  padding: 2px 6px;
-  border-radius: 5px;
+  background: linear-gradient(135deg, #d97706, #b45309);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.7rem;
   white-space: nowrap;
   flex-shrink: 0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
 .cat-chip.lab-shop-cat-chip {
@@ -1319,6 +1430,122 @@
   font-size: 0.56rem;
   font-weight: 900;
   color: #fde047;
+}
+
+/* 🛒 독립 탭 재료상점 (#view-shop) 전용 뷰 & 상단 보유 자금 대시보드 카드 */
+#view-shop {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.shop-view-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px 16px;
+  gap: 10px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.shop-wallet-hero-card {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 15px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(120, 53, 15, 0.45) 0%, rgba(15, 23, 42, 0.95) 65%, rgba(30, 41, 59, 0.95) 100%);
+  border: 1.5px solid rgba(245, 158, 11, 0.65);
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.16);
+}
+
+.shop-wallet-hero-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.shop-wallet-coin-emblem {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: radial-gradient(circle at 30% 30%, #fde047, #f59e0b 75%, #b45309 100%);
+  border: 2px solid #fef08a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  box-shadow: 0 3px 10px rgba(245, 158, 11, 0.45);
+  flex-shrink: 0;
+}
+
+.shop-wallet-hero-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.shop-wallet-label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #fcd34d;
+  letter-spacing: 0.2px;
+}
+
+.shop-wallet-amount-row {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+}
+
+.shop-wallet-amount {
+  font-size: 1.45rem;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1.1;
+  text-shadow: 0 2px 8px rgba(245, 158, 11, 0.45);
+}
+
+.shop-wallet-unit {
+  font-size: 0.88rem;
+  font-weight: 900;
+  color: #fde047;
+}
+
+.shop-wallet-hero-right {
+  flex-shrink: 0;
+}
+
+.shop-owned-summary-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #cbd5e1;
+}
+
+.shop-owned-summary-pill b {
+  color: #38bdf8;
+  font-weight: 900;
+}
+
+.shop-scroll-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 14px;
 }
 
 /* 연구실 상단 토글 🛒 재료 상점 전용 뷰 */

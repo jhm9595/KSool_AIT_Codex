@@ -1,10 +1,10 @@
 window.KSool = window.KSool || {};
 
 /**
- * ⑨ 시장에 가면 (주조실 재료 기억력 릴레이 술게임)
+ * ⑨ 시장에 가면 (연구실 재료 기억력 릴레이 술게임)
  * - 한국 전통 술자리 기억력 게임: "시장에 가면~ 소주도 있고! 맥주도 있고!"
  * - 위쪽 영역: 재료가 스네이크/지그재그(L->R, R->L)로 계속 append되며, 다음 사람 차례에는 가려졌다가 하나씩 복기
- * - 아래쪽 영역: 주조실에서 해금된 재료들을 선택하는 카테고리 탭 & 재료 그리드
+ * - 아래쪽 영역: 연구실에서 해금된 재료들을 선택하는 카테고리 탭 & 재료 그리드
  * - 시작 전 훈민정음처럼 재료 1개당 선택 제한시간(3초, 5초, 7초, 10초, 무제한) 설정 가능
  * - 도감 50% 이상 해금 시 오픈
  */
@@ -159,7 +159,7 @@ class MarketMemoryGame {
   }
 
   /**
-   * 아래 주조실 재료 영역에서 재료 클릭 시 처리
+   * 아래 연구실 재료 영역에서 재료 클릭 시 처리
    */
   handleIngredientClick(ing) {
     if (this.gameState !== 'playing') return;
@@ -358,7 +358,7 @@ class MarketMemoryGame {
           </div>
         ` : ''}
 
-        <!-- 4. 아래쪽 공간: 주조실 재료 선택 영역 -->
+        <!-- 4. 아래쪽 공간: 연구실 재료 선택 영역 -->
         <div class="market-picker-section ${this.turnState === 'turn_done' ? 'disabled' : ''}">
           <!-- 카테고리 칩 -->
           <div class="market-cat-chips-row">

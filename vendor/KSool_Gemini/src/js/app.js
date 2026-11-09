@@ -74,6 +74,7 @@ class KSoolApp {
       suggestionService: this.suggestionService,
       brandResolver: this.brandResolver,
       audio: this.audio,
+      showToast: (msg) => this.showToast(msg),
       onOpenInspector: (suggestion) => {
         this.recipeInspectorModalView.open(suggestion);
       },
@@ -264,6 +265,7 @@ class KSoolApp {
     this.renderTabBar();
     this.renderHeader();
     this.renderBrewView();
+    this.renderShopView();
     this.renderCollectionView();
     this.fridgeRecommenderView.render();
     this.suggestionBoardView.render();
@@ -358,20 +360,20 @@ class KSoolApp {
       if (shouldQueue) this.pendingTabIntroQueue.push('tycoon');
     }
 
-    // [튜토리얼 혜택 종료 안내 1] No.03 완료 시 외형 그림 무료 제공 종료 안내
-    const isNo3Done = this.inventory.isRecipeUnlocked(3) || this.inventory.unlockedRecipeIds.size >= 3;
-    if (!this.inventory.shownTabIntros.noticeNo3 && isNo3Done) {
-      this.inventory.shownTabIntros.noticeNo3 = true;
+    // [STAGE 2 진입 안내] 이모네 포장마차(STAGE 2) 해금 시 외형 그림 기본 제공 종료 안내
+    const isStage2Unlocked = this.inventory.unlockedStepId >= 2;
+    if (!this.inventory.shownTabIntros.noticeStage2 && isStage2Unlocked) {
+      this.inventory.shownTabIntros.noticeStage2 = true;
       this.inventory.save();
-      if (shouldQueue) this.pendingTabIntroQueue.push('noticeNo3');
+      if (shouldQueue) this.pendingTabIntroQueue.push('noticeStage2');
     }
 
-    // [튜토리얼 혜택 종료 안내 2] No.06 완료 시 설명 힌트 무료 제공 종료 안내
-    const isNo6Done = this.inventory.isRecipeUnlocked(6) || this.inventory.unlockedRecipeIds.size >= 6;
-    if (!this.inventory.shownTabIntros.noticeNo6 && isNo6Done) {
-      this.inventory.shownTabIntros.noticeNo6 = true;
+    // [STAGE 3 진입 안내] 동네 목조 주막(STAGE 3) 해금 시 설명 힌트 기본 제공 종료 안내
+    const isStage3Unlocked = this.inventory.unlockedStepId >= 3;
+    if (!this.inventory.shownTabIntros.noticeStage3 && isStage3Unlocked) {
+      this.inventory.shownTabIntros.noticeStage3 = true;
       this.inventory.save();
-      if (shouldQueue) this.pendingTabIntroQueue.push('noticeNo6');
+      if (shouldQueue) this.pendingTabIntroQueue.push('noticeStage3');
     }
   }
 
@@ -424,7 +426,7 @@ class KSoolApp {
             • <b>우측 상단 버튼 터치</b>: [🗺️팔도지도], [🍾브랜드] 등 전용 상세 선택창 오픈!
           </div>
         `,
-        btnLabel: '⚗️ 주조실에서 상세 재료 확인하기'
+        btnLabel: '⚗️ 연구실에서 상세 재료 확인하기'
       },
       suggestions: {
         emoji: '👍',
@@ -440,18 +442,18 @@ class KSoolApp {
         desc: '축하합니다! 도감 100%를 달성한 전설의 주모에게만 허락된 새로운 본게임 <b>[🏮 타이쿤]</b>이 해금되었습니다!<br/><br/>찾아오는 손님들의 주문을 외워서 조합해 서빙하세요! (<b>♾️ 무한모드</b> 지원)',
         btnLabel: '🏮 주막 타이쿤 영업하러 가기'
       },
-      noticeNo3: {
+      noticeStage2: {
         emoji: '🎨',
-        badge: '튜토리얼 혜택 안내',
+        badge: 'STAGE 2 해금 안내',
         title: '외형 그림 기본 제공 종료',
-        desc: 'No.03 레시피를 완료하셨습니다!<br/><br/>이제부터(No.04~)는 <b>외형 그림 힌트</b>가 기본 제공되지 않으며, <b>벽돌깨기 · 땅따먹기 · 네모로직</b> 미니게임을 직접 클리어하여 해금해야 합니다.<br/><br/><span style="color:#fde047; font-weight:700;">※ 설명 힌트는 No.06까지 계속 무료로 제공됩니다.</span>',
+        desc: '길거리 노점(STAGE 1)을 마스터하고 <b>STAGE 2 (이모네 포장마차)</b>에 진입하셨습니다!<br/><br/>STAGE 2(No.19~)부터는 <b>외형 그림 힌트</b>가 기본 제공되지 않으며, <b>벽돌깨기 · 땅따먹기 · 네모로직</b> 미니게임을 직접 클리어하여 해금해야 합니다.<br/><br/><span style="color:#fde047; font-weight:700;">※ 설명 힌트는 STAGE 2(No.37)까지 계속 무료로 제공됩니다.</span>',
         btnLabel: '확인 및 계속하기'
       },
-      noticeNo6: {
+      noticeStage3: {
         emoji: '📜',
-        badge: '튜토리얼 혜택 안내',
-        title: '설명 힌트 기본 제공 종료',
-        desc: 'No.06 레시피를 완료하셨습니다!<br/><br/>이제부터(No.07~)는 <b>설명 힌트</b>도 기본 제공되지 않으며, <b>은박 복권 긁기(AD)</b>를 통해 직접 힌트를 해금해야 합니다.<br/><br/><span style="color:#38bdf8; font-weight:700;">※ 힌트 센터에서 미니게임과 은박 복권을 활용해 다음 레시피를 추리해보세요!</span>',
+        badge: 'STAGE 3 해금 안내',
+        title: '외형 · 설명 힌트 기본 제공 종료',
+        desc: '이모네 포장마차(STAGE 2)를 마스터하고 <b>STAGE 3 (동네 목조 주막)</b>에 진입하셨습니다!<br/><br/>STAGE 3(No.38~)부터는 <b>외형 그림 힌트</b>와 <b>설명 힌트</b>가 모두 기본 제공되지 않으며, <b>미니게임</b>과 <b>은박 복권 긁기(AD)</b>를 통해 직접 힌트를 해금해야 합니다.<br/><br/><span style="color:#38bdf8; font-weight:700;">※ 힌트 버튼에서 미니게임과 은박 복권을 활용해 새로운 레시피를 추리해보세요!</span>',
         btnLabel: '확인 및 계속하기'
       }
     }[tabKey];
@@ -487,7 +489,7 @@ class KSoolApp {
         this.audio.playTap();
         if (tabKey === 'detailPicker') {
           this.switchTab('brew');
-        } else if (tabKey === 'noticeNo3' || tabKey === 'noticeNo6') {
+        } else if (tabKey === 'noticeStage2' || tabKey === 'noticeStage3') {
           // 알림 팝업 확인 시 현재 탭 유지
         } else {
           this.switchTab(tabKey);
@@ -517,16 +519,8 @@ class KSoolApp {
 
     const missingIng = items.find(it => !this.inventory.isIngredientAvailable(it.ingredient_id));
     if (missingIng) {
-      this.currentTab = 'brew';
-      this.selectedIngCategory = 'SHOP';
-      document.querySelectorAll('[data-tab-target]').forEach(b => {
-        b.classList.toggle('active', b.getAttribute('data-tab-target') === 'brew');
-      });
-      document.querySelectorAll('.view').forEach(v => {
-        v.classList.toggle('active', v.id === 'view-brew');
-      });
-      this.renderAll();
-      this.showToast('🛒 아직 보유하지 않은 재료가 포함되어 있습니다! [🛒 재료구매] 탭에서 먼저 재료를 준비해주세요.');
+      this.switchTab('shop');
+      this.showToast('🛒 아직 보유하지 않은 재료가 포함되어 있습니다! [🛒 재료상점] 탭에서 먼저 재료를 준비해주세요.');
       return;
     }
 
@@ -599,29 +593,15 @@ class KSoolApp {
   }
 
   renderBrewView() {
-    if (this.brewMode !== 'QUIZ' && this.brewMode !== 'SHOP') {
-      this.brewMode = 'QUIZ';
-    }
-    const isShopMode = this.brewMode === 'SHOP';
-    const slotsGrid = document.getElementById('pot-slots-grid');
-    const matchNotice = document.getElementById('pot-match-notice');
-    const potActions = document.querySelector('#view-brew .pot-actions');
-    const catBar = document.getElementById('ing-cat-bar');
-    if (slotsGrid) slotsGrid.style.display = isShopMode ? 'none' : '';
-    if (matchNotice) matchNotice.style.display = isShopMode ? 'none' : '';
-    if (potActions) potActions.style.display = isShopMode ? 'none' : '';
-    if (catBar) catBar.style.display = isShopMode ? 'none' : '';
-
+    this.brewMode = 'QUIZ';
     this._renderBrewStepQuizBar();
-    if (!isShopMode) {
-      this._renderPotSlots();
-      this._renderIngredientCategoryChips();
-    }
+    this._renderPotSlots();
+    this._renderIngredientCategoryChips();
     this._renderIngredientsGrid();
   }
 
   /**
-   * 연구실 상단: [점포·자금 현황 바] + [🎯 단계별 연구 모드 / 🛒 재료 상점] 토글 전환 및 문제 카드 렌더링
+   * 연구실 상단: 단계별 문제 카드 렌더링 (점포·자금 배너 및 상점 토글 탭 제거)
    */
   _renderBrewStepQuizBar() {
     const container = document.getElementById('brew-step-quiz-bar');
@@ -647,33 +627,8 @@ class KSoolApp {
       if (targetRec) this.quizTargetRecipeId = targetRec.recipe_id;
     }
 
-    const wallet = this.tycoonView?.engine ? this.tycoonView.engine.persistentWallet : 0;
-    const curStage = this.tycoonView?.engine ? this.tycoonView.engine.getCurrentMapStage() : { icon: '⛺', stageNum: 1, name: '길거리 노점' };
-
-    const economyBarHtml = `
-      <div class="brew-lab-economy-bar">
-        <div class="lab-econ-left">
-          <span class="lab-stage-tag">${curStage.icon} ${curStage.name}</span>
-          <span class="lab-wallet-tag">💰 <b>${wallet.toLocaleString()}원</b></span>
-        </div>
-      </div>
-    `;
-
-    const modeTabsHtml = `
-      ${economyBarHtml}
-      <div class="brew-mode-tabs">
-        <button type="button" class="brew-mode-tab-btn ${this.brewMode === 'QUIZ' ? 'active' : ''}" data-brew-mode="QUIZ">
-          🎯 단계별 연구 모드
-        </button>
-        <button type="button" class="brew-mode-tab-btn shop-mode-btn ${this.brewMode === 'SHOP' ? 'active' : ''}" data-brew-mode="SHOP">
-          🛒 재료 상점
-        </button>
-      </div>
-    `;
-
-    if (this.brewMode === 'SHOP' || !targetRec) {
-      container.innerHTML = modeTabsHtml;
-      this._bindBrewQuizEvents(container, navigableRecipes, targetRec);
+    if (!targetRec) {
+      container.innerHTML = '';
       return;
     }
 
@@ -688,28 +643,71 @@ class KSoolApp {
     const resolvedName = this.brandResolver.resolveName(targetRec);
     const isCollectionUnlocked = this.inventory.isTabUnlocked('collection');
     const showHintBtn = !isUnlocked && isCollectionUnlocked;
+    const needsShopMaterials = !isUnlocked && !isChallengeable;
 
-    let shopNeedBannerHtml = '';
-    if (!isUnlocked && !isChallengeable) {
-      shopNeedBannerHtml = `
-        <button type="button" class="quiz-shop-needed-banner" id="quiz-go-shop-chip-btn">
+    let descAreaHtml = '';
+    if (needsShopMaterials) {
+      descAreaHtml = `
+        <button type="button" class="quiz-shop-needed-banner" id="quiz-go-shop-chip-btn" title="클릭하여 재료상점으로 이동">
           <span>🛒 아직 보유하지 않은 재료(구매 또는 이전 번호 해금)가 필요합니다!</span>
-          <b>재료 상점 보기 ▸</b>
+          <b>재료상점 탭 보기 ▸</b>
         </button>
+      `;
+    } else {
+      descAreaHtml = `
+        <div class="quiz-desc-text">
+          ${isUnlocked
+            ? targetRec.description
+            : (isDescUnlocked
+                ? `<span class="hint-bulb">💡</span> ${targetRec.unlock_hint || ''}`
+                : `<div class="quiz-desc-locked" id="quiz-locked-desc-btn" title="클릭하여 설명 힌트 해금 (단계별 힌트)">
+                     <span class="quiz-lock-icon">🔒</span>
+                     <span class="quiz-lock-label">설명 힌트 잠김</span>
+                   </div>`
+              )
+          }
+        </div>
       `;
     }
 
+    let mysteryIconClass = 'quiz-mystery-icon';
+    let mysteryIconTitle = '';
+    if (isUnlocked) {
+      mysteryIconClass += ' is-unlocked is-clickable';
+      mysteryIconTitle = '클릭하여 레시피 상세 정보 보기';
+    } else if (needsShopMaterials) {
+      mysteryIconClass += ' is-locked is-disabled';
+      mysteryIconTitle = '필요한 재료를 먼저 획득해야 힌트와 연구가 가능합니다';
+    } else if (isImageAvailable) {
+      mysteryIconClass += ' is-unlocked';
+      mysteryIconTitle = '';
+    } else if (showHintBtn) {
+      mysteryIconClass += ' is-locked is-clickable';
+      mysteryIconTitle = '❓ 클릭하여 그림 해금 미니게임 도전';
+    } else {
+      mysteryIconClass += ' is-locked';
+      mysteryIconTitle = '도감·힌트 기능 해금 후 그림 미니게임이 열립니다';
+    }
+
+    let leftActionBtnHtml = '';
+    if (isUnlocked) {
+      leftActionBtnHtml = `<button type="button" class="quiz-infer-btn is-completed" id="quiz-completed-info-btn" title="클릭하여 레시피 상세 정보 보기">완료</button>`;
+    } else if (needsShopMaterials) {
+      leftActionBtnHtml = `<button type="button" class="quiz-infer-btn is-disabled" id="quiz-open-hint-btn" disabled title="필요한 재료를 먼저 획득해야 힌트를 이용할 수 있습니다">힌트</button>`;
+    } else if (showHintBtn) {
+      leftActionBtnHtml = `<button type="button" class="quiz-infer-btn" id="quiz-open-hint-btn">힌트</button>`;
+    }
+
     container.innerHTML = `
-      ${modeTabsHtml}
       <div class="brew-quiz-card">
         <div class="quiz-question-row">
           <div class="quiz-icon-col">
-            <div class="quiz-mystery-icon ${isImageAvailable ? 'is-unlocked' : 'is-locked'} ${showHintBtn && !isImageAvailable ? 'is-clickable' : ''}"
+            <div class="${mysteryIconClass}"
                  id="quiz-mystery-icon"
-                 ${isImageAvailable ? '' : (showHintBtn ? 'title="❓ 클릭하여 그림 해금 미니게임 도전"' : 'title="도감·힌트 기능 해금 후 그림 미니게임이 열립니다"')}>
+                 title="${mysteryIconTitle}">
               ${isImageAvailable ? (window.KSool?.pixelIcon ? window.KSool.pixelIcon(targetRec, 36) : targetRec.emoji) : '❓'}
             </div>
-            ${showHintBtn ? `<button type="button" class="quiz-infer-btn" id="quiz-open-hint-btn">힌트</button>` : ''}
+            ${leftActionBtnHtml}
           </div>
           <div class="quiz-question-body">
             <div class="quiz-header-inline">
@@ -718,23 +716,13 @@ class KSoolApp {
               </div>
               <div class="quiz-nav-right">
                 <button type="button" class="quiz-nav-btn" id="quiz-prev-btn" ${hasPrev ? '' : 'disabled'} title="이전 번호">◀</button>
-                <span class="quiz-num-badge">${targetRec.formatted_number} <span class="quiz-num-total">/ ${totalCount}</span></span>
+                <button type="button" class="quiz-num-badge" id="quiz-jump-btn" title="클릭하여 원하는 번호나 단계로 바로 이동" style="cursor:pointer; background:rgba(30,41,59,0.9); border:1px solid #475569; border-radius:6px; padding:3px 7px; color:#e2e8f0; font-weight:700;">
+                  ${targetRec.formatted_number} <span class="quiz-num-total" style="font-size:0.75rem; color:#94a3b8;">/ ${totalCount} ▾</span>
+                </button>
                 <button type="button" class="quiz-nav-btn" id="quiz-next-btn" ${hasNext ? '' : 'disabled'} title="다음 번호">▶</button>
               </div>
             </div>
-            <div class="quiz-desc-text">
-              ${isUnlocked
-                ? targetRec.description
-                : (isDescUnlocked
-                    ? `<span class="hint-bulb">💡</span> ${targetRec.unlock_hint || ''}`
-                    : `<div class="quiz-desc-locked" id="quiz-locked-desc-btn" title="클릭하여 설명 힌트 해금 (단계별 힌트)">
-                         <span class="quiz-lock-icon">🔒</span>
-                         <span class="quiz-lock-label">설명 힌트 잠김</span>
-                       </div>`
-                  )
-              }
-            </div>
-            ${shopNeedBannerHtml}
+            ${descAreaHtml}
           </div>
         </div>
       </div>
@@ -744,22 +732,21 @@ class KSoolApp {
   }
 
   _bindBrewQuizEvents(container, navigableRecipes, targetRec) {
+    const jumpBtn = container.querySelector('#quiz-jump-btn');
+    if (jumpBtn) {
+      jumpBtn.onclick = () => {
+        this.audio.playTap();
+        this._openRecipeJumpModal(navigableRecipes, targetRec);
+      };
+    }
+
     const quizShopBannerBtn = container.querySelector('#quiz-go-shop-chip-btn');
     if (quizShopBannerBtn) {
       quizShopBannerBtn.onclick = () => {
         this.audio.playTap();
-        this.brewMode = 'SHOP';
-        this.renderBrewView();
+        this.switchTab('shop');
       };
     }
-
-    container.querySelectorAll('[data-brew-mode]').forEach(btn => {
-      btn.onclick = () => {
-        this.brewMode = btn.getAttribute('data-brew-mode');
-        this.audio.playTap();
-        this.renderBrewView();
-      };
-    });
 
     const prevBtn = container.querySelector('#quiz-prev-btn');
     if (prevBtn && targetRec) {
@@ -785,12 +772,24 @@ class KSoolApp {
       };
     }
 
+    const completedBtn = container.querySelector('#quiz-completed-info-btn');
+    if (completedBtn && targetRec) {
+      completedBtn.onclick = () => {
+        this.audio.playTap();
+        this.showCraftResultModal({ isSuccess: true, recipe: targetRec, isNewDiscovery: false });
+      };
+    }
+
     const hintBtn = container.querySelector('#quiz-open-hint-btn');
     if (hintBtn && targetRec) {
-      hintBtn.onclick = () => {
-        this.audio.playTap();
-        this.hintModalView.open(targetRec.recipe_id);
-      };
+      if (!hintBtn.disabled) {
+        hintBtn.onclick = () => {
+          this.audio.playTap();
+          this.hintModalView.open(targetRec.recipe_id);
+        };
+      } else {
+        hintBtn.onclick = null;
+      }
     }
 
     const lockedDescBtn = container.querySelector('#quiz-locked-desc-btn');
@@ -804,13 +803,27 @@ class KSoolApp {
 
     const mysteryIcon = container.querySelector('#quiz-mystery-icon');
     if (mysteryIcon && targetRec) {
-      const isImageAvailable = this.inventory.isRecipeUnlocked(targetRec.recipe_id) || this.inventory.isRecipeImageUnlocked(targetRec.recipe_id);
+      const isUnlocked = this.inventory.isRecipeUnlocked(targetRec.recipe_id);
+      const isChallengeable = this.inventory.isRecipeChallengeable(targetRec);
+      const isImageAvailable = isUnlocked || this.inventory.isRecipeImageUnlocked(targetRec.recipe_id);
       const isCollectionUnlocked = this.inventory.isTabUnlocked('collection');
-      const showHintBtn = !this.inventory.isRecipeUnlocked(targetRec.recipe_id) && isCollectionUnlocked;
+      const showHintBtn = !isUnlocked && isCollectionUnlocked;
+      const needsShopMaterials = !isUnlocked && !isChallengeable;
 
-      // 힌트 버튼이 열리는 시점(showHintBtn)과 동일하게 그림 미니게임 기능 오픈!
-      if (!isImageAvailable && showHintBtn) {
+      if (isUnlocked) {
         mysteryIcon.style.cursor = 'pointer';
+        mysteryIcon.title = '클릭하여 레시피 상세 정보 보기';
+        mysteryIcon.onclick = () => {
+          this.audio.playTap();
+          this.showCraftResultModal({ isSuccess: true, recipe: targetRec, isNewDiscovery: false });
+        };
+      } else if (needsShopMaterials) {
+        mysteryIcon.style.cursor = 'not-allowed';
+        mysteryIcon.title = '필요한 재료를 먼저 획득해야 힌트와 연구가 가능합니다';
+        mysteryIcon.onclick = null;
+      } else if (!isImageAvailable && showHintBtn) {
+        mysteryIcon.style.cursor = 'pointer';
+        mysteryIcon.title = '❓ 클릭하여 그림 해금 미니게임 도전';
         mysteryIcon.onclick = () => {
           this.audio.playTap();
           this.hintModalView.open(targetRec.recipe_id, 'MINIGAME_SELECT');
@@ -821,6 +834,116 @@ class KSoolApp {
         mysteryIcon.onclick = null;
       }
     }
+  }
+
+  _openRecipeJumpModal(navigableRecipes, targetRec) {
+    const modal = document.getElementById('result-modal');
+    const content = document.getElementById('result-modal-content');
+    if (!modal || !content) return;
+
+    const stages = [
+      { step: 1, name: '1단계: 길거리 노점 (No.01~18)' },
+      { step: 2, name: '2단계: 포장마차 (No.19~37)' },
+      { step: 3, name: '3단계: 동네 주막 (No.38~55)' },
+      { step: 4, name: '4단계: 비어 펍 (No.56~67)' },
+      { step: 5, name: '5단계: 라운지 바 (No.68~77)' },
+      { step: 6, name: '6단계: 미래도시 바 (No.78~84)' }
+    ];
+
+    let currentStepId = targetRec ? (targetRec.step_id || 1) : 1;
+
+    const renderStageTabs = (activeStep) => stages.map(st => `
+      <button type="button" class="stage-jump-tab-btn" data-jump-step="${st.step}" style="padding:7px 4px; border-radius:8px; font-size:0.78rem; font-weight:700; cursor:pointer; background:${st.step === activeStep ? '#2563eb' : '#1e293b'}; color:${st.step === activeStep ? '#ffffff' : '#94a3b8'}; border:1px solid ${st.step === activeStep ? '#60a5fa' : '#334155'}; transition:all 0.15s ease; text-align:center;">
+        ${st.step}단계
+      </button>
+    `).join('');
+
+    const renderListForStep = (step) => {
+      const recs = navigableRecipes.filter(r => (r.step_id || 1) === step);
+      if (recs.length === 0) {
+        return `<div style="text-align:center; padding:24px; color:#64748b; font-size:0.85rem;">해당 단계의 연구 대상 레시피가 없습니다.</div>`;
+      }
+      return recs.map(r => {
+        const isCurrent = targetRec && r.recipe_id === targetRec.recipe_id;
+        const isUnlocked = this.inventory.isRecipeUnlocked(r.recipe_id);
+        const name = this.brandResolver.resolveName(r);
+        const icon = window.KSool?.pixelIcon ? window.KSool.pixelIcon(r, 22) : (r.emoji || '🍶');
+        const statusBadge = isUnlocked
+          ? `<span style="color:#10b981; font-size:0.72rem; font-weight:700; background:rgba(16,185,129,0.15); padding:2px 6px; border-radius:4px;">완료 ✅</span>`
+          : `<span style="color:#f59e0b; font-size:0.72rem; font-weight:700; background:rgba(245,158,11,0.15); padding:2px 6px; border-radius:4px;">연구중 🔬</span>`;
+
+        return `
+          <button type="button" class="recipe-jump-item-btn" data-jump-recipe-id="${r.recipe_id}" style="display:flex; align-items:center; justify-content:space-between; width:100%; padding:9px 12px; background:${isCurrent ? '#1e3a8a' : '#0f172a'}; border:1px solid ${isCurrent ? '#3b82f6' : '#334155'}; border-radius:8px; cursor:pointer; color:#e2e8f0; text-align:left; transition:all 0.15s ease;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:0.75rem; font-weight:800; color:#38bdf8; min-width:44px;">${r.formatted_number}</span>
+              <span style="display:inline-flex; align-items:center; justify-content:center;">${icon}</span>
+              <span style="font-weight:700; font-size:0.84rem;">${name}</span>
+            </div>
+            ${statusBadge}
+          </button>
+        `;
+      }).join('');
+    };
+
+    content.innerHTML = `
+      <div style="display:flex; flex-direction:column; gap:12px; max-height:80vh; overflow:hidden;">
+        <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #334155; padding-bottom:8px;">
+          <h3 style="margin:0; font-size:1rem; color:#f8fafc; font-weight:800;">📍 연구 대상 번호 바로가기</h3>
+          <button type="button" class="modal-close-x" id="jump-modal-close-btn" style="background:none; border:none; font-size:1.2rem; color:#94a3b8; cursor:pointer;">✕</button>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:6px;" id="jump-stage-tabs-row">
+          ${renderStageTabs(currentStepId)}
+        </div>
+
+        <div style="overflow-y:auto; display:flex; flex-direction:column; gap:6px; max-height:55vh; padding-right:4px;" id="jump-recipes-list-container">
+          ${renderListForStep(currentStepId)}
+        </div>
+      </div>
+    `;
+
+    modal.classList.add('active');
+
+    const closeBtn = content.querySelector('#jump-modal-close-btn');
+    if (closeBtn) closeBtn.onclick = () => modal.classList.remove('active');
+    modal.onclick = (e) => {
+      if (e.target === modal) modal.classList.remove('active');
+    };
+
+    const bindItemClicks = () => {
+      content.querySelectorAll('[data-jump-recipe-id]').forEach(itemBtn => {
+        itemBtn.onclick = () => {
+          const rId = Number(itemBtn.getAttribute('data-jump-recipe-id'));
+          this.audio.playTap();
+          this.quizTargetRecipeId = rId;
+          modal.classList.remove('active');
+          this._renderBrewStepQuizBar();
+        };
+      });
+    };
+
+    const attachTabEvents = () => {
+      content.querySelectorAll('[data-jump-step]').forEach(tabBtn => {
+        tabBtn.onclick = () => {
+          const step = Number(tabBtn.getAttribute('data-jump-step'));
+          this.audio.playTap();
+          currentStepId = step;
+          const tabsRow = content.querySelector('#jump-stage-tabs-row');
+          if (tabsRow) {
+            tabsRow.innerHTML = renderStageTabs(step);
+            attachTabEvents();
+          }
+          const listContainer = content.querySelector('#jump-recipes-list-container');
+          if (listContainer) {
+            listContainer.innerHTML = renderListForStep(step);
+            bindItemClicks();
+          }
+        };
+      });
+    };
+
+    attachTabEvents();
+    bindItemClicks();
   }
 
   _clearMixBtnAlert() {
@@ -856,6 +979,8 @@ class KSoolApp {
 
     // 기본적으로 최소 4칸을 보여주되, 4칸 이상 담기면 동적으로 계속 늘어남
     const displaySlotCount = Math.max(this.config.maxUniqueSlots, slots.length + (this.config.unlimitedSlotsMode ? 1 : 0));
+    const stepConfig = this.inventory ? this.inventory.getCurrentStepConfig() : null;
+    const canIncreaseQty = stepConfig ? (stepConfig.maxCountPerSlot > 1) : true;
 
     const html = [];
     for (let i = 0; i < displaySlotCount; i++) {
@@ -867,14 +992,22 @@ class KSoolApp {
         const name = this.brandResolver.resolveName(target);
         const detailBadge = detIng ? `<span class="slot-detail-tag">특산</span>` : '';
 
-        const countBadge = slot.count > 1 ? `<span class="slot-count-badge">${slot.count}</span>` : '';
+        const plusDisabledAttr = !canIncreaseQty ? 'disabled' : '';
+        const plusStyle = canIncreaseQty
+          ? 'width:17px; height:17px; border-radius:50%; background:#2563eb; border:1px solid #60a5fa; color:#ffffff; font-size:11px; font-weight:900; display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0; line-height:1;'
+          : 'width:17px; height:17px; border-radius:50%; background:#334155; border:1px solid #475569; color:#94a3b8; font-size:11px; font-weight:900; display:flex; align-items:center; justify-content:center; cursor:not-allowed; opacity:0.35; padding:0; line-height:1;';
+        const plusTitle = canIncreaseQty ? '수량 1개 증가' : '비율 조절 해금(4단계 비어 펍부터) 후 수량을 늘릴 수 있습니다';
 
         html.push(`
-          <div class="pot-slot filled" data-pot-slot-idx="${i}" title="클릭하면 개수가 1 줄어듭니다">
+          <div class="pot-slot filled" data-pot-slot-idx="${i}" title="${name} (수량: ${slot.count}개)">
             ${detailBadge}
             <span class="slot-emoji">${target ? (window.KSool?.pixelIcon ? window.KSool.pixelIcon(target, 28) : target.emoji) : '🍶'}</span>
             <span class="slot-name">${name}</span>
-            ${countBadge}
+            <div class="slot-qty-stepper" style="display:inline-flex; align-items:center; gap:2px; margin-top:2px; z-index:4;">
+              <button type="button" class="slot-stepper-btn minus" data-slot-dec-idx="${i}" title="수량 1개 감소" style="width:17px; height:17px; border-radius:50%; background:#334155; border:1px solid #475569; color:#f8fafc; font-size:11px; font-weight:900; display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0; line-height:1;">-</button>
+              <span class="slot-stepper-num" style="min-width:14px; text-align:center; font-size:0.75rem; font-weight:900; color:#f59e0b;">${slot.count}</span>
+              <button type="button" class="slot-stepper-btn plus" data-slot-inc-idx="${i}" title="${plusTitle}" ${plusDisabledAttr} style="${plusStyle}">+</button>
+            </div>
           </div>
         `);
       } else {
@@ -889,6 +1022,55 @@ class KSoolApp {
 
     slotsGrid.innerHTML = html.join('');
 
+    // 슬롯 Stepper 마이너스 (-) 버튼: 수량 1 감소
+    slotsGrid.querySelectorAll('[data-slot-dec-idx]').forEach(btn => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        this._clearMixBtnAlert();
+        const idx = Number(btn.getAttribute('data-slot-dec-idx'));
+        this.craftingPot.decrementSlot(idx);
+        this.audio.playTap();
+        this._renderPotSlots();
+        this._updateIngredientsPotBadges();
+        this.suggestionBoardView.render();
+      };
+    });
+
+    // 슬롯 Stepper 플러스 (+) 버튼: 수량 1 증가
+    slotsGrid.querySelectorAll('[data-slot-inc-idx]').forEach(btn => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        this._clearMixBtnAlert();
+        const idx = Number(btn.getAttribute('data-slot-inc-idx'));
+        const slot = this.craftingPot.getSlots()[idx];
+        if (slot && this.inventory.isCraftedIngredient(slot.baseId)) {
+          const totalStock = this.inventory.getIngredientStock(slot.baseId);
+          const inPot = this.craftingPot.getSlots()
+            .filter(s => s.baseId === slot.baseId)
+            .reduce((sum, s) => sum + s.count, 0);
+          if (inPot >= totalStock) {
+            this.audio.playFail();
+            const ing = this.recipeBook.getBaseIngredient(slot.baseId);
+            const name = ing ? this.brandResolver.resolveName(ing) : '재료';
+            this.showToast(`⚠️ '${name}'의 재고가 부족합니다! (보유: ${totalStock}개)`);
+            return;
+          }
+        }
+        const stepConfig = this.inventory.getCurrentStepConfig();
+        const incRes = this.craftingPot.incrementSlot(idx, stepConfig);
+        if (!incRes.ok) {
+          this.audio.playFail();
+          this.showToast(incRes.message || '더 이상 수량을 늘릴 수 없습니다.');
+          return;
+        }
+        this.audio.playTap();
+        this._renderPotSlots();
+        this._updateIngredientsPotBadges();
+        this.suggestionBoardView.render();
+      };
+    });
+
+    // 슬롯 카드 전체 클릭: 기본적으로 수량 1 감소 (또는 제거)
     slotsGrid.querySelectorAll('[data-pot-slot-idx]').forEach(el => {
       el.onclick = () => {
         this._clearMixBtnAlert();
@@ -938,9 +1120,21 @@ class KSoolApp {
   }
 
   _createIngredientCardHtml(ing, potSlots = []) {
+    const isCrafted = this.inventory.isCraftedIngredient(ing.ingredient_id);
     const inPotCount = potSlots
       .filter(s => s.baseId === ing.ingredient_id)
       .reduce((acc, s) => acc + s.count, 0);
+
+    let stockBadgeHtml = '';
+    let isDisabled = false;
+
+    if (isCrafted) {
+      const totalStock = this.inventory.getIngredientStock(ing.ingredient_id);
+      const availableStock = Math.max(0, totalStock - inPotCount);
+      isDisabled = availableStock === 0;
+      stockBadgeHtml = `<span class="ing-stock-badge ${isDisabled ? 'zero' : ''}">${availableStock}</span>`;
+    }
+
     const details = this.recipeBook.getDetailsForBase(ing.ingredient_id);
     const hasCustomPicker =
       this.inventory.isDetailPickerUnlocked() &&
@@ -959,13 +1153,14 @@ class KSoolApp {
     const name = this.brandResolver.resolveName(ing);
 
     return `
-        <div class="ing-card ${inPotCount > 0 ? 'in-pot' : ''} ${hasCustomPicker ? 'has-picker' : ''}"
+        <div class="ing-card ${inPotCount > 0 ? 'in-pot' : ''} ${hasCustomPicker ? 'has-picker' : ''} ${isDisabled ? 'is-disabled' : ''}"
              data-base-ing-id="${ing.ingredient_id}"
-             title="클릭하여 가마솥에 담기">
+             ${isDisabled ? 'aria-disabled="true"' : ''}
+             title="${isDisabled ? `${name} (재고 없음 - 직접 조합 필요)` : `${name} (클릭하여 가마솥에 담기)`}">
+          ${stockBadgeHtml}
           ${pickerLabel ? `<button type="button" class="ing-picker-btn" data-open-detail-picker="${ing.ingredient_id}" title="상세 재료 선택 팝업 열기">${pickerLabel} ▾</button>` : ''}
           <span class="ing-emoji">${window.KSool?.pixelIcon ? window.KSool.pixelIcon(ing, 32) : ing.emoji}</span>
           <span class="ing-name">${name}</span>
-          ${inPotCount > 1 ? `<span class="slot-count-badge">${inPotCount}</span>` : ''}
         </div>
       `;
   }
@@ -1009,6 +1204,13 @@ class KSoolApp {
       const card = e.target.closest('[data-base-ing-id]');
       if (card) {
         const baseId = Number(card.getAttribute('data-base-ing-id'));
+        if (card.classList.contains('is-disabled')) {
+          this.audio.playFail();
+          const ing = this.recipeBook.getBaseIngredient(baseId);
+          const name = ing ? this.brandResolver.resolveName(ing) : '재료';
+          this.showToast(`⚠️ '${name}'의 재고가 없습니다! 연구실에서 먼저 조합해주세요.`);
+          return;
+        }
         this._addIngredientToPot(baseId, null);
       }
     });
@@ -1026,18 +1228,25 @@ class KSoolApp {
     // DOM 노드를 파괴하지 않고 기존 카드들의 뱃지와 in-pot 상태만 실시간 갱신하여 연속 터치 씹힘 원천 방지
     grid.querySelectorAll('[data-base-ing-id]').forEach(card => {
       const id = Number(card.getAttribute('data-base-ing-id'));
-      const count = countMap.get(id) || 0;
-      card.classList.toggle('in-pot', count > 0);
-      let badge = card.querySelector('.slot-count-badge');
-      if (count > 1) {
+      const inPotCount = countMap.get(id) || 0;
+      card.classList.toggle('in-pot', inPotCount > 0);
+
+      const isCrafted = this.inventory.isCraftedIngredient(id);
+      if (isCrafted) {
+        const totalStock = this.inventory.getIngredientStock(id);
+        const availableStock = Math.max(0, totalStock - inPotCount);
+        const isDisabled = availableStock === 0;
+        card.classList.toggle('is-disabled', isDisabled);
+        card.setAttribute('aria-disabled', isDisabled ? 'true' : 'false');
+
+        let badge = card.querySelector('.ing-stock-badge');
         if (!badge) {
           badge = document.createElement('span');
-          badge.className = 'slot-count-badge';
-          card.appendChild(badge);
+          badge.className = 'ing-stock-badge';
+          card.prepend(badge);
         }
-        badge.textContent = count;
-      } else if (badge) {
-        badge.remove();
+        badge.textContent = availableStock;
+        badge.classList.toggle('zero', isDisabled);
       }
     });
   }
@@ -1047,84 +1256,6 @@ class KSoolApp {
     if (!grid) return;
 
     this._bindIngredientsGridEvents();
-
-    if (this.brewMode === 'SHOP') {
-      grid.classList.add('is-shop-mode');
-      const wallet = this.tycoonView?.engine ? this.tycoonView.engine.persistentWallet : 0;
-      const maxStep = this.inventory.unlockedStepId || 1;
-      const stageSectionsHtml = [];
-
-      for (let sId = 1; sId <= maxStep; sId++) {
-        const stepCfg = this.recipeBook.progression.getStepConfig(sId);
-        const shopItems = stepCfg.shopIngredients || [];
-        if (shopItems.length === 0) continue;
-
-        const purchasedCount = shopItems.filter(it => this.inventory.isBaseIngredientPurchased(it.id)).length;
-        const itemCards = [];
-
-        for (const item of shopItems) {
-          const baseIng = this.recipeBook.getBaseIngredient(item.id);
-          if (!baseIng) continue;
-          const isOwned = this.inventory.isBaseIngredientPurchased(item.id);
-          const canAfford = !isOwned && wallet >= item.price;
-          const name = this.brandResolver.resolveName(baseIng);
-          const icon = window.KSool?.pixelIcon ? window.KSool.pixelIcon(baseIng, 30) : baseIng.emoji;
-
-          if (isOwned) {
-            itemCards.push(`
-              <div class="lab-shop-row-card is-owned">
-                <div class="lab-shop-row-left">
-                  <span class="lab-shop-row-icon">${icon}</span>
-                  <div class="lab-shop-row-meta">
-                    <div class="lab-shop-row-name">${name}</div>
-                    <div class="lab-shop-row-hint">${item.unlocksHint || ''}</div>
-                  </div>
-                </div>
-                <span class="lab-shop-buy-pill owned">✅ 보유중</span>
-              </div>
-            `);
-          } else {
-            itemCards.push(`
-              <button type="button" class="lab-shop-row-card ${canAfford ? 'can-buy' : 'locked-funds'}"
-                      data-buy-lab-ing-id="${baseIng.ingredient_id}">
-                <div class="lab-shop-row-left">
-                  <span class="lab-shop-row-icon">${icon}</span>
-                  <div class="lab-shop-row-meta">
-                    <div class="lab-shop-row-name">${name}</div>
-                    <div class="lab-shop-row-hint">${item.unlocksHint || ''}</div>
-                  </div>
-                </div>
-                <span class="lab-shop-buy-pill ${canAfford ? 'buyable' : 'disabled'}">
-                  💰 ${item.price.toLocaleString()}원
-                  <small>${canAfford ? '구매하기' : '자금부족'}</small>
-                </span>
-              </button>
-            `);
-          }
-        }
-
-        stageSectionsHtml.push(`
-          <div class="lab-shop-stage-group">
-            <div class="lab-shop-stage-header">
-              <span>${stepCfg.badge || `STAGE ${sId}`} · ${stepCfg.title}</span>
-              <b>구매 ${purchasedCount} / ${shopItems.length}종</b>
-            </div>
-            <div class="lab-shop-stage-list">
-              ${itemCards.join('')}
-            </div>
-          </div>
-        `);
-      }
-
-      grid.innerHTML = `
-        <div class="lab-shop-starter-banner">
-          <span>🎁 <b>기본 무료 지급 재료 (5종)</b> : 💧물 · ❄️눈 · 💨공기 · 🍬설탕 · 🍋레몬</span>
-        </div>
-        ${stageSectionsHtml.join('')}
-      `;
-      return;
-    }
-
     grid.classList.remove('is-shop-mode');
 
     // 미해금된 재료는 화면에 아예 보이지 않도록 필터링
@@ -1139,13 +1270,165 @@ class KSoolApp {
     grid.innerHTML = filtered.map(ing => this._createIngredientCardHtml(ing, potSlots)).join('');
   }
 
-  _addIngredientToPot(baseId, detailId = null) {
+  /**
+   * [탭 2.5] 재료 상점 (Ingredient Shop View) 독립 탭 렌더링
+   * - 상단: 현재 보유 자금(💰 n원)을 한눈에 인지할 수 있는 큼직하고 직관적인 지갑 대시보드 카드
+   * - 하단: 해금된 스테이지별 상점 재료 목록 및 원터치 구매 카드
+   */
+  renderShopView() {
+    const container = document.getElementById('shop-view-container');
+    if (!container) return;
+
+    const wallet = this.tycoonView?.engine ? this.tycoonView.engine.persistentWallet : 0;
+    const maxStep = this.inventory.unlockedStepId || 1;
+    const stageSectionsHtml = [];
+
+    let totalShopCount = 0;
+    let totalPurchasedCount = 0;
+
+    for (let sId = 1; sId <= maxStep; sId++) {
+      const stepCfg = this.recipeBook.progression.getStepConfig(sId);
+      const shopItems = stepCfg.shopIngredients || [];
+      if (shopItems.length === 0) continue;
+
+      const purchasedCount = shopItems.filter(it => this.inventory.isBaseIngredientPurchased(it.id)).length;
+      totalShopCount += shopItems.length;
+      totalPurchasedCount += purchasedCount;
+
+      const itemCards = [];
+      for (const item of shopItems) {
+        const baseIng = this.recipeBook.getBaseIngredient(item.id);
+        if (!baseIng) continue;
+        const isOwned = this.inventory.isBaseIngredientPurchased(item.id);
+        const canAfford = !isOwned && wallet >= item.price;
+        const name = this.brandResolver.resolveName(baseIng);
+        const icon = window.KSool?.pixelIcon ? window.KSool.pixelIcon(baseIng, 30) : baseIng.emoji;
+
+        if (isOwned) {
+          itemCards.push(`
+            <div class="lab-shop-row-card is-owned">
+              <div class="lab-shop-row-left">
+                <span class="lab-shop-row-icon">${icon}</span>
+                <div class="lab-shop-row-meta">
+                  <div class="lab-shop-row-name">${name}</div>
+                  <div class="lab-shop-row-hint">${item.unlocksHint || ''}</div>
+                </div>
+              </div>
+              <span class="lab-shop-buy-pill owned">✅ 보유중</span>
+            </div>
+          `);
+        } else {
+          itemCards.push(`
+            <button type="button" class="lab-shop-row-card ${canAfford ? 'can-buy' : 'locked-funds'}"
+                    data-buy-shop-tab-ing="${baseIng.ingredient_id}">
+              <div class="lab-shop-row-left">
+                <span class="lab-shop-row-icon">${icon}</span>
+                <div class="lab-shop-row-meta">
+                  <div class="lab-shop-row-name">${name}</div>
+                  <div class="lab-shop-row-hint">${item.unlocksHint || ''}</div>
+                </div>
+              </div>
+              <span class="lab-shop-buy-pill ${canAfford ? 'buyable' : 'disabled'}">
+                💰 ${item.price.toLocaleString()}원
+                <small>${canAfford ? '구매하기' : '자금부족'}</small>
+              </span>
+            </button>
+          `);
+        }
+      }
+
+      stageSectionsHtml.push(`
+        <div class="lab-shop-stage-group">
+          <div class="lab-shop-stage-header">
+            <span>${stepCfg.badge || `STAGE ${sId}`} · ${stepCfg.title}</span>
+            <b>구매 ${purchasedCount} / ${shopItems.length}종</b>
+          </div>
+          <div class="lab-shop-stage-list">
+            ${itemCards.join('')}
+          </div>
+        </div>
+      `);
+    }
+
+    container.innerHTML = `
+      <div class="shop-wallet-hero-card">
+        <div class="shop-wallet-hero-left">
+          <div class="shop-wallet-coin-emblem">💰</div>
+          <div class="shop-wallet-hero-text">
+            <span class="shop-wallet-label">현재 사용 가능한 보유 자금</span>
+            <div class="shop-wallet-amount-row">
+              <strong class="shop-wallet-amount">${wallet.toLocaleString()}</strong>
+              <span class="shop-wallet-unit">원</span>
+            </div>
+          </div>
+        </div>
+        <div class="shop-wallet-hero-right">
+          <span class="shop-owned-summary-pill">보유 재료 <b>${totalPurchasedCount}/${totalShopCount}</b></span>
+        </div>
+      </div>
+
+      <div class="shop-scroll-body">
+        <div class="lab-shop-starter-banner">
+          <span>🎁 <b>기본 무료 지급 재료 (5종)</b> : 💧물 · ❄️눈 · 💨공기 · 🍬설탕 · 🍋레몬</span>
+        </div>
+        ${stageSectionsHtml.join('')}
+      </div>
+    `;
+
+    container.querySelectorAll('[data-buy-shop-tab-ing]').forEach(btn => {
+      btn.onclick = () => {
+        const buyId = Number(btn.getAttribute('data-buy-shop-tab-ing'));
+        const res = this.inventory.purchaseBaseIngredient(buyId, this.tycoonView?.engine);
+        if (!res.ok) {
+          this.audio.playFail();
+          this.showToast(`⚠️ ${res.message}`);
+        } else {
+          this.audio.playSuccess();
+          this.showToast(`🎉 ${res.message}`);
+          this.renderShopView();
+          this.renderBrewView();
+          this.renderCollectionView();
+          this.tycoonView?.render?.();
+        }
+      };
+    });
+  }
+
+  _addIngredientToPot(baseId, detailId = null, isExplicit = false) {
     this._clearMixBtnAlert();
+    const bId = Number(baseId);
+    if (this.inventory.isCraftedIngredient(bId)) {
+      const totalStock = this.inventory.getIngredientStock(bId);
+      const inPot = this.craftingPot.getSlots()
+        .filter(s => s.baseId === bId)
+        .reduce((sum, s) => sum + s.count, 0);
+      if (inPot >= totalStock) {
+        this.audio.playFail();
+        const ing = this.recipeBook.getBaseIngredient(bId);
+        const name = ing ? this.brandResolver.resolveName(ing) : '재료';
+        this.showToast(`⚠️ '${name}'의 재고가 부족합니다! 연구실에서 먼저 조합해주세요.`);
+        return;
+      }
+    }
     const stepConfig = this.inventory.getCurrentStepConfig();
-    const res = this.craftingPot.tapIngredient(baseId, detailId, stepConfig);
+    let effectiveDetailId = detailId;
+
+    if (!isExplicit) {
+      // 재료 그리드 카드를 직접 탭한 경우: 가마솥에 이미 존재하는 해당 재료의 슬롯을 증량
+      const matchingSlots = this.craftingPot.getSlots().filter(s => s.baseId === Number(baseId));
+      if (matchingSlots.length === 1) {
+        effectiveDetailId = matchingSlots[0].detailId;
+      } else if (matchingSlots.length > 1) {
+        effectiveDetailId = matchingSlots[matchingSlots.length - 1].detailId;
+      } else {
+        effectiveDetailId = null;
+      }
+    }
+
+    const res = this.craftingPot.tapIngredient(baseId, effectiveDetailId, stepConfig);
     if (!res.ok) {
       this.audio.playFail();
-      alert(res.message);
+      this.showToast(res.message);
       return;
     }
     this.audio.playTap();
@@ -1173,7 +1456,7 @@ class KSoolApp {
     if (defaultBtn) {
       defaultBtn.onclick = () => {
         modal.classList.remove('active');
-        this._addIngredientToPot(baseIng.ingredient_id, null);
+        this._addIngredientToPot(baseIng.ingredient_id, null, true);
       };
     }
 
@@ -1181,7 +1464,7 @@ class KSoolApp {
       el.onclick = () => {
         const detId = Number(el.getAttribute('data-detail-id'));
         modal.classList.remove('active');
-        this._addIngredientToPot(baseIng.ingredient_id, detId);
+        this._addIngredientToPot(baseIng.ingredient_id, detId, true);
       };
     });
   }
@@ -1192,7 +1475,7 @@ class KSoolApp {
     if (!filterBar || !grid) return;
 
     const allRecipes = this.recipeBook.getAllRecipes();
-    // 주조실과 동일하게 이미 해금했거나 지금 당장 해금 가능한(하위 재료가 모두 해금된) 레시피만 도감에 노출
+    // 연구실과 동일하게 이미 해금했거나 지금 당장 해금 가능한(하위 재료가 모두 해금된) 레시피만 도감에 노출
     // 전체 해금 모드(unlockAllSandboxMode)일 때는 도감 100% 모든 레시피 즉시 노출
     const visibleRecipes = this.inventory.unlockAllSandboxMode
       ? allRecipes
@@ -1334,13 +1617,33 @@ class KSoolApp {
               ${recipeFormula}
             </div>
 
-            <button class="mix-btn" id="result-close-btn" style="width:100%; margin-top:4px;">확인</button>
+            <div style="display:flex; gap:8px; width:100%; margin-top:6px;">
+              <button class="mix-btn" id="result-go-lab-btn" style="flex:1.4; background:linear-gradient(135deg, #0284c7, #2563eb); border:1px solid #38bdf8; font-size:0.88rem; padding:10px 6px;">
+                🔬 연구실에서 조합하기
+              </button>
+              <button class="mix-btn" id="result-close-btn" style="flex:1; background:#334155; border:1px solid #475569; font-size:0.88rem; padding:10px 6px;">
+                확인
+              </button>
+            </div>
           </div>
         `;
 
         modal.classList.add('active');
+        const goLabBtn = content.querySelector('#result-go-lab-btn');
+        if (goLabBtn) {
+          goLabBtn.onclick = () => {
+            modal.classList.remove('active');
+            this.audio.playTap();
+            this.quizTargetRecipeId = rec.recipe_id;
+            this.switchTab('brew');
+            this._renderBrewStepQuizBar();
+          };
+        }
         const closeBtn = content.querySelector('#result-close-btn');
         if (closeBtn) closeBtn.onclick = () => modal.classList.remove('active');
+        modal.onclick = (e) => {
+          if (e.target === modal) modal.classList.remove('active');
+        };
         return;
       }
 
@@ -1427,12 +1730,31 @@ class KSoolApp {
         }
       }
 
-      const isOrderableInTycoon = Boolean(this.tycoonView?.engine?.isOrderableRecipe(rec));
-      const tycoonSellNoticeHtml = isOrderableInTycoon ? `
-        <div style="width:100%; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.45); border-radius:10px; padding:8px 10px; font-size:0.74rem; color:#6ee7b7; font-weight:700;">
-          🏪 이제 <b>[점포]</b>에서 손님에게 <b>${this.brandResolver.resolveName(rec)}</b>을(를) 판매하여 자금을 모을 수 있습니다!
-        </div>
-      ` : '';
+      const eng = this.tycoonView?.engine;
+      const isOrderableInTycoon = Boolean(eng?.isOrderableRecipe(rec));
+      const curStage = eng?.getCurrentMapStage?.();
+      const unlockedOrderableList = eng ? eng.getStageOrderableUnlockedRecipes(curStage?.id) : [];
+      const unlockedOrderableCount = unlockedOrderableList.length;
+      const minOrderableReq = eng?.MIN_ORDERABLE_TO_START || 3;
+      const canStartStoreNow = isOrderableInTycoon && unlockedOrderableCount >= minOrderableReq;
+
+      let tycoonSellNoticeHtml = '';
+      if (isOrderableInTycoon) {
+        if (canStartStoreNow) {
+          tycoonSellNoticeHtml = `
+            <div style="width:100%; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.45); border-radius:10px; padding:8px 10px; font-size:0.74rem; color:#6ee7b7; font-weight:700;">
+              🏪 판매 음료 ${unlockedOrderableCount}종 준비 완료! 이제 <b>[점포]</b>에서 <b>${this.brandResolver.resolveName(rec)}</b> 등을 판매하여 자금을 모을 수 있습니다!
+            </div>
+          `;
+        } else {
+          const remainDrinkCount = Math.max(1, minOrderableReq - unlockedOrderableCount);
+          tycoonSellNoticeHtml = `
+            <div style="width:100%; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.4); border-radius:10px; padding:8px 10px; font-size:0.74rem; color:#7dd3fc; font-weight:700;">
+              🥤 판매 음료 해금 (<b>${unlockedOrderableCount} / ${minOrderableReq}종</b>) — 점포 영업을 시작하려면 음료·주류를 <b>${remainDrinkCount}종</b> 더 연구하세요!
+            </div>
+          `;
+        }
+      }
 
       content.innerHTML = `
         <div style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:10px;">
@@ -1458,7 +1780,7 @@ class KSoolApp {
           ${tycoonSellNoticeHtml}
           <div style="display:flex; gap:8px; width:100%; margin-top:4px;">
             <button class="mix-btn" id="result-close-btn" style="flex:1;">🔬 계속 연구하기</button>
-            ${isOrderableInTycoon ? `<button class="clear-pot-btn" id="result-go-tycoon-btn" style="flex:1; background:linear-gradient(135deg,#059669,#10b981); color:#fff; border-color:#34d399; font-weight:800;">🏪 점포 가기</button>` : ''}
+            ${canStartStoreNow ? `<button class="clear-pot-btn" id="result-go-tycoon-btn" style="flex:1; background:linear-gradient(135deg,#059669,#10b981); color:#fff; border-color:#34d399; font-weight:800;">🏪 점포 가기</button>` : ''}
           </div>
         </div>
       `;
@@ -1518,22 +1840,31 @@ class KSoolApp {
       toast.id = 'ksool-toast';
       toast.style.cssText = `
         position: fixed;
-        top: 24px;
+        top: 20px;
         left: 50%;
-        transform: translateX(-50%) translateY(-10px);
-        background: rgba(15, 23, 42, 0.95);
-        color: #38bdf8;
-        border: 1.5px solid #38bdf8;
-        padding: 10px 20px;
-        border-radius: 9999px;
-        font-size: 0.88rem;
-        font-weight: 800;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 16px rgba(56, 189, 248, 0.45);
+        transform: translateX(-50%) translateY(-12px);
+        background: rgba(15, 23, 42, 0.94);
+        color: #f8fafc;
+        border: 1px solid rgba(56, 189, 248, 0.4);
+        border-left: 4px solid #38bdf8;
+        padding: 10px 18px;
+        border-radius: 10px;
+        font-size: 0.86rem;
+        font-weight: 700;
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.75), 0 0 16px rgba(56, 189, 248, 0.2);
         z-index: 99999;
         pointer-events: none;
-        transition: opacity 0.25s ease, transform 0.25s ease;
+        transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
         opacity: 0;
         text-align: center;
+        max-width: min(90vw, 420px);
+        word-break: keep-all;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
       `;
       document.body.appendChild(toast);
     }
@@ -1543,7 +1874,7 @@ class KSoolApp {
     if (this._toastTimer) clearTimeout(this._toastTimer);
     this._toastTimer = setTimeout(() => {
       toast.style.opacity = '0';
-      toast.style.transform = 'translateX(-50%) translateY(-10px)';
+      toast.style.transform = 'translateX(-50%) translateY(-12px)';
     }, 2400);
   }
 
@@ -1705,7 +2036,7 @@ class KSoolApp {
         this._clearMixBtnAlert();
         const res = this.alchemyEngine.executeCraft(preferredId);
         if (!res.ok) {
-          alert(res.message);
+          this.showToast(res.message);
           return;
         }
         if (res.isSuccess && res.recipe) {
@@ -1815,6 +2146,8 @@ class KSoolApp {
       localStorage.removeItem('ksool_tycoon_persist_v2');
     } catch (_) {}
     this.craftingPot.clear();
+    this.inventory.isLoadCorrupted = false;
+    this.inventory.saveBlockedDueToCorruption = false;
     this.inventory.unlockAllSandboxMode = false;
     this.inventory.userLevel = 1;
     this.inventory.craftFailCount = 0;
@@ -1903,6 +2236,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const app = new KSoolApp();
   app._installGlobalWebViewGuards();
   window.ksoolApp = app;
+  window.kSoolApp = app;
   window.app = app;
   app.init();
 });

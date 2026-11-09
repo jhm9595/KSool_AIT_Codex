@@ -78,7 +78,7 @@ class FridgeRecommenderView {
       `;
     }).join('') : `
       <div style="grid-column: 1 / -1; text-align:center; padding:18px 10px; font-size:0.76rem; color:#94a3b8; line-height:1.5;">
-        냉장고에 넣을 수 있는 술·음료 재료가 아직 없습니다.<br/>주조실에서 소주, 맥주 등을 먼저 주조해보세요!
+        냉장고에 넣을 수 있는 술·음료 재료가 아직 없습니다.<br/>연구실에서 소주, 맥주 등을 먼저 주조해보세요!
       </div>
     `;
 

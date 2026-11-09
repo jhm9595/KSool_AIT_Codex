@@ -1309,7 +1309,7 @@ class HintModalView {
       };
     });
 
-    // 베이스볼 & 비율 추리 완료 후 [주조실로 가기] 버튼 클릭 -> 주조실 슬롯 자동 세팅 및 탭 이동
+    // 베이스볼 & 비율 추리 완료 후 [연구실로 가기] 버튼 클릭 -> 연구실 슬롯 자동 세팅 및 탭 이동
     const goBrewBtn = container.querySelector('#bb-go-brew-btn');
     if (goBrewBtn) {
       goBrewBtn.onclick = () => {

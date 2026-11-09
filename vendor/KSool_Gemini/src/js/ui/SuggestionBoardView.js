@@ -7,13 +7,14 @@ window.KSool = window.KSool || {};
  * - [🔬분석] 클릭 시: 선행 의존성, 최소 안전 번호(minSafeNumber), 3종 미니게임 실루엣 실시간 검증 모달 오픈
  */
 class SuggestionBoardView {
-  constructor({ config, recipeBook, craftingPot, suggestionService, brandResolver, audio, onRecipePromoted, onOpenInspector }) {
+  constructor({ config, recipeBook, craftingPot, suggestionService, brandResolver, audio, showToast, onRecipePromoted, onOpenInspector }) {
     this.config = config;
     this.recipeBook = recipeBook;
     this.craftingPot = craftingPot;
     this.suggestionService = suggestionService;
     this.brandResolver = brandResolver;
     this.audio = audio;
+    this.showToast = showToast;
     this.onRecipePromoted = onRecipePromoted;
     this.onOpenInspector = onOpenInspector;
   }
@@ -41,7 +42,7 @@ class SuggestionBoardView {
             </div>
           `;
         }).join('')
-      : '<span style="font-size:0.76rem; color:#94a3b8;">주조실 가마솥에 재료를 2종류 이상 담으면 그대로 추천에 올릴 수 있습니다.</span>';
+      : '<span style="font-size:0.76rem; color:#94a3b8;">연구실 가마솥에 재료를 2종류 이상 담으면 그대로 추천에 올릴 수 있습니다.</span>';
 
     const list = this.suggestionService.getActiveSuggestions();
     const rowsHtml = list.length === 0
@@ -133,7 +134,12 @@ class SuggestionBoardView {
         const res = this.suggestionService.submitFromPot(this.craftingPot.getSlots());
         if (res.ok) this.audio.playSuccess();
         else this.audio.playFail();
-        alert(res.message);
+        const toast = this.showToast || window.ksoolApp?.showToast || window.kSoolApp?.showToast || window.app?.showToast;
+        if (typeof toast === 'function') {
+          toast(res.message);
+        } else {
+          alert(res.message);
+        }
         this.render();
       };
     }

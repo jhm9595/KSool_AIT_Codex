@@ -311,9 +311,10 @@ class TycoonView {
         <div class="counter-plate-zone has-item ${isOrderMatchOnPlate ? 'match-glow' : ''}"
              id="tycoon-center-plate-btn"
              style="${plateStyleStr}"
-             title="오른쪽 서빙 종(🛎️)을 터치하면 손님에게 서빙됩니다">
+             title="터치하면 [📦 재고] 탭으로 임시 보관 / 오른쪽 종(🛎️)을 누르면 서빙">
           <div class="plated-drink-visual">
             ${platedIcon}
+            <span class="plate-store-hint">📦보관</span>
           </div>
           <span class="plated-drink-label">${platedName}</span>
         </div>
@@ -441,7 +442,7 @@ class TycoonView {
 
   _renderCompactPotRow(s) {
     const potSlots = s.potSlots;
-    const preview = this.engine.previewTycoonPotMatch();
+    const canAttemptCraft = potSlots.length >= 2;
 
     const slotsHtml = [];
     for (let i = 0; i < 4; i++) {
@@ -469,17 +470,14 @@ class TycoonView {
       }
     }
 
-    const previewLabel = preview ? `🍽️${preview.recipeName}` : '접시로 조합';
-
     return `
       <div class="tycoon-compact-pot-row">
         <div class="cp-slots-wrap">
           ${slotsHtml.join('')}
         </div>
         <div class="cp-actions-col">
-          <button type="button" class="cp-craft-btn ${preview ? 'ready' : ''}" id="tycoon-craft-stock-btn" ${potSlots.length < 2 ? 'disabled' : ''}>
+          <button type="button" class="cp-craft-btn ${canAttemptCraft ? 'ready' : ''}" id="tycoon-craft-stock-btn" ${!canAttemptCraft ? 'disabled' : ''}>
             <span>⚗️조합</span>
-            <small>${previewLabel}</small>
           </button>
           <button type="button" class="cp-clear-btn" id="tycoon-clear-pot-btn">비우기</button>
         </div>
@@ -497,45 +495,88 @@ class TycoonView {
     );
 
     if (
+      this.selectedIngCat !== 'STOCK' &&
       !visibleCategories.some(c => c.category_id === this.selectedIngCat) &&
       visibleCategories.length > 0
     ) {
       this.selectedIngCat = visibleCategories[0].category_id;
     }
 
+    const totalStockCount = this.engine.getTotalSessionStockCount
+      ? this.engine.getTotalSessionStockCount()
+      : Array.from(s.stockMap ? s.stockMap.values() : []).reduce((a, b) => a + b, 0);
+
     const catChipsHtml = visibleCategories.map(c => `
       <button type="button" class="cat-chip tycoon-cat-chip ${this.selectedIngCat === c.category_id ? 'active' : ''}" data-tycoon-ing-cat="${c.category_id}">
         ${c.name}
       </button>
-    `).join('');
+    `).join('') + `
+      <button type="button" class="cat-chip tycoon-cat-chip stock-tab-chip ${this.selectedIngCat === 'STOCK' ? 'active' : ''}" data-tycoon-ing-cat="STOCK" title="이번 영업 중에만 임시 보관되는 음료·주류 재고 (영업 종료 시 소멸)">
+        📦 재고${totalStockCount > 0 ? ` <span class="stock-tab-count">${totalStockCount}</span>` : ''}
+      </button>
+    `;
 
-    const allIngs = allBase
-      .filter(ing => ing.category_id === this.selectedIngCat && (!this.inventory || this.inventory.isIngredientAvailable(ing.ingredient_id)))
-      .sort((a, b) => a.ingredient_id - b.ingredient_id);
+    let gridContentHtml = '';
 
-    const gridContentHtml = allIngs.map(ing => {
-      const inPotCount = potSlots
-        .filter(sl => sl.baseId === ing.ingredient_id)
-        .reduce((acc, sl) => acc + sl.count, 0);
+    if (this.selectedIngCat === 'STOCK') {
+      const stockEntries = Array.from(s.stockMap ? s.stockMap.entries() : []).filter(([, qty]) => qty > 0);
+      if (stockEntries.length === 0) {
+        gridContentHtml = `
+          <div class="tycoon-stock-empty-msg">
+            📦 현재 임시 보관된 음료·주류 재고가 없습니다.<br>
+            <span>접시 위의 완성 음료를 터치하면 이곳에 임시 보관되며, 영업이 끝나면 모두 사라집니다.</span>
+          </div>
+        `;
+      } else {
+        gridContentHtml = stockEntries.map(([stockKey, qty]) => {
+          const meta = this.engine.getStockItemDisplayMeta(stockKey);
+          const icon = meta && meta.recipe
+            ? (window.KSool?.pixelIcon ? window.KSool.pixelIcon(meta.recipe, 24) : (meta.recipe.emoji || '🍶'))
+            : '🍶';
+          const name = meta ? meta.recipeName : '보관 음료';
+          return `
+            <div class="ing-card tycoon-compact-ing stock-item-card" data-stock-tab-item="${stockKey}" title="터치하면 중앙 접시 위로 꺼냅니다">
+              <span class="stock-count-badge">📦${qty}</span>
+              <span class="ing-emoji">${icon}</span>
+              <span class="ing-name">${name}</span>
+            </div>
+          `;
+        }).join('');
+      }
+    } else {
+      const allIngs = allBase
+        .filter(ing => ing.category_id === this.selectedIngCat && (!this.inventory || this.inventory.isIngredientAvailable(ing.ingredient_id)))
+        .sort((a, b) => a.ingredient_id - b.ingredient_id);
 
-      const details = this.recipeBook.getDetailsForBase(ing.ingredient_id);
-      const hasPicker =
-        (!this.inventory || this.inventory.isDetailPickerUnlocked()) &&
-        details.length > 0 &&
-        ing.picker_component &&
-        ing.picker_component !== 'NONE';
-      const name = this.brandResolver.resolveName(ing);
-      const icon = window.KSool?.pixelIcon ? window.KSool.pixelIcon(ing, 24) : ing.emoji;
+      gridContentHtml = allIngs.map(ing => {
+        const inPotCount = potSlots
+          .filter(sl => sl.baseId === ing.ingredient_id)
+          .reduce((acc, sl) => acc + sl.count, 0);
 
-      return `
-        <div class="ing-card tycoon-compact-ing ${inPotCount > 0 ? 'in-pot' : ''}" data-tycoon-base-ing="${ing.ingredient_id}">
-          ${hasPicker ? `<button type="button" class="ing-picker-btn" data-tycoon-detail-picker="${ing.ingredient_id}">상세▾</button>` : ''}
-          ${inPotCount > 0 ? `<span class="slot-count-badge" title="가마솥 투입 비율">${inPotCount}</span>` : ''}
-          <span class="ing-emoji">${icon}</span>
-          <span class="ing-name">${name}</span>
-        </div>
-      `;
-    }).join('');
+        const stockCount = this.engine.getStockCountForIngredient
+          ? this.engine.getStockCountForIngredient(ing.ingredient_id)
+          : 0;
+
+        const details = this.recipeBook.getDetailsForBase(ing.ingredient_id);
+        const hasPicker =
+          (!this.inventory || this.inventory.isDetailPickerUnlocked()) &&
+          details.length > 0 &&
+          ing.picker_component &&
+          ing.picker_component !== 'NONE';
+        const name = this.brandResolver.resolveName(ing);
+        const icon = window.KSool?.pixelIcon ? window.KSool.pixelIcon(ing, 24) : ing.emoji;
+
+        return `
+          <div class="ing-card tycoon-compact-ing ${inPotCount > 0 ? 'in-pot' : ''}" data-tycoon-base-ing="${ing.ingredient_id}">
+            ${hasPicker ? `<button type="button" class="ing-picker-btn" data-tycoon-detail-picker="${ing.ingredient_id}">상세▾</button>` : ''}
+            ${stockCount > 0 ? `<span class="stock-count-badge" title="이번 영업 임시 재고 ${stockCount}개">📦${stockCount}</span>` : ''}
+            ${inPotCount > 0 ? `<span class="slot-count-badge" title="가마솥 투입 비율">${inPotCount}</span>` : ''}
+            <span class="ing-emoji">${icon}</span>
+            <span class="ing-name">${name}</span>
+          </div>
+        `;
+      }).join('');
+    }
 
     return `
       <div class="tycoon-compact-ings-area">
@@ -569,8 +610,9 @@ class TycoonView {
 
     const isInfiniteUnlocked = this.inventory ? this.inventory.isInfiniteModeUnlocked() : false;
     const minReq = this.engine.MIN_ORDERABLE_TO_START || 3;
-    const quotaCount = this.engine.GROWTH_QUOTA_COUNT || 5;
-    const needsFirstResearch = currentStage.orderableUnlockedCount < minReq;
+    const quotaCount = this.engine.getStageQuotaCount ? this.engine.getStageQuotaCount(currentStage.id) : (this.engine.GROWTH_QUOTA_COUNT || 5);
+    const isTutorialActive = Boolean(this.app?.storyTutorialModalView?._isLiveTutorialActive);
+    const needsFirstResearch = !isTutorialActive && currentStage.orderableUnlockedCount < minReq;
 
     const maxUnlockedStageNum = Math.max(
       1,
@@ -617,7 +659,8 @@ class TycoonView {
       const stateText = st.selected ? '영업중 ✓' : '선택 ▸';
       const stateCls = st.selected ? 'is-active' : 'is-open';
       const comp = st.completion || { purchasedShopCount: 0, totalShopCount: 0, unlockedRecipeCount: 0, totalRecipeCount: 0 };
-      const subSummaryText = `재료 ${comp.purchasedShopCount}/${comp.totalShopCount} · 레시피 ${comp.unlockedRecipeCount}/${comp.totalRecipeCount}`;
+      const stQuota = this.engine.getStageQuotaCount ? this.engine.getStageQuotaCount(st.id) : 5;
+      const subSummaryText = `목표 ${stQuota}잔 · 재료 ${comp.purchasedShopCount}/${comp.totalShopCount} · 레시피 ${comp.unlockedRecipeCount}/${comp.totalRecipeCount}`;
 
       return `
         <div class="tycoon-stage-card ${st.selected ? 'is-selected' : ''}"
@@ -690,53 +733,118 @@ class TycoonView {
     const savedName = this.engine.leaderboard.getSavedPlayerName() || '';
     const isRankingMode = s.mode === 'INFINITE' || s.mode === 'TIME_ATTACK';
     const isGrowthQuota = s.mode === 'GROWTH' && s.isQuotaCleared;
+    const stage = this.engine.getCurrentMapStage();
     const modeLabel = s.mode === 'TIME_ATTACK'
-      ? '⏱️ 타임어택 (180초) 종료'
+      ? '⏱️ 타임어택 (180초) 마감'
       : (s.mode === 'INFINITE'
-          ? '♾️ 무한 서바이벌 모드 종료'
-          : (isGrowthQuota ? `🎉 목표 판매량(${s.servedCount}/${s.targetServeCount || 5}잔) 완판 달성!` : '🏪 점포 영업 종료'));
+          ? '♾️ 무한 서바이벌 마감'
+          : (isGrowthQuota ? `🎉 목표 판매량(${s.servedCount}/${s.targetServeCount || 5}잔) 완판 마감` : '🏪 영업 마감'));
 
     const servedStatText = (s.mode === 'GROWTH' && s.targetServeCount)
       ? `${s.servedCount} / ${s.targetServeCount}잔`
-      : `${s.servedCount}명`;
+      : `${s.servedCount}잔`;
+
+    const receiptItems = Array.isArray(s.servedReceipts) ? s.servedReceipts : [];
+    const comboBonusTotal = Number(s.comboBonusTotal) || 0;
+
+    let receiptLinesHtml = '';
+    if (receiptItems.length === 0) {
+      receiptLinesHtml = `
+        <div class="receipt-empty-row">판매된 내역이 없습니다 (0원)</div>
+      `;
+    } else {
+      receiptLinesHtml = receiptItems.map(item => `
+        <div class="receipt-item-row">
+          <span class="r-item-name">${item.name}</span>
+          <span class="r-item-qty">${item.unitPrice.toLocaleString()}원 × ${item.count}</span>
+          <strong class="r-item-sub">${item.subtotal.toLocaleString()}원</strong>
+        </div>
+      `).join('');
+    }
+
+    if (comboBonusTotal > 0) {
+      receiptLinesHtml += `
+        <div class="receipt-item-row combo-bonus-row">
+          <span class="r-item-name">🔥 연속 서빙 콤보 보너스 (최대 ${s.maxCombo || 0}콤보)</span>
+          <span class="r-item-qty">추가 팁</span>
+          <strong class="r-item-sub">+${comboBonusTotal.toLocaleString()}원</strong>
+        </div>
+      `;
+    }
+
+    if (s.quotaBonus > 0) {
+      receiptLinesHtml += `
+        <div class="receipt-item-row quota-bonus-row" style="color:#059669; font-weight:700;">
+          <span class="r-item-name">🎉 오늘의 목표 완판 지원금</span>
+          <span class="r-item-qty">마감 보너스</span>
+          <strong class="r-item-sub">+${s.quotaBonus.toLocaleString()}원</strong>
+        </div>
+      `;
+    }
 
     return `
-      <div class="tycoon-gameover-card">
-        <div class="gameover-badge">${modeLabel}</div>
-        <h2 class="gameover-title">🏮 오늘의 점포 정산서</h2>
-        <div class="gameover-stats-grid">
-          <div class="go-stat-box">
-            <span class="go-label">${s.mode === 'GROWTH' ? '완판 실적' : '서빙 손님'}</span>
-            <span class="go-val sky">${servedStatText}</span>
+      <div class="tycoon-gameover-wrap">
+        <div class="tycoon-receipt-paper">
+          <div class="receipt-sawtooth top"></div>
+
+          <div class="receipt-header">
+            <span class="receipt-mode-tag">${modeLabel}</span>
+            <h2 class="receipt-title">🧾 오늘의 매출 영수증</h2>
+            <div class="receipt-shop-meta">
+              <span>점포: ${stage.icon} ${stage.name}</span>
+              <span>판매 수량: ${servedStatText}</span>
+            </div>
           </div>
-          <div class="go-stat-box">
-            <span class="go-label">이번 영업 수익</span>
-            <span class="go-val gold">+${s.totalEarnings.toLocaleString()}원</span>
+
+          <div class="receipt-dashed-divider"></div>
+
+          <div class="receipt-col-head">
+            <span>품목명</span>
+            <span>단가 × 수량</span>
+            <span>금액</span>
           </div>
-          <div class="go-stat-box">
-            <span class="go-label">현재 보유 자금</span>
-            <span class="go-val amber">${this.engine.persistentWallet.toLocaleString()}원</span>
+
+          <div class="receipt-items-list">
+            ${receiptLinesHtml}
           </div>
+
+          <div class="receipt-dashed-divider double"></div>
+
+          <div class="receipt-total-section">
+            <div class="receipt-today-sales-row">
+              <span class="rts-label">오늘의 총 매출</span>
+              <strong class="rts-amount">+${s.totalEarnings.toLocaleString()}<span>원</span></strong>
+            </div>
+            <div class="receipt-wallet-balance-row">
+              <span>정산 후 보유 자금</span>
+              <b>💰 ${this.engine.persistentWallet.toLocaleString()}원</b>
+            </div>
+          </div>
+
+          ${isRankingMode ? `
+            <div class="receipt-dashed-divider"></div>
+            <div class="receipt-rank-box">
+              <div class="rank-submit-title">🏆 글로벌 Top 100 랭킹 등록</div>
+              ${this.hasSubmittedCurrentGame
+                ? `<div class="rank-submitted-done">✅ 등록 완료! 상단 [🏆] 버튼에서 순위를 확인하세요.</div>`
+                : `<div class="rank-submit-form">
+                     <input type="text" id="tycoon-rank-nickname" class="rank-nick-input" maxlength="12" placeholder="닉네임 (최대 12자)" value="${savedName}" />
+                     <button type="button" class="rank-submit-btn" id="tycoon-submit-rank-btn" ${this.isSubmittingRank ? 'disabled' : ''}>
+                       ${this.isSubmittingRank ? '등록 중...' : '🏆 등록'}
+                     </button>
+                   </div>`
+              }
+            </div>
+          ` : ''}
+
+          <div class="receipt-footer-stamp">THANK YOU FOR YOUR BUSINESS!</div>
+          <div class="receipt-sawtooth bottom"></div>
         </div>
 
-        ${isRankingMode ? `
-          <div class="gameover-rank-submit-box">
-            <div class="rank-submit-title">🏆 글로벌 Top 100 랭킹 등록</div>
-            ${this.hasSubmittedCurrentGame
-              ? `<div class="rank-submitted-done">✅ 등록 완료! 상단 [🏆] 버튼에서 순위를 확인하세요.</div>`
-              : `<div class="rank-submit-form">
-                   <input type="text" id="tycoon-rank-nickname" class="rank-nick-input" maxlength="12" placeholder="닉네임 (최대 12자)" value="${savedName}" />
-                   <button type="button" class="rank-submit-btn" id="tycoon-submit-rank-btn" ${this.isSubmittingRank ? 'disabled' : ''}>
-                     ${this.isSubmittingRank ? '등록 중...' : '🏆 등록'}
-                   </button>
-                 </div>`
-            }
-          </div>
-        ` : ''}
-
-        <div class="gameover-actions">
-          <button type="button" class="tycoon-start-btn start-infinite" id="tycoon-retry-btn">🔄 다음 영업 시작</button>
-          <button type="button" class="tycoon-secondary-btn" id="tycoon-go-lobby-btn">🏠 점포 로비로</button>
+        <div class="gameover-actions receipt-outside-actions">
+          <button type="button" class="receipt-action-btn primary" id="tycoon-retry-btn">🔄 다음 영업 시작</button>
+          <button type="button" class="receipt-action-btn shop" id="tycoon-gameover-shop-btn">🛒 재료 사러가기</button>
+          <button type="button" class="receipt-action-btn secondary" id="tycoon-go-lobby-btn">🏠 점포 로비로</button>
         </div>
       </div>
     `;
@@ -805,7 +913,7 @@ class TycoonView {
             </div>
             <div class="notebook-cust-list shop-scroll-list">
               <div class="shop-free-starter-notice">
-                🎁 기본 무료 지급 재료(5종): <b>물 · 눈 · 공기 · 설탕 · 레몬</b> (No.01 얼음, No.02 탄산수, No.03 칠성사이다, No.04 레모네이드 연구 가능)
+                🎁 기본 무료 지급 재료(5종): <b>물 · 눈 · 공기 · 설탕 · 레몬</b> (No.01 얼음, No.02 탄산수, No.03 사이다, No.04 레모네이드 연구 가능)
               </div>
               ${stageSectionsHtml}
             </div>
@@ -942,7 +1050,97 @@ class TycoonView {
       `;
     }
 
+    if (this.activeSubModal === 'CONFIRM_CHALLENGEABLE' && this._pendingStartConfirm) {
+      const { recipes } = this._pendingStartConfirm;
+      const previewTagsHtml = recipes.slice(0, 6).map(r => {
+        const isImgOk = this.inventory ? this.inventory.isRecipeImageUnlocked(r.recipe_id) : false;
+        const icon = isImgOk
+          ? (window.KSool?.pixelIcon ? window.KSool.pixelIcon(r, 20) : (r.emoji || '🍹'))
+          : '❓';
+        const rName = this.brandResolver.resolveName(r);
+        return `
+          <span class="confirm-challenge-chip">
+            <span class="ccc-icon">${icon}</span>
+            <b class="ccc-num">${r.formatted_number || ''}</b>
+            <span class="ccc-name">${rName}</span>
+          </span>
+        `;
+      }).join('');
+      const moreCount = Math.max(0, recipes.length - 6);
+
+      return `
+        <div class="tycoon-submodal-overlay" id="tycoon-submodal-overlay">
+          <div class="tycoon-submodal-card confirm-challenge-modal-card">
+            <div class="confirm-challenge-badge">🔬 미해금 조합 알림</div>
+            <div class="confirm-challenge-icon">🧪</div>
+            <h3 class="confirm-challenge-title">보유 재료로 해금 가능한 조합이 있습니다!</h3>
+            <p class="confirm-challenge-desc">
+              현재 보유(구매)한 재료로 <b>총 ${recipes.length}종</b>의 새로운 음료를 연구실에서 해금할 수 있습니다.<br/>
+              새 음료를 먼저 해금하고 영업하시겠습니까?
+            </p>
+            <div class="confirm-challenge-chips-box">
+              ${previewTagsHtml}
+              ${moreCount > 0 ? `<span class="confirm-challenge-more">외 +${moreCount}종</span>` : ''}
+            </div>
+            <div class="confirm-challenge-actions">
+              <button type="button" class="confirm-btn-lab" id="tycoon-confirm-go-lab-btn">🔬 연구실로 가기</button>
+              <button type="button" class="confirm-btn-start" id="tycoon-confirm-proceed-start-btn">🏪 그냥 영업 시작</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
     return '';
+  }
+
+  _tryStartTycoonGame(mode, skipChallengeConfirm = false) {
+    if (mode === 'INFINITE' && this.inventory && !this.inventory.isInfiniteModeUnlocked()) {
+      this.audio?.playFail?.();
+      this.app?.showToast?.('🔒 6단계 모든 점포와 전체 음료(84종)를 모두 해금하면 무한모드가 열립니다!');
+      return;
+    }
+
+    const currentStage = this.engine.getCurrentMapStage();
+    const unlockedOrders = this.engine.getStageOrderableUnlockedRecipes(currentStage.id);
+    const minReq = this.engine.MIN_ORDERABLE_TO_START || 3;
+    const isTutorialActive = Boolean(this.app?.storyTutorialModalView?._isLiveTutorialActive);
+    if (!isTutorialActive && unlockedOrders.length < minReq) {
+      this.app?.showToast?.(`🔬 영업을 시작하려면 최소 ${minReq}종의 판매 음료를 해금해야 합니다! (현재 ${unlockedOrders.length}/${minReq}종) 연구실로 이동합니다!`);
+      this.app?.switchTab?.('brew');
+      return;
+    }
+
+    // 보유(상점 구매 포함)한 재료로 지금 당장 해금할 수 있는 조합이 남아있다면 confirm 모달 표시
+    if (!isTutorialActive && !skipChallengeConfirm && this.inventory) {
+      const shopChallengeable = this.inventory.getChallengeableLockedRecipes(true);
+      const allChallengeable = this.inventory.getChallengeableLockedRecipes(false);
+      const targetList = shopChallengeable.length > 0 ? shopChallengeable : allChallengeable;
+      if (targetList.length > 0) {
+        this._pendingStartConfirm = {
+          mode,
+          recipes: targetList
+        };
+        this.activeSubModal = 'CONFIRM_CHALLENGEABLE';
+        this.render();
+        return;
+      }
+    }
+
+    this.activeSubModal = null;
+    this._pendingStartConfirm = null;
+    this.hasSubmittedCurrentGame = false;
+    this._memoryHintRevealedForOrderId = {};
+    this._lastAnimatedOrderId = null;
+    const startRes = this.engine.startGame(mode, { allowTutorialSingleMenu: isTutorialActive });
+    if (startRes && startRes.ok === false) {
+      this.audio?.playFail?.();
+      this.app?.showToast?.(`⚠️ ${startRes.message}`);
+      return;
+    }
+    this.audio?.startTycoonBgm?.(1);
+    this._startTimerLoop();
+    this.render();
   }
 
   _bindEvents(container) {
@@ -1011,36 +1209,36 @@ class TycoonView {
       btn.onclick = () => {
         const mode = btn.getAttribute('data-start-mode');
         this.audio?.playTap?.();
-
-        if (mode === 'INFINITE' && this.inventory && !this.inventory.isInfiniteModeUnlocked()) {
-          this.audio?.playFail?.();
-          this.app?.showToast?.('🔒 6단계 모든 점포와 전체 음료(84종)를 모두 해금하면 무한모드가 열립니다!');
-          return;
-        }
-
-        const currentStage = this.engine.getCurrentMapStage();
-        const unlockedOrders = this.engine.getStageOrderableUnlockedRecipes(currentStage.id);
-        const minReq = this.engine.MIN_ORDERABLE_TO_START || 3;
-        if (unlockedOrders.length < minReq) {
-          this.app?.showToast?.(`🔬 영업을 시작하려면 최소 ${minReq}종의 판매 음료를 해금해야 합니다! (현재 ${unlockedOrders.length}/${minReq}종) 연구실로 이동합니다!`);
-          this.app?.switchTab?.('brew');
-          return;
-        }
-
-        this.hasSubmittedCurrentGame = false;
-        this._memoryHintRevealedForOrderId = {};
-        this._lastAnimatedOrderId = null;
-        const startRes = this.engine.startGame(mode);
-        if (startRes && startRes.ok === false) {
-          this.audio?.playFail?.();
-          this.app?.showToast?.(`⚠️ ${startRes.message}`);
-          return;
-        }
-        this.audio?.startTycoonBgm?.(1);
-        this._startTimerLoop();
-        this.render();
+        this._tryStartTycoonGame(mode, false);
       };
     });
+
+    const confirmGoLabBtn = container.querySelector('#tycoon-confirm-go-lab-btn');
+    if (confirmGoLabBtn) {
+      confirmGoLabBtn.onclick = () => {
+        this.audio?.playTap?.();
+        const firstRec = this._pendingStartConfirm?.recipes?.[0];
+        this.activeSubModal = null;
+        this._pendingStartConfirm = null;
+        this._stopTimerLoop();
+        this.audio?.stopTycoonBgm?.();
+        this.engine.session.status = 'LOBBY';
+        this._syncGlobalTabBarVisibility(false);
+        if (firstRec && this.app) {
+          this.app.quizTargetRecipeId = firstRec.recipe_id;
+        }
+        this.app?.switchTab?.('brew');
+      };
+    }
+
+    const confirmProceedStartBtn = container.querySelector('#tycoon-confirm-proceed-start-btn');
+    if (confirmProceedStartBtn) {
+      confirmProceedStartBtn.onclick = () => {
+        this.audio?.playTap?.();
+        const mode = this._pendingStartConfirm?.mode || 'GROWTH';
+        this._tryStartTycoonGame(mode, true);
+      };
+    }
 
     // 1-2. 로비 점포 배경 해금 및 선택
     container.querySelectorAll('[data-unlock-stage]').forEach(btn => {
@@ -1052,6 +1250,8 @@ class TycoonView {
         } else {
           this.app?.showToast?.(`🎉 [${res.stage.name}] 해금 완료! 연구실에서 새 구역의 음료를 연구해보세요!`);
           this.app?.renderBrewView?.();
+          this.app?._checkProgressiveTabUnlocks?.(true);
+          this.app?._showNextPendingTabIntro?.();
         }
         this.render();
       };
@@ -1107,6 +1307,8 @@ class TycoonView {
         this.audio?.playTap?.();
         this._stopTimerLoop();
         this.audio?.stopTycoonBgm?.();
+        this.engine.session.stockMap?.clear();
+        this.engine.session.platedStockKey = null;
         this.engine.session.status = 'LOBBY';
         this._syncGlobalTabBarVisibility(false);
         this.render();
@@ -1140,7 +1342,7 @@ class TycoonView {
       };
     });
 
-    // 3. 카운터 주문 말풍선 터치 (단골 기억 힌트 공개만 수행, 자동 세팅 없음 -> 외워서 직접 조합!)
+    // 3. 카운터 주문 말풍선 터치 (단골 기억 힌트 공개만 수행, 말풍선 자체 터치 시 무동작)
     const orderBubble = container.querySelector('#tycoon-order-bubble');
     if (orderBubble) {
       orderBubble.onclick = (e) => {
@@ -1154,8 +1356,7 @@ class TycoonView {
           this.render();
           return;
         }
-        this.audio?.playTap?.();
-        this.app?.showToast?.('💡 외운 조합법으로 직접 제조하거나 왼쪽 [📋 메뉴판]을 확인해보세요!');
+        // 말풍선 클릭 시에는 메시지 팝업 없이 아무 동작도 하지 않음
       };
     }
 
@@ -1173,12 +1374,16 @@ class TycoonView {
     // 6~9. 하단 가마솥·카테고리·재료 그리드 이벤트 바인딩 (상단 카운터 깜빡임 방지를 위해 분리)
     this._bindBottomCraftingEvents(container);
 
-    // 10. 게임오버 정산 화면 버튼 (상점 열기 / 연구실 이동 / 랭킹 등록 / 재시작 / 로비)
+    // 10. 게임오버 정산 화면 버튼 (재료상점 탭 이동 / 연구실 이동 / 랭킹 등록 / 재시작 / 로비)
     const gameoverShopBtn = container.querySelector('#tycoon-gameover-shop-btn');
     if (gameoverShopBtn) {
       gameoverShopBtn.onclick = () => {
         this.audio?.playTap?.();
-        this.openIngredientShopModal();
+        this._stopTimerLoop();
+        this.audio?.stopTycoonBgm?.();
+        this.engine.session.status = 'LOBBY';
+        this._syncGlobalTabBarVisibility(false);
+        this.app?.switchTab?.('shop');
       };
     }
 
@@ -1226,13 +1431,7 @@ class TycoonView {
     if (retryBtn) {
       retryBtn.onclick = () => {
         this.audio?.playTap?.();
-        this.hasSubmittedCurrentGame = false;
-        this._memoryHintRevealedForOrderId = {};
-        this._lastAnimatedOrderId = null;
-        this.engine.startGame(this.engine.session.mode);
-        this.audio?.startTycoonBgm?.(1);
-        this._startTimerLoop();
-        this.render();
+        this._tryStartTycoonGame(this.engine.session.mode || 'GROWTH', false);
       };
     }
 
@@ -1313,13 +1512,23 @@ class TycoonView {
     const plateBtn = rootEl.querySelector('#tycoon-center-plate-btn');
     if (plateBtn) {
       plateBtn.onclick = () => {
-        this.audio?.playTap?.();
-        const bellEl = document.getElementById('tycoon-service-bell-img');
-        if (bellEl && !bellEl.querySelector('.bell-nudge-bubble')) {
-          const bubble = document.createElement('div');
-          bubble.className = 'bell-nudge-bubble';
-          bubble.textContent = '종 터치!';
-          bellEl.appendChild(bubble);
+        if (this.app?.storyTutorialModalView?._isLiveTutorialActive) {
+          this.audio?.playTap?.();
+          const bellEl = document.getElementById('tycoon-service-bell-img');
+          if (bellEl && !bellEl.querySelector('.bell-nudge-bubble')) {
+            const bubble = document.createElement('div');
+            bubble.className = 'bell-nudge-bubble';
+            bubble.textContent = '종 터치!';
+            bellEl.appendChild(bubble);
+          }
+          return;
+        }
+        const res = this.engine.storePlateToStock();
+        if (res && res.ok) {
+          this.audio?.playTap?.();
+          this.app?.showToast?.(`📦 ${res.message}`);
+          this._updatePlateAndBellInDom();
+          this._updateBottomAreaInDom();
         }
       };
     }
@@ -1366,6 +1575,21 @@ class TycoonView {
         this.selectedIngCat = catBtn.getAttribute('data-tycoon-ing-cat');
         this.audio?.playTap?.();
         this._updateBottomAreaInDom();
+      };
+    });
+
+    // [📦 재고] 탭의 임시 보관 음료·주류 카드 터치 -> 카운터 중앙 접시 위로 이동!
+    rootEl.querySelectorAll('[data-stock-tab-item]').forEach(stockCard => {
+      stockCard.onclick = () => {
+        const stockKey = stockCard.getAttribute('data-stock-tab-item');
+        if (!stockKey) return;
+        const ok = this.engine.moveStockToPlate(stockKey);
+        if (ok) {
+          this.audio?.playTap?.();
+          this._resetAndStartBellNudgeTimer();
+          this._updatePlateAndBellInDom();
+          this._updateBottomAreaInDom();
+        }
       };
     });
 

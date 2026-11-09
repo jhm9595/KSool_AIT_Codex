@@ -95,7 +95,7 @@
   },
   "rec_milkisju": {
     "key": "rec_milkisju",
-    "name": "밀키스주",
+    "name": "밀크소다주",
     "innerSvg": "<rect x=\"4\" y=\"3\" width=\"8\" height=\"12\" fill=\"#f8fafc\"/><rect x=\"4\" y=\"3\" width=\"1\" height=\"12\" fill=\"#cbd5e1\"/><rect x=\"11\" y=\"3\" width=\"1\" height=\"12\" fill=\"#cbd5e1\"/><rect x=\"5\" y=\"14\" width=\"6\" height=\"1\" fill=\"#94a3b8\"/><rect x=\"6\" y=\"5\" width=\"2\" height=\"2\" fill=\"#38bdf8\"/><rect x=\"9\" y=\"7\" width=\"2\" height=\"2\" fill=\"#7dd3fc\"/><rect x=\"5\" y=\"9\" width=\"2\" height=\"2\" fill=\"#38bdf8\"/><rect x=\"8\" y=\"11\" width=\"2\" height=\"2\" fill=\"#0ea5e9\"/><rect x=\"6\" y=\"13\" width=\"1\" height=\"1\" fill=\"#38bdf8\"/><rect x=\"9\" y=\"0\" width=\"1\" height=\"5\" fill=\"#0284c7\"/>"
   },
   "rec_energizerju": {

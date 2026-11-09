@@ -14,13 +14,13 @@
   <!-- 모듈형 스타일시트 -->
   <link rel="stylesheet" href="/game/src/css/variables.css?v=20261107_02">
   <link rel="stylesheet" href="/game/src/css/layout.css?v=20261107_02">
-  <link rel="stylesheet" href="/game/src/css/brew.css?v=20261108_04">
+  <link rel="stylesheet" href="/game/src/css/brew.css?v=20261109_01">
   <link rel="stylesheet" href="/game/src/css/pickers/picker_common.css?v=20261101_3">
   <link rel="stylesheet" href="/game/src/css/hint_center.css?v=20261107_02">
   <link rel="stylesheet" href="/game/src/css/fridge_recommender.css?v=20261102_13">
   <link rel="stylesheet" href="/game/src/css/suggestion_board.css?v=20261102_01">
   <link rel="stylesheet" href="/game/src/css/party_games.css?v=20261102_16">
-  <link rel="stylesheet" href="/game/src/css/tycoon.css?v=20261108_03">
+  <link rel="stylesheet" href="/game/src/css/tycoon.css?v=20261109_01">
   <script type="module" src="/src/ait/main.js"></script>
 </head>
 <body>
@@ -78,6 +78,11 @@
     </div>
   </section>
 
+  <!-- [탭 2.5] 재료 상점 (Ingredient Shop View) -->
+  <section id="view-shop" class="view">
+    <div id="shop-view-container" class="shop-view-container"></div>
+  </section>
+
   <!-- [탭 3] 도감 & 3대 힌트 센터 진입 뷰 -->
   <section id="view-collection" class="view">
     <div class="collection-header">
@@ -109,6 +114,10 @@
     <button class="tab-btn" data-tab-target="brew">
       <span style="font-size:1.15rem;">🔬</span>
       <span>연구실</span>
+    </button>
+    <button class="tab-btn" data-tab-target="shop">
+      <span style="font-size:1.15rem;">🛒</span>
+      <span>재료상점</span>
     </button>
     <button class="tab-btn" data-tab-target="collection">
       <span style="font-size:1.15rem;">📖</span>
@@ -161,32 +170,32 @@
 </div>
 
 <!-- OOP 모듈 로드 (오프라인/로컬 file:// 및 웹서버 100% 호환) -->
-<script src="/game/src/js/config/SeedDataBundle.js?v=20261108_01"></script>
-<script src="/game/src/js/services/PixelIconRegistry.js?v=20261102_06"></script>
+<script src="/game/src/js/config/SeedDataBundle.js?v=20261108_21"></script>
+<script src="/game/src/js/services/PixelIconRegistry.js?v=20261108_14"></script>
 <script src="/game/src/js/config/GameConfig.js?v=20261101_7"></script>
 <script src="/game/src/js/services/BrandResolver.js?v=20261101_7"></script>
-<script src="/game/src/js/services/StorageService.js?v=20261105_01"></script>
+<script src="/game/src/js/services/StorageService.js?v=20261109_01"></script>
 <script src="/game/src/js/services/AdService.js?v=20261101_1"></script>
-<script src="/game/src/js/core/CraftingPot.js?v=20261101_7"></script>
-<script src="/game/src/js/core/ProgressionEngine.js?v=20261108_01"></script>
-<script src="/game/src/js/core/RecipeBook.js?v=20261102_01"></script>
-<script src="/game/src/js/core/InventoryManager.js?v=20261108_03"></script>
+<script src="/game/src/js/core/CraftingPot.js?v=20261108_22"></script>
+<script src="/game/src/js/core/ProgressionEngine.js?v=20261108_21"></script>
+<script src="/game/src/js/core/RecipeBook.js?v=20261109_01"></script>
+<script src="/game/src/js/core/InventoryManager.js?v=20261109_01"></script>
 <script src="/game/src/js/core/hint/FeedbackHintStrategy.js?v=20261101_7"></script>
 <script src="/game/src/js/core/hint/BaseballHintEngine.js?v=20261101_7"></script>
 <script src="/game/src/js/core/hint/RatioHintProvider.js?v=20261101_7"></script>
 <script src="/game/src/js/core/hint/ImageMinigameSuite.js?v=20261103_3"></script>
 <script src="/game/src/js/core/fridge/FridgeMatcherEngine.js?v=20261101_7"></script>
 <script src="/game/src/js/core/suggestion/SuggestionService.js?v=20261101_10"></script>
-<script src="/game/src/js/core/AlchemyEngine.js?v=20261107_01"></script>
+<script src="/game/src/js/core/AlchemyEngine.js?v=20261109_01"></script>
 <script src="/game/src/js/ui/pickers/DetailPickerRegistry.js?v=20261102_01"></script>
 <script src="/game/src/js/ui/ScratchCardView.js?v=20261107_01"></script>
-<script src="/game/src/js/ui/HintModalView.js?v=20261107_02"></script>
-<script src="/game/src/js/ui/FridgeRecommenderView.js?v=20261102_01"></script>
+<script src="/game/src/js/ui/HintModalView.js?v=20261108_21"></script>
+<script src="/game/src/js/ui/FridgeRecommenderView.js?v=20261108_21"></script>
 <script src="/game/src/js/services/RecipeAnalysisIntegrator.js?v=20261103_01"></script>
 <script src="/game/src/js/ui/RecipeInspectorModalView.js?v=20261102_02"></script>
-<script src="/game/src/js/ui/SuggestionBoardView.js?v=20261102_02"></script>
+<script src="/game/src/js/ui/SuggestionBoardView.js?v=20261108_25"></script>
 <script src="/game/src/js/ui/SettingsModalView.js?v=20261108_03"></script>
-<script src="/game/src/js/ui/StoryTutorialModalView.js?v=20261108_04"></script>
+<script src="/game/src/js/ui/StoryTutorialModalView.js?v=20261108_11"></script>
 <script src="/game/src/js/ui/party/PartySoundSynth.js?v=20261102_02"></script>
 <script src="/game/src/js/ui/party/games/UpAndDownGame.js?v=20261106_01"></script>
 <script src="/game/src/js/ui/party/games/CapFlickGame.js?v=20261103_20"></script>
@@ -196,13 +205,13 @@
 <script src="/game/src/js/ui/party/games/PenaltyCocktailGame.js?v=20261101_8"></script>
 <script src="/game/src/js/ui/party/games/FridgePartyGame.js?v=20261101_7"></script>
 <script src="/game/src/js/ui/party/games/Baskin31Game.js?v=20261102_02"></script>
-<script src="/game/src/js/ui/party/games/MarketMemoryGame.js?v=20261102_03"></script>
+<script src="/game/src/js/ui/party/games/MarketMemoryGame.js?v=20261108_21"></script>
 <script src="/game/src/js/ui/party/games/IamGroundGame.js?v=20261102_05"></script>
-<script src="/game/src/js/ui/party/PartyGameHubView.js?v=20261103_20"></script>
-<script src="/game/src/js/core/tycoon/TycoonCustomerPool.js?v=20261105_05"></script>
+<script src="/game/src/js/ui/party/PartyGameHubView.js?v=20261108_21"></script>
+<script src="/game/src/js/core/tycoon/TycoonCustomerPool.js?v=20261108_14"></script>
 <script src="/game/src/js/core/tycoon/TycoonLeaderboardService.js?v=20261103_01"></script>
-<script src="/game/src/js/core/tycoon/TycoonEngine.js?v=20261108_03"></script>
-<script src="/game/src/js/ui/TycoonView.js?v=20261108_03"></script>
-<script src="/game/src/js/app.js?v=20261108_04"></script>
+<script src="/game/src/js/core/tycoon/TycoonEngine.js?v=20261108_22"></script>
+<script src="/game/src/js/ui/TycoonView.js?v=20261109_01"></script>
+<script src="/game/src/js/app.js?v=20261109_01"></script>
 </body>
 </html>

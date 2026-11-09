@@ -331,6 +331,7 @@ body.tycoon-playing-fullscreen > #app-container > nav.tab-bar {
   min-width: 96px;
   max-width: 154px;
   pointer-events: auto;
+  cursor: default;
   background: rgba(255, 255, 255, 0.96);
   color: #0f172a;
   border: 2.5px solid #1e293b;
@@ -542,11 +543,27 @@ body.tycoon-playing-fullscreen > #app-container > nav.tab-bar {
 }
 
 .plated-drink-visual {
+  position: relative;
   margin-top: -14px;
   filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.65));
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.plate-store-hint {
+  position: absolute;
+  top: -6px;
+  right: -18px;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid #38bdf8;
+  color: #bae6fd;
+  font-size: 0.48rem;
+  font-weight: 900;
+  padding: 1px 4px;
+  border-radius: 999px;
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 .plated-drink-label {
@@ -893,6 +910,76 @@ body.tycoon-playing-fullscreen > #app-container > nav.tab-bar {
 .tycoon-compact-ing .ing-name {
   font-size: 0.62rem !important;
   min-height: 22px !important;
+}
+
+.stock-tab-chip {
+  border-color: rgba(56, 189, 248, 0.5) !important;
+  color: #bae6fd !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stock-tab-chip.active {
+  background: linear-gradient(135deg, #0284c7, #0369a1) !important;
+  border-color: #38bdf8 !important;
+  color: #ffffff !important;
+}
+
+.stock-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #f59e0b;
+  color: #090d16;
+  font-size: 0.56rem;
+  font-weight: 900;
+}
+
+.stock-count-badge {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  background: rgba(2, 132, 199, 0.92);
+  border: 1px solid #7dd3fc;
+  color: #f0f9ff;
+  font-size: 0.52rem;
+  font-weight: 900;
+  padding: 1px 4px;
+  border-radius: 6px;
+  line-height: 1.1;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.stock-item-card {
+  border-color: rgba(56, 189, 248, 0.55) !important;
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.95), rgba(12, 74, 110, 0.45)) !important;
+}
+
+.tycoon-stock-empty-msg {
+  grid-column: 1 / -1;
+  padding: 18px 12px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.5;
+  background: rgba(9, 13, 22, 0.55);
+  border: 1px dashed rgba(71, 85, 105, 0.55);
+  border-radius: 10px;
+}
+
+.tycoon-stock-empty-msg span {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.64rem;
+  font-weight: 500;
+  color: #64748b;
 }
 
 /* =========================================================================
@@ -1343,61 +1430,396 @@ body.tycoon-playing-fullscreen > #app-container > nav.tab-bar {
 }
 .nb-fav { display: inline-flex; align-items: center; gap: 4px; color: #fde047; }
 
-/* 게임 오버 */
-.tycoon-gameover-card {
-  background: rgba(15, 23, 42, 0.95);
-  border: 1.5px solid #f59e0b;
-  border-radius: 14px;
-  padding: 14px;
-  text-align: center;
+/* 게임 오버 - 영수증(Receipt) 디자인 */
+.tycoon-gameover-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 2px 14px;
+}
+
+.tycoon-receipt-paper {
+  position: relative;
+  background: #fdfbf7;
+  color: #1e293b;
+  border-radius: 6px;
+  padding: 18px 16px 16px;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.55);
   display: flex;
   flex-direction: column;
   gap: 10px;
+  overflow: hidden;
 }
 
-.gameover-badge {
-  align-self: center;
-  background: rgba(245, 158, 11, 0.2);
+.receipt-sawtooth {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background-size: 14px 8px;
+  pointer-events: none;
+}
+
+.receipt-sawtooth.top {
+  top: 0;
+  background-image: linear-gradient(135deg, #0b1120 33.33%, transparent 33.33%),
+                    linear-gradient(225deg, #0b1120 33.33%, transparent 33.33%);
+}
+
+.receipt-sawtooth.bottom {
+  bottom: 0;
+  background-image: linear-gradient(45deg, #0b1120 33.33%, transparent 33.33%),
+                    linear-gradient(315deg, #0b1120 33.33%, transparent 33.33%);
+}
+
+.receipt-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  padding-top: 2px;
+}
+
+.receipt-mode-tag {
+  background: #fef3c7;
   border: 1px solid #f59e0b;
-  color: #fde047;
-  font-size: 0.68rem;
+  color: #92400e;
+  font-size: 0.66rem;
   font-weight: 900;
   padding: 2px 9px;
   border-radius: 999px;
 }
 
-.gameover-title { margin: 0; font-size: 1.05rem; color: #fef3c7; }
+.receipt-title {
+  margin: 2px 0 0;
+  font-size: 1.12rem;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: -0.3px;
+}
 
-.gameover-stats-grid {
+.receipt-shop-meta {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #475569;
+  margin-top: 3px;
+}
+
+.receipt-dashed-divider {
+  width: 100%;
+  border-bottom: 1.5px dashed #cbd5e1;
+}
+
+.receipt-dashed-divider.double {
+  border-bottom: 3px double #94a3b8;
+}
+
+.receipt-col-head {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr auto 74px;
+  gap: 8px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #64748b;
+  padding: 0 2px;
+}
+
+.receipt-col-head span:last-child {
+  text-align: right;
+}
+
+.receipt-items-list {
+  display: flex;
+  flex-direction: column;
   gap: 6px;
 }
 
-.go-stat-box {
-  background: #090d16;
-  border: 1px solid #334155;
-  border-radius: 8px;
-  padding: 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.receipt-item-row {
+  display: grid;
+  grid-template-columns: 1fr auto 74px;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.76rem;
+  color: #1e293b;
+  padding: 2px;
 }
 
-.go-label { font-size: 0.62rem; color: #94a3b8; }
-.go-val { font-size: 0.85rem; font-weight: 900; }
-.go-val.sky { color: #38bdf8; }
-.go-val.gold { color: #fde047; }
-.go-val.amber { color: #fb923c; }
+.receipt-item-row.combo-bonus-row {
+  color: #b45309;
+  background: rgba(254, 243, 199, 0.55);
+  border-radius: 5px;
+  padding: 3px 5px;
+}
 
-.gameover-rank-submit-box {
-  background: rgba(9, 13, 22, 0.85);
-  border: 1px solid #38bdf8;
-  border-radius: 10px;
+.r-item-name {
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.r-item-qty {
+  font-size: 0.68rem;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.r-item-sub {
+  text-align: right;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.receipt-item-row.combo-bonus-row .r-item-sub {
+  color: #d97706;
+}
+
+.receipt-empty-row {
+  text-align: center;
+  padding: 12px 0;
+  font-size: 0.74rem;
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+.receipt-total-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.receipt-today-sales-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.rts-label {
+  font-size: 0.88rem;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.rts-amount {
+  font-size: 1.38rem;
+  font-weight: 900;
+  color: #d97706;
+}
+
+.rts-amount span {
+  font-size: 0.84rem;
+  margin-left: 2px;
+}
+
+.receipt-wallet-balance-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.74rem;
+  color: #475569;
+  padding-top: 5px;
+  border-top: 1px dotted #cbd5e1;
+}
+
+.receipt-wallet-balance-row b {
+  color: #0284c7;
+  font-weight: 900;
+}
+
+.receipt-rank-box {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
   padding: 8px;
   display: flex;
   flex-direction: column;
   gap: 5px;
+}
+
+.receipt-rank-box .rank-submit-title {
+  color: #0f172a;
+}
+
+.receipt-footer-stamp {
+  text-align: center;
+  font-size: 0.6rem;
+  font-weight: 900;
+  letter-spacing: 1.4px;
+  color: #94a3b8;
+  padding-top: 2px;
+}
+
+.receipt-outside-actions {
+  margin-top: 2px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.receipt-action-btn {
+  width: 100%;
+  padding: 11px 6px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.15s ease, background 0.15s ease;
+  box-sizing: border-box;
+}
+
+.receipt-action-btn:active {
+  transform: scale(0.96);
+}
+
+.receipt-action-btn.primary {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  border: 1px solid #3b82f6;
+  color: #eff6ff;
+  box-shadow: 0 3px 10px rgba(30, 64, 175, 0.35);
+}
+
+.receipt-action-btn.shop {
+  background: linear-gradient(135deg, rgba(120, 53, 15, 0.55), #1e293b);
+  border: 1px solid rgba(245, 158, 11, 0.65);
+  color: #fde047;
+}
+
+.receipt-action-btn.secondary {
+  background: #1e293b;
+  border: 1px solid #475569;
+  color: #e2e8f0;
+}
+
+/* 영업 시작 전 해금 가능 레시피 확인(Confirm) 모달 */
+.confirm-challenge-modal-card {
+  max-width: 340px;
+  text-align: center;
+  align-items: center;
+  padding: 18px 16px 16px;
+  gap: 10px;
+  border: 1.5px solid #38bdf8;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.72);
+}
+
+.confirm-challenge-badge {
+  background: rgba(56, 189, 248, 0.16);
+  border: 1px solid rgba(56, 189, 248, 0.55);
+  color: #7dd3fc;
+  font-size: 0.68rem;
+  font-weight: 900;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.confirm-challenge-icon {
+  font-size: 2.4rem;
+  line-height: 1.1;
+}
+
+.confirm-challenge-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 900;
+  color: #f8fafc;
+}
+
+.confirm-challenge-desc {
+  margin: 0;
+  font-size: 0.76rem;
+  color: #cbd5e1;
+  line-height: 1.5;
+}
+
+.confirm-challenge-desc b {
+  color: #fde047;
+}
+
+.confirm-challenge-chips-box {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(9, 13, 22, 0.78);
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 9px 8px;
+  box-sizing: border-box;
+}
+
+.confirm-challenge-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #1e293b;
+  border: 1px solid #475569;
+  font-size: 0.68rem;
+  color: #f8fafc;
+}
+
+.confirm-challenge-chip .ccc-num {
+  color: #60a5fa;
+  font-weight: 900;
+}
+
+.confirm-challenge-chip .ccc-name {
+  font-weight: 800;
+}
+
+.confirm-challenge-more {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 7px;
+  font-size: 0.66rem;
+  font-weight: 800;
+  color: #94a3b8;
+}
+
+.confirm-challenge-actions {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.confirm-btn-lab {
+  padding: 11px 8px;
+  border-radius: 10px;
+  border: 1px solid #38bdf8;
+  background: linear-gradient(135deg, #0284c7, #2563eb);
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.confirm-btn-start {
+  padding: 11px 8px;
+  border-radius: 10px;
+  border: 1px solid #475569;
+  background: #1e293b;
+  color: #cbd5e1;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
 }
 
 .rank-submit-title { font-size: 0.72rem; font-weight: 900; color: #bae6fd; }
@@ -2010,28 +2432,40 @@ body.tycoon-playing-fullscreen > #app-container > nav.tab-bar {
 
 .lobby-start-biz-btn {
   width: 100%;
-  padding: 11px 16px;
-  border-radius: 11px;
-  border: 1.5px solid #34d399;
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: #052e16;
-  font-size: 0.92rem;
-  font-weight: 900;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1.5px solid #3b82f6;
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  color: #eff6ff;
+  font-size: 0.94rem;
+  font-weight: 800;
+  letter-spacing: 0.2px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.28);
-  transition: transform 0.12s ease, box-shadow 0.15s ease;
+  gap: 8px;
+  box-shadow: 0 4px 16px rgba(30, 64, 175, 0.4);
+  transition: transform 0.12s ease, box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease;
   box-sizing: border-box;
+}
+
+.lobby-start-biz-btn:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  border-color: #60a5fa;
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
 }
 
 .lobby-start-biz-btn.needs-research {
   border-color: #38bdf8;
-  background: linear-gradient(135deg, #38bdf8, #0284c7);
-  color: #082f49;
-  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.28);
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  color: #f0f9ff;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+}
+
+.lobby-start-biz-btn.needs-research:hover {
+  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  border-color: #7dd3fc;
 }
 
 .lobby-start-biz-btn:active {
@@ -2277,15 +2711,16 @@ body.tycoon-playing-fullscreen > #app-container > nav.tab-bar {
 }
 .gm-callout-card.callout-amber b { color: #fde047; }
 
-/* GUIDE 01: 연구실 제조 화면 목업 */
+/* GUIDE 01: 연구실 제조 & 재료 상점 토글 화면 목업 */
 .gm-lab-top-bar {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 6px;
   background: rgba(15, 23, 42, 0.9);
-  padding: 5px 8px;
-  border-radius: 8px;
-  font-size: 0.64rem;
+  padding: 4px 8px;
+  border-radius: 7px;
+  font-size: 0.62rem;
   font-weight: 800;
 }
 
@@ -2298,37 +2733,75 @@ body.tycoon-playing-fullscreen > #app-container > nav.tab-bar {
 
 .gm-gold {
   color: #fde047;
-  margin-right: auto;
 }
 
-.gm-shop-btn {
-  background: rgba(245, 158, 11, 0.25);
-  color: #fde047;
-  padding: 3px 8px;
+.gm-mode-toggle-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 9px;
+  padding: 3px;
+}
+
+.gm-mode-tab {
+  font-size: 0.62rem;
+  font-weight: 900;
+  padding: 5px 6px;
   border-radius: 6px;
+  text-align: center;
+  color: #94a3b8;
+}
+
+.gm-mode-tab.active {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #ffffff;
+}
+
+.gm-mode-tab.shop {
+  background: rgba(245, 158, 11, 0.22);
+  color: #fde047;
 }
 
 .gm-quiz-box {
-  background: rgba(15, 23, 42, 0.85);
-  border: 1px solid #334155;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid #3b82f6;
   border-radius: 9px;
-  padding: 7px 9px;
+  padding: 6px 8px;
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 8px;
+}
+
+.gm-quiz-box.gm-quiz-compact {
+  padding: 5px 8px;
 }
 
 .gm-quiz-icon {
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
   background: #090d16;
   border: 1px solid #475569;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   flex-shrink: 0;
+}
+
+.gm-quiz-icon.locked {
+  border-style: dashed;
+}
+
+.gm-hint-btn-mini {
+  background: #334155;
+  color: #e2e8f0;
+  font-size: 0.5rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 4px;
 }
 
 .gm-quiz-info {
@@ -2340,34 +2813,34 @@ body.tycoon-playing-fullscreen > #app-container > nav.tab-bar {
 }
 
 .gm-quiz-title {
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   font-weight: 900;
   color: #f8fafc;
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 
 .gm-quiz-title small {
   color: #38bdf8;
-  font-size: 0.62rem;
+  font-size: 0.58rem;
 }
 
 .gm-quiz-desc {
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   color: #cbd5e1;
 }
 
-.gm-pot-area {
+.gm-pot-stack {
   display: flex;
-  gap: 6px;
-  align-items: stretch;
+  flex-direction: column;
+  gap: 5px;
   background: rgba(15, 23, 42, 0.65);
-  padding: 6px;
+  padding: 5px;
   border-radius: 9px;
 }
 
 .gm-pot-slots {
-  flex: 1;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 4px;
@@ -2377,12 +2850,12 @@ body.tycoon-playing-fullscreen > #app-container > nav.tab-bar {
   background: #090d16;
   border: 1px dashed #334155;
   border-radius: 7px;
-  height: 44px;
+  height: 38px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   color: #64748b;
   position: relative;
 }
@@ -2394,7 +2867,7 @@ body.tycoon-playing-fullscreen > #app-container > nav.tab-bar {
 }
 
 .gm-slot span {
-  font-size: 0.56rem;
+  font-size: 0.52rem;
   font-weight: 800;
 }
 
@@ -2404,28 +2877,28 @@ body.tycoon-playing-fullscreen > #app-container > nav.tab-bar {
   right: 3px;
   background: #f59e0b;
   color: #090d16;
-  font-size: 0.5rem;
-  width: 13px;
-  height: 13px;
+  font-size: 0.48rem;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.gm-pot-btns {
+.gm-pot-action-row {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  width: 78px;
+  gap: 5px;
+  align-items: stretch;
 }
 
 .gm-mix-btn {
   flex: 1;
   background: linear-gradient(135deg, #10b981, #059669);
   color: #052e16;
-  font-size: 0.64rem;
+  font-size: 0.66rem;
   font-weight: 900;
+  padding: 5px 8px;
   border-radius: 6px;
   display: flex;
   align-items: center;
@@ -2435,18 +2908,19 @@ body.tycoon-playing-fullscreen > #app-container > nav.tab-bar {
 .gm-clear-btn {
   background: #1e293b;
   color: #fca5a5;
-  font-size: 0.56rem;
+  font-size: 0.58rem;
   font-weight: 800;
-  padding: 3px 0;
-  border-radius: 5px;
-  text-align: center;
+  padding: 5px 10px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .gm-ings-section {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  margin-top: auto;
+  gap: 4px;
 }
 
 .gm-cat-row {
@@ -2455,7 +2929,7 @@ body.tycoon-playing-fullscreen > #app-container > nav.tab-bar {
 }
 
 .gm-cat {
-  font-size: 0.56rem;
+  font-size: 0.54rem;
   font-weight: 800;
   padding: 2px 7px;
   border-radius: 999px;
@@ -2471,20 +2945,21 @@ body.tycoon-playing-fullscreen > #app-container > nav.tab-bar {
 .gm-ings-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 5px;
-  padding: 5px;
+  gap: 4px;
+  padding: 4px;
   background: rgba(15, 23, 42, 0.85);
 }
 
 .gm-ing {
+  position: relative;
   background: #090d16;
   border: 1px solid #334155;
   border-radius: 7px;
-  padding: 5px 2px;
+  padding: 4px 2px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-size: 0.88rem;
+  font-size: 0.82rem;
 }
 
 .gm-ing.selected {
@@ -2493,30 +2968,85 @@ body.tycoon-playing-fullscreen > #app-container > nav.tab-bar {
 }
 
 .gm-ing span {
-  font-size: 0.56rem;
+  font-size: 0.52rem;
   font-weight: 800;
   color: #e2e8f0;
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
-/* GUIDE 02: 힌트 위치 안내 목업 */
-.gm-section-label {
-  font-size: 0.64rem;
+.gm-ing b {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: #f59e0b;
+  color: #090d16;
+  font-size: 0.46rem;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 버튼과 전혀 겹치지 않는 GUIDE 01 하단 설명 바 */
+.gm-nonoverlap-legend-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: auto;
+}
+
+.gm-legend-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  background: rgba(9, 13, 22, 0.92);
+  padding: 3px 7px;
+  border-radius: 6px;
+  border-left: 3px solid #38bdf8;
+  font-size: 0.56rem;
+}
+
+.gm-legend-chip b {
   font-weight: 900;
-  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.gm-legend-chip span {
+  color: #cbd5e1;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gm-legend-chip.chip-sky { border-left-color: #38bdf8; }
+.gm-legend-chip.chip-sky b { color: #7dd3fc; }
+.gm-legend-chip.chip-emerald { border-left-color: #34d399; }
+.gm-legend-chip.chip-emerald b { color: #6ee7b7; }
+.gm-legend-chip.chip-amber { border-left-color: #fbbf24; }
+.gm-legend-chip.chip-amber b { color: #fde047; }
+
+/* GUIDE 02: [힌트] 버튼 위치 + 눌렀을 때 열리는 실제 힌트 모달 화면 목업 */
+.gm-hint-step1-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .gm-quiz-col-left {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
+  gap: 3px;
 }
 
 .gm-hint-btn {
   background: #f59e0b;
   color: #090d16;
-  font-size: 0.6rem;
+  font-size: 0.56rem;
   font-weight: 900;
   padding: 2px 8px;
   border-radius: 5px;
@@ -2526,36 +3056,175 @@ body.tycoon-playing-fullscreen > #app-container > nav.tab-bar {
   background: rgba(15, 23, 42, 0.95);
   border: 1px dashed #475569;
   color: #cbd5e1;
-  font-size: 0.64rem;
+  font-size: 0.58rem;
   font-weight: 800;
-  padding: 7px 10px;
-  border-radius: 7px;
+  padding: 4px 8px;
+  border-radius: 6px;
 }
 
-.gm-hint-popup-preview,
+.gm-hint-arrow-banner {
+  background: rgba(245, 158, 11, 0.16);
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  color: #fde047;
+  font-size: 0.58rem;
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.gm-actual-hint-modal-box {
+  flex: 1;
+  background: #131c31;
+  border: 1.5px solid #38bdf8;
+  border-radius: 10px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  justify-content: space-between;
+}
+
+.gm-ahm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.64rem;
+  font-weight: 900;
+  color: #f8fafc;
+  padding-bottom: 3px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.gm-ahm-close {
+  color: #94a3b8;
+  font-size: 0.62rem;
+}
+
+.gm-ahm-target-card {
+  background: #0b1120;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 5px 7px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.gm-ahm-target-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.62rem;
+  font-weight: 900;
+}
+
+.gm-ahm-q {
+  background: #1e293b;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.gm-ahm-num { color: #60a5fa; }
+.gm-ahm-name { color: #fde047; }
+
+.gm-ahm-foil-strip {
+  background: linear-gradient(90deg, #475569, #64748b, #475569);
+  color: #f8fafc;
+  border-radius: 6px;
+  padding: 4px 7px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.56rem;
+  font-weight: 800;
+}
+
+.gm-ahm-foil-btn {
+  background: #0f172a;
+  color: #fde047;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.54rem;
+}
+
+.gm-ahm-foil-btn b {
+  background: #f59e0b;
+  color: #090d16;
+  padding: 0 3px;
+  border-radius: 3px;
+  margin-right: 2px;
+}
+
+.gm-ahm-step-card {
+  background: #0b1120;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 5px 7px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.gm-ahm-step-ico {
+  font-size: 1rem;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.gm-ahm-step-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.gm-ahm-step-hdr {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.6rem;
+  color: #f8fafc;
+}
+
+.gm-ahm-badge {
+  font-size: 0.5rem;
+  font-weight: 900;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.gm-ahm-badge.purple { background: rgba(168, 85, 247, 0.25); color: #d8b4fe; }
+.gm-ahm-badge.cyan { background: rgba(56, 189, 248, 0.25); color: #7dd3fc; }
+
+.gm-ahm-tag {
+  margin-left: auto;
+  font-size: 0.54rem;
+  font-weight: 900;
+  color: #fde047;
+}
+
+.gm-ahm-step-body small {
+  font-size: 0.54rem;
+  color: #cbd5e1;
+}
+
 .gm-rules-summary-box {
   background: rgba(15, 23, 42, 0.92);
   border: 1px solid #334155;
   border-radius: 10px;
-  padding: 8px;
+  padding: 7px 8px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
   flex: 1;
   justify-content: center;
-}
-
-.gm-popup-hdr {
-  font-size: 0.68rem;
-  font-weight: 900;
-  color: #fde047;
-  margin-bottom: 2px;
-}
-
-.gm-hint-explain-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
 }
 
 .gm-hint-explain-item {
@@ -2563,7 +3232,7 @@ body.tycoon-playing-fullscreen > #app-container > nav.tab-bar {
   align-items: center;
   gap: 8px;
   background: rgba(9, 13, 22, 0.85);
-  padding: 6px 8px;
+  padding: 5px 8px;
   border-radius: 8px;
   border-left: 3px solid #38bdf8;
 }
@@ -2592,22 +3261,22 @@ body.tycoon-playing-fullscreen > #app-container > nav.tab-bar {
 
 .gm-hint-explain-item b {
   display: block;
-  font-size: 0.66rem;
+  font-size: 0.64rem;
   color: #f8fafc;
   margin-bottom: 1px;
 }
 
 .gm-hint-explain-item small {
   display: block;
-  font-size: 0.58rem;
+  font-size: 0.56rem;
   color: #cbd5e1;
-  line-height: 1.3;
+  line-height: 1.28;
 }
 
 /* GUIDE 03 & 04: 실제 주점 카운터 & 조리대 오버레이 목업 */
 .gm-counter-scene {
   position: relative;
-  height: 148px;
+  height: 138px;
   border-radius: 9px;
   background-size: cover;
   background-position: center bottom;
@@ -2623,34 +3292,60 @@ body.tycoon-playing-fullscreen > #app-container > nav.tab-bar {
 .gm-counter-dim {
   position: absolute;
   inset: 0;
-  background: rgba(9, 13, 22, 0.28);
+  background: rgba(9, 13, 22, 0.25);
 }
 
-.gm-cust-avatar {
+/* 상단 좌/우 2열 분리 배치로 절대 겹치지 않는 콜아웃 */
+.gm-counter-top-callouts {
   position: absolute;
-  left: 50%;
-  bottom: 24%;
-  transform: translateX(-50%);
-  font-size: 2.5rem;
-  line-height: 1;
-  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.7));
+  top: 6px;
+  left: 6px;
+  right: 6px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  z-index: 15;
+}
+
+.gm-callout-card.gm-static-callout {
+  position: static;
+  max-width: 100%;
+  padding: 4px 6px;
+}
+
+.gm-callout-card.gm-static-callout b {
+  font-size: 0.62rem;
+}
+
+.gm-callout-card.gm-static-callout span {
+  font-size: 0.54rem;
 }
 
 .gm-order-bubble {
   position: absolute;
-  left: calc(50% + 26px);
-  bottom: 45%;
+  left: 50%;
+  top: 52px;
+  transform: translateX(-50%);
   background: #ffffff;
   color: #0f172a;
   border: 2px solid #0f172a;
   border-radius: 10px;
-  padding: 4px 7px;
+  padding: 3px 8px;
   font-size: 0.62rem;
   font-weight: 900;
   display: flex;
   flex-direction: column;
   gap: 3px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.55);
+  z-index: 10;
+  white-space: nowrap;
+}
+
+.gm-order-bubble.gm-rules-bubble-right {
+  left: auto;
+  right: 10px;
+  top: 14px;
+  transform: none;
 }
 
 .gm-bubble-gauge {
@@ -2669,40 +3364,70 @@ body.tycoon-playing-fullscreen > #app-container > nav.tab-bar {
   background: #ef4444;
 }
 
+.gm-menu-board-passive {
+  position: absolute;
+  left: 20%;
+  bottom: 12%;
+  transform: translateX(-50%);
+  background: rgba(9, 13, 22, 0.85);
+  border: 1px solid #475569;
+  border-radius: 6px;
+  color: #fde047;
+  font-size: 0.56rem;
+  font-weight: 900;
+  padding: 2px 6px;
+}
+
+/* 카운터 중앙 접시 위 완성 음료 표시 (사람 아바타 제거, 접시 위치에 음료 배치) */
 .gm-plate-spot {
   position: absolute;
   left: 50%;
-  bottom: 7%;
+  bottom: 11%;
   transform: translateX(-50%);
-  background: rgba(15, 23, 42, 0.85);
-  padding: 2px 8px;
+  background: rgba(15, 23, 42, 0.88);
+  padding: 3px 10px;
+  border-radius: 10px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 4px;
-  color: #fde047;
-  font-size: 0.6rem;
-  font-weight: 900;
+  gap: 1px;
+  z-index: 10;
 }
 
-.gm-bell-spot {
-  position: absolute;
-  left: 72%;
-  bottom: 8%;
-  transform: translateX(-50%);
-  background: rgba(251, 191, 36, 0.25);
-  padding: 3px 7px;
+.gm-plated-drink-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.7));
+}
+
+.gm-plated-drink-name {
   color: #fde047;
-  font-size: 0.6rem;
+  font-size: 0.56rem;
   font-weight: 900;
   white-space: nowrap;
 }
 
+.gm-bell-spot {
+  position: absolute;
+  left: 73%;
+  bottom: 11%;
+  transform: translateX(-50%);
+  background: rgba(251, 191, 36, 0.28);
+  padding: 4px 8px;
+  color: #fde047;
+  font-size: 0.6rem;
+  font-weight: 900;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+/* 실제 주점 하단 조리대와 100% 동일한 목업 레이아웃 */
 .gm-tycoon-bottom {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  background: rgba(15, 23, 42, 0.9);
+  gap: 4px;
+  background: rgba(15, 23, 42, 0.92);
   padding: 6px;
   border-radius: 9px;
 }
@@ -2713,61 +3438,101 @@ body.tycoon-playing-fullscreen > #app-container > nav.tab-bar {
   align-items: stretch;
 }
 
-.gm-mini-slots {
+.gm-mini-slots-4 {
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 4px;
 }
 
-.gm-mini-slot {
+.gm-cp-slot {
+  position: relative;
   background: #090d16;
   border: 1px solid #38bdf8;
-  border-radius: 6px;
-  padding: 4px;
-  font-size: 0.58rem;
-  font-weight: 800;
-  color: #f8fafc;
+  border-radius: 7px;
+  height: 38px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  color: #f8fafc;
 }
 
-.gm-mini-slot.empty {
+.gm-cp-slot.empty {
   border-style: dashed;
   border-color: #334155;
   color: #64748b;
+  font-size: 0.72rem;
 }
 
-.gm-mini-Slot b {
-  color: #fde047;
+.gm-cp-ico {
+  font-size: 0.85rem;
+  line-height: 1;
 }
 
-.gm-mini-actions {
-  display: flex;
-  gap: 4px;
+.gm-cp-nm {
+  font-size: 0.5rem;
+  font-weight: 800;
+  margin-top: 1px;
 }
 
-.gm-mini-craft {
-  background: #10b981;
-  color: #052e16;
-  font-size: 0.62rem;
-  font-weight: 900;
-  padding: 4px 8px;
+.gm-cp-slot b {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: #f59e0b;
+  color: #090d16;
+  font-size: 0.46rem;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
-.gm-mini-clear {
+.gm-cp-actions-col {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 68px;
+}
+
+.gm-cp-craft-btn {
+  flex: 1;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #052e16;
+  border-radius: 6px;
+  padding: 2px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.1;
+}
+
+.gm-cp-craft-btn b {
+  font-size: 0.58rem;
+  font-weight: 900;
+}
+
+.gm-cp-craft-btn small {
+  font-size: 0.48rem;
+  font-weight: 800;
+}
+
+.gm-cp-clear-btn {
   background: #1e293b;
   color: #fca5a5;
-  font-size: 0.58rem;
+  font-size: 0.52rem;
   font-weight: 800;
-  padding: 4px 6px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
+  padding: 2px 0;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.gm-tycoon-cats {
+  padding: 1px 0;
 }
 
 .gm-tycoon-ings-row {
@@ -2778,14 +3543,37 @@ body.tycoon-playing-fullscreen > #app-container > nav.tab-bar {
 }
 
 .gm-mini-ing {
+  position: relative;
   background: #090d16;
   border: 1px solid #334155;
   border-radius: 6px;
-  padding: 4px 2px;
-  font-size: 0.56rem;
-  font-weight: 800;
+  padding: 3px 2px;
+  font-size: 0.78rem;
   color: #cbd5e1;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.gm-mini-ing span {
+  font-size: 0.5rem;
+  font-weight: 800;
+  margin-top: 1px;
+}
+
+.gm-mini-ing b {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: #f59e0b;
+  color: #090d16;
+  font-size: 0.44rem;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .gm-mini-ing.active {
@@ -2798,16 +3586,18 @@ body.tycoon-playing-fullscreen > #app-container > nav.tab-bar {
   position: static;
   max-width: 100%;
   margin-top: auto;
+  padding: 4px 7px;
 }
 
 .gm-head-combo-popup {
   position: absolute;
   left: 50%;
-  top: 10px;
+  top: 12px;
   transform: translateX(-50%);
-  background: rgba(9, 13, 22, 0.85);
-  padding: 3px 10px;
+  background: rgba(9, 13, 22, 0.9);
+  padding: 4px 10px;
   text-align: center;
+  z-index: 12;
 }
 
 .gm-combo-txt {
@@ -2818,7 +3608,7 @@ body.tycoon-playing-fullscreen > #app-container > nav.tab-bar {
 }
 
 .gm-earn-txt {
-  font-size: 0.86rem;
+  font-size: 0.84rem;
   font-weight: 900;
   color: #fde047;
   line-height: 1.1;
@@ -2826,32 +3616,34 @@ body.tycoon-playing-fullscreen > #app-container > nav.tab-bar {
 
 .gm-menu-board-spot {
   position: absolute;
-  left: 22%;
-  bottom: 10%;
+  left: 20%;
+  bottom: 11%;
   transform: translateX(-50%);
-  background: rgba(9, 13, 22, 0.9);
+  background: rgba(9, 13, 22, 0.92);
   color: #fde047;
   font-size: 0.6rem;
   font-weight: 900;
   padding: 3px 8px;
+  z-index: 12;
 }
 
 .gm-menu-popup-mini {
   position: absolute;
   left: 8px;
-  top: 8px;
-  background: rgba(9, 13, 22, 0.9);
+  top: 10px;
+  background: rgba(9, 13, 22, 0.92);
   border: 1px solid #38bdf8;
   border-radius: 8px;
-  padding: 5px 7px;
-  width: 132px;
+  padding: 4px 7px;
+  width: 124px;
   display: flex;
   flex-direction: column;
   gap: 2px;
+  z-index: 11;
 }
 
 .gm-mp-title {
-  font-size: 0.54rem;
+  font-size: 0.52rem;
   font-weight: 900;
   color: #7dd3fc;
   margin-bottom: 1px;
@@ -2860,7 +3652,7 @@ body.tycoon-playing-fullscreen > #app-container > nav.tab-bar {
 .gm-mp-row {
   display: flex;
   justify-content: space-between;
-  font-size: 0.54rem;
+  font-size: 0.52rem;
   color: #e2e8f0;
 }
 

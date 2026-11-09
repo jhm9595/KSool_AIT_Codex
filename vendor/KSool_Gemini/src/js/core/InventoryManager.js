@@ -10,6 +10,7 @@ class InventoryManager {
     this.unlockedRecipeIds = new Set();
     this.purchasedIngredientIds = new Set(); // 상점에서 돈 주고 구매한 기초(Leaf) 재료 ID 집합
     this.unlockedIngredientIds = new Set(); // 현재 사용 가능한 전체 재료 (무료 기초 4종 + 구매한 기초 재료 + 조합 해금 재료)
+    this.ingredientStock = {}; // 조합으로 만들어진 중간 재료들의 보유 재고 맵 { [ingredientId]: count }
     this.unlockedImageRecipeIds = new Set(); // 미니게임 클리어로 그림(아이콘)만 선해금된 레시피 ID 집합
     this.unlockedDescRecipeIds = new Set(); // 복권 긁기 완료로 설명 힌트만 선해금된 레시피 ID 집합
     this.hintProgressByRecipe = {};
@@ -23,16 +24,22 @@ class InventoryManager {
       suggestions: false,
       tycoon: true,
       detailPicker: false,
-      noticeNo3: false,
-      noticeNo6: false
+      noticeStage2: false,
+      noticeStage3: false
     };
     this.unlockAllSandboxMode = false;
+    this.isInitialized = false;
+    this.isLoadCorrupted = false;
+    this.saveBlockedDueToCorruption = false;
   }
 
   init() {
+    this.isLoadCorrupted = false;
+    this.saveBlockedDueToCorruption = false;
     this.unlockedRecipeIds.clear();
     this.purchasedIngredientIds.clear();
     this.unlockedIngredientIds.clear();
+    this.ingredientStock = {};
     this.unlockedImageRecipeIds.clear();
     this.unlockedDescRecipeIds.clear();
     this.unlockedStepId = 1;
@@ -45,11 +52,17 @@ class InventoryManager {
       suggestions: false,
       tycoon: true,
       detailPicker: false,
-      noticeNo3: false,
-      noticeNo6: false
+      noticeStage2: false,
+      noticeStage3: false
     };
 
     const saved = this.storage.loadState();
+    const loadStatus = this.storage.lastLoadStatus || {};
+    this.isLoadCorrupted = Boolean(loadStatus.isCorrupted);
+    if (this.isLoadCorrupted) {
+      this.saveBlockedDueToCorruption = true;
+      console.error('[InventoryManager] Save data corruption detected. Auto-save disabled to protect quarantine.');
+    }
     if (saved) {
       if (typeof saved.userLevel === 'number') this.userLevel = saved.userLevel;
       if (typeof saved.unlockedStepId === 'number') {
@@ -98,10 +111,22 @@ class InventoryManager {
           ...saved.shownTabIntros
         };
       }
+      if (saved.ingredientStock && typeof saved.ingredientStock === 'object' && !Array.isArray(saved.ingredientStock)) {
+        this.ingredientStock = { ...saved.ingredientStock };
+      } else if (this.unlockedRecipeIds.size > 0) {
+        // 기존 세이브 호환: 이미 해금된 조합 재료들은 기본 재고 1개씩 부여하여 잠김 방지
+        for (const rId of this.unlockedRecipeIds) {
+          const unlockedIng = this.recipeBook.getUnlockedIngredientByRecipe(rId);
+          if (unlockedIng) {
+            this.ingredientStock[Number(unlockedIng.ingredient_id)] = 1;
+          }
+        }
+      }
     }
 
     this._syncStepAndIngredients();
     this._recalculateLevel();
+    this.isInitialized = true;
   }
 
   /**
@@ -256,13 +281,15 @@ class InventoryManager {
     return allRecipes.length > 0 && this.unlockedRecipeIds.size >= allRecipes.length;
   }
 
-  setUnlockedStepId(stepId) {
+  setUnlockedStepId(stepId, shouldSave = true) {
     const num = Math.max(1, Math.min(6, Number(stepId) || 1));
     if (num > this.unlockedStepId) {
       this.unlockedStepId = num;
     }
     this._syncStepAndIngredients();
-    this.save();
+    if (shouldSave && this.isInitialized) {
+      this.save();
+    }
   }
 
   _recalculateLevel() {
@@ -290,6 +317,45 @@ class InventoryManager {
     return this.unlockedIngredientIds.has(Number(ingredientId));
   }
 
+  /**
+   * 해당 재료가 조합을 통해 생산되는 중간 조합 재료인지 확인 (Leaf 기초 재료가 아님)
+   */
+  isCraftedIngredient(ingredientId) {
+    if (!this.recipeBook) return false;
+    return !this.recipeBook.isLeafIngredient(ingredientId);
+  }
+
+  /**
+   * 해당 재료의 현재 가용/보유 재고 수량 반환 (기초 재료는 Infinity)
+   */
+  getIngredientStock(ingredientId) {
+    const id = Number(ingredientId);
+    if (!this.isCraftedIngredient(id) || this.unlockAllSandboxMode) return Infinity;
+    if (!this.unlockedIngredientIds.has(id)) return 0;
+    return typeof this.ingredientStock[id] === 'number' ? Math.max(0, this.ingredientStock[id]) : 0;
+  }
+
+  /**
+   * 조합 성공 시 생산된 중간 재료 재고 1개 추가
+   */
+  addIngredientStock(ingredientId, amount = 1) {
+    const id = Number(ingredientId);
+    if (!this.isCraftedIngredient(id)) return;
+    this.ingredientStock[id] = (this.ingredientStock[id] || 0) + Math.max(1, Number(amount) || 1);
+    this.save();
+  }
+
+  /**
+   * 다음 레시피 조합 시 소모된 중간 재료 재고 차감
+   */
+  consumeIngredientStock(ingredientId, amount = 1) {
+    const id = Number(ingredientId);
+    if (!this.isCraftedIngredient(id)) return;
+    const current = this.ingredientStock[id] || 0;
+    this.ingredientStock[id] = Math.max(0, current - (Number(amount) || 1));
+    this.save();
+  }
+
   _getRecipeNumber(recipeId) {
     const rId = Number(recipeId);
     if (this.recipeBook) {
@@ -305,6 +371,17 @@ class InventoryManager {
     return 999;
   }
 
+  _getRecipeStepId(recipeId) {
+    const rId = Number(recipeId);
+    if (this.recipeBook) {
+      const rec = this.recipeBook.getRecipe(rId);
+      if (rec && typeof rec.step_id === 'number') {
+        return rec.step_id;
+      }
+    }
+    return 999;
+  }
+
   isRecipeUnlocked(recipeId) {
     if (this._forceTutorialLockedRecipe12 && Number(recipeId) === 12) return false;
     if (this.unlockAllSandboxMode) return true;
@@ -315,8 +392,9 @@ class InventoryManager {
     if (this._forceTutorialLockedHintPreview && Number(recipeId) === 12) return false;
     if (this.unlockAllSandboxMode) return true;
     const rId = Number(recipeId);
-    // No.01 ~ No.04 (얼음, 탄산수, 칠성사이다, 레모네이드)은 외형 그림 기본 공개
-    if (this._getRecipeNumber(rId) <= 4) return true;
+    // STAGE 1 (길거리 노점, step_id === 1, No.01 ~ No.18) 레시피는 외형 그림 기본 공개
+    // STAGE 2 (이모네 포장마차, step_id >= 2)부터는 미니게임을 클리어해야 외형 그림 확인 가능!
+    if (this._getRecipeStepId(rId) <= 1) return true;
     return this.unlockedRecipeIds.has(rId) || this.unlockedImageRecipeIds.has(rId);
   }
 
@@ -332,8 +410,9 @@ class InventoryManager {
     if (this._forceTutorialLockedHintPreview && Number(recipeId) === 12) return false;
     if (this.unlockAllSandboxMode) return true;
     const rId = Number(recipeId);
-    // No.01 ~ No.04는 설명 힌트 기본 공개 (No.05부터는 은박지 복권을 긁어야 힌트 확인 가능!)
-    if (this._getRecipeNumber(rId) <= 4) return true;
+    // STAGE 1 ~ STAGE 2 (길거리 노점·이모네 포장마차, step_id <= 2, No.01 ~ No.37)까지는 설명 힌트 기본 공개
+    // STAGE 3 (동네 목조 주막, step_id >= 3, No.38~)부터는 은박지 복권을 긁어야 설명 힌트 확인 가능!
+    if (this._getRecipeStepId(rId) <= 2) return true;
     return this.unlockedRecipeIds.has(rId) || this.unlockedDescRecipeIds.has(rId);
   }
 
@@ -365,6 +444,24 @@ class InventoryManager {
     if (recipe.requires_detail_ingredient && !stepConfig.allowDetailPicker) return false;
 
     return true;
+  }
+
+  /**
+   * 현재 보유(무료+상점 구매+조합 해금)한 재료들로 지금 당장 조합해 해금할 수 있는 미해금 레시피 목록을 반환합니다.
+   * @param {boolean} onlyPurchasedShopIngs 상점에서 돈 주고 구매한 재료(purchasedIngredientIds)가 포함된 미해금 레시피만 우선 체크할지 여부
+   */
+  getChallengeableLockedRecipes(onlyPurchasedShopIngs = false) {
+    if (!this.recipeBook || this.unlockAllSandboxMode) return [];
+    const all = this.recipeBook.getAllRecipes();
+    const challengeableLocked = all.filter(
+      r => !this.isRecipeUnlocked(r.recipe_id) && this.isRecipeChallengeable(r)
+    );
+    if (!onlyPurchasedShopIngs) return challengeableLocked;
+
+    return challengeableLocked.filter(r => {
+      const reqItems = this.recipeBook.getRecipeItems(r.recipe_id) || [];
+      return reqItems.some(it => this.purchasedIngredientIds.has(Number(it.ingredient_id)));
+    });
   }
 
   /**
@@ -471,6 +568,7 @@ class InventoryManager {
   isTabUnlocked(tabKey) {
     if (tabKey === 'tycoon') return true;
     if (tabKey === 'brew') return true;
+    if (tabKey === 'shop') return true;
     if (tabKey === 'collection') return true;
     if (tabKey === 'party') return true;
     if (tabKey === 'fridge') return true;
@@ -489,6 +587,14 @@ class InventoryManager {
   }
 
   save() {
+    if (!this.isInitialized) {
+      console.warn('[InventoryManager] save() blocked: inventory not yet initialized.');
+      return;
+    }
+    if (this.saveBlockedDueToCorruption) {
+      console.warn('[InventoryManager] save() blocked: previous save was corrupted and quarantined.');
+      return;
+    }
     this.storage.saveState({
       userLevel: this.userLevel,
       unlockedStepId: this.unlockedStepId,
@@ -499,6 +605,7 @@ class InventoryManager {
       unlockedDescRecipeIds: Array.from(this.unlockedDescRecipeIds),
       hintProgressByRecipe: this.hintProgressByRecipe,
       promotedCustomRecipes: this.promotedCustomRecipes,
+      ingredientStock: { ...this.ingredientStock },
       craftFailCount: this.craftFailCount,
       hasSeenIntroStory: this.hasSeenIntroStory,
       hasSeenIntroTutorial: this.hasSeenIntroTutorial,

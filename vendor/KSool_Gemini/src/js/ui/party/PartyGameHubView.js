@@ -25,7 +25,7 @@ class PartyGameHubView {
 
     // 10대 술게임 메타데이터 목록 (해금률 및 필요 조건 순서대로 정렬)
     // 0%: 기본 즉시 플레이 가능 (7종)
-    // 10%: 주조실 소주·맥주 기본 재료 해금 (1종)
+    // 10%: 연구실 소주·맥주 기본 재료 해금 (1종)
     // 50%: 도감 레시피 50% 이상 달성 (2종)
     this.gamesList = [
       {
@@ -391,7 +391,7 @@ class PartyGameHubView {
       let missing = [];
       if (!hasSoju) missing.push('🍶 소주');
       if (!hasBeer) missing.push('🍺 맥주');
-      return `🔒 [랜덤 벌칙주 제조기]\n주조실에서 ${missing.join(', ')}를 해금하면 열립니다!`;
+      return `🔒 [랜덤 벌칙주 제조기]\n연구실에서 ${missing.join(', ')}를 해금하면 열립니다!`;
     }
     if (gameKey === 'fridge') {
       const ratio = inv && typeof inv.getUnlockProgressRatio === 'function' ? inv.getUnlockProgressRatio() : 0;
