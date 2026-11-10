@@ -141,6 +141,16 @@ class KSoolApp {
       });
     }
 
+    this.currentMode = (typeof localStorage !== 'undefined' ? localStorage.getItem('ksool_active_mode') : null) || 'TYCOON';
+    this.friendHelpPayload = null;
+    this.friendHelpService = window.KSool?.FriendHelpService ? new window.KSool.FriendHelpService() : null;
+    if (window.KSool?.ModeSelectPortalView) {
+      this.modeSelectPortalView = new window.KSool.ModeSelectPortalView('mode-portal-modal', {
+        app: this,
+        audio: this.audio
+      });
+    }
+
     this.currentTab = 'tycoon';
     this.brewMode = 'QUIZ'; // 'QUIZ' (단계별 연구 모드) | 'SHOP' (재료 상점)
     this.quizTargetRecipeId = null;
@@ -152,24 +162,9 @@ class KSoolApp {
 
   async init() {
     const bundleData = await this._loadHybridData();
+    this._cachedBundleData = bundleData;
     // 1. 먼저 RecipeBook에 마스터 데이터를 로드해야 단계(Step) 및 넘버링을 계산할 수 있음
     this.recipeBook.load(bundleData, []);
-    // 2. InventoryManager 초기화 (현재 Step 이하의 기초 재료 및 해금 재료 동기화)
-    this.inventory.init();
-    if (this.inventory.promotedCustomRecipes.length > 0) {
-      this.recipeBook.load(bundleData, this.inventory.promotedCustomRecipes);
-      this.inventory._syncStepAndIngredients();
-    }
-    if (this.tycoonView && this.tycoonView.engine) {
-      this.tycoonView.engine._syncInventoryStepWithStages();
-    }
-    this.inventory.save();
-    this.suggestionService.init();
-    this.suggestionService.onSuggestionsUpdated = () => this.suggestionBoardView?.render();
-    this.fridgeEngine.init();
-
-    const nextQuiz = this.inventory.getNextQuizRecipe();
-    this.quizTargetRecipeId = nextQuiz ? nextQuiz.recipe_id : 11;
 
     this._bindGlobalEvents();
 
@@ -181,29 +176,145 @@ class KSoolApp {
       }
     }, { passive: false });
 
-    this.renderAll();
-
-    // 초기 로딩/새로고침 시에는 해금 탭 상태만 동기화하고, 팝업 큐는 실행하지 않습니다.
-    this._checkProgressiveTabUnlocks(false);
-
     // URL 해시(#party/updown, #tycoon 등) 딥링크 처리
     const hasHashRoute = Boolean(window.location.hash && window.location.hash !== '#' && window.location.hash !== '#/');
     this._handleHashRouting();
     window.addEventListener('hashchange', () => this._handleHashRouting());
 
-    // 최초 접속 시 프롤로그 스토리(3컷) + 가이드 튜토리얼(4컷) 자동 오픈
-    if (!hasHashRoute && !this.inventory.hasSeenIntroStory && this.storyTutorialModalView) {
-      setTimeout(() => {
-        this.storyTutorialModalView.openIntroFlow(() => {
-          if (this.inventory.unlockedRecipeIds.size === 0) {
-            this.switchTab('brew');
-            this.showToast('🔬 먼저 연구실에서 무료 재료로 첫 판매 음료(No.01 얼음)를 해금해보세요!');
-          } else {
-            this.renderAll();
-          }
-        });
-      }, 120);
+    // 2. 친구에게 도움요청 (?help=...) 딥링크 확인
+    let isFriendHelp = false;
+    if (typeof window !== 'undefined' && window.location && window.location.search && this.friendHelpService) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const helpParam = urlParams.get('help');
+      if (helpParam) {
+        const payload = this.friendHelpService.decodeHelpPayload(helpParam);
+        if (payload) {
+          isFriendHelp = true;
+          this._initFriendHelpMode(payload);
+        }
+      }
     }
+
+    // 3. 일반 접속: 첫 진입자에게 2대 모드 선택 포털 화면 오픈, 기존 유저는 이전 모드 복원
+    if (!isFriendHelp) {
+      const savedMode = typeof localStorage !== 'undefined' ? localStorage.getItem('ksool_active_mode') : null;
+      if (!savedMode) {
+        // 첫 진입: 모드 선택 포털 오픈
+        this.storage.setMode('TYCOON');
+        this.inventory.init();
+        if (this.modeSelectPortalView) {
+          this.modeSelectPortalView.open((chosenMode) => {
+            this.selectGameMode(chosenMode, true);
+          });
+        } else {
+          this.selectGameMode('TYCOON', false);
+        }
+      } else {
+        this.selectGameMode(savedMode, false);
+      }
+    }
+
+    this.suggestionService.init();
+    this.suggestionService.onSuggestionsUpdated = () => this.suggestionBoardView?.render();
+    this.fridgeEngine.init();
+  }
+
+  /**
+   * 🌟 게임 모드 전환 (K-술 조합 퀴즈 모드 <-> 주점 타이쿤 모드)
+   * - 두 모드의 로컬스토리지 데이터는 완전히 분리되어 상호 간섭이 없습니다!
+   */
+  selectGameMode(mode, fromUserClick = false) {
+    if (mode !== 'QUIZ' && mode !== 'TYCOON') mode = 'TYCOON';
+    this.currentMode = mode;
+    try {
+      localStorage.setItem('ksool_active_mode', mode);
+    } catch (_) {}
+
+    // 1. 스토리지 키 분리 적용
+    this.storage.setMode(mode);
+
+    // 2. 해당 모드의 독립 세이브 데이터로 인벤토리 재동기화
+    this.inventory.isQuizMode = (mode === 'QUIZ');
+    this.inventory.init();
+    if (this._cachedBundleData && this.inventory.promotedCustomRecipes.length > 0) {
+      this.recipeBook.load(this._cachedBundleData, this.inventory.promotedCustomRecipes);
+      this.inventory._syncStepAndIngredients();
+    }
+
+    // 3. 모드별 UI 및 탭바 동기화
+    if (mode === 'QUIZ') {
+      this.inventory.syncQuizModeStageIngredients();
+      this._updateTabBarForMode('QUIZ');
+      const nextQuiz = this.inventory.getNextQuizRecipe();
+      this.quizTargetRecipeId = nextQuiz ? nextQuiz.recipe_id : 11;
+      this.switchTab('brew');
+    } else {
+      if (this.tycoonView && this.tycoonView.engine) {
+        this.tycoonView.engine._syncInventoryStepWithStages();
+      }
+      this._updateTabBarForMode('TYCOON');
+      this.switchTab('tycoon');
+
+      if (fromUserClick && !this.inventory.hasSeenIntroStory && this.storyTutorialModalView) {
+        setTimeout(() => {
+          this.storyTutorialModalView.openIntroFlow();
+        }, 120);
+      }
+    }
+
+    this.renderAll();
+  }
+
+  /**
+   * 탭바 네비게이션을 현재 모드에 맞게 제어
+   * - 퀴즈 모드: 점포(타이쿤) 및 재료상점 탭 숨김 처리 (조합 퀴즈 연구실 + 도감·힌트 + 술게임 유지)
+   * - 타이쿤 모드: 점포, 연구실, 재료상점, 도감, 술게임 전체 노출
+   */
+  _updateTabBarForMode(mode) {
+    const tycoonTabBtn = document.querySelector('.tab-btn[data-tab-target="tycoon"]');
+    const shopTabBtn = document.querySelector('.tab-btn[data-tab-target="shop"]');
+    if (mode === 'QUIZ') {
+      if (tycoonTabBtn) tycoonTabBtn.style.display = 'none';
+      if (shopTabBtn) shopTabBtn.style.display = 'none';
+    } else {
+      if (tycoonTabBtn) tycoonTabBtn.style.display = '';
+      if (shopTabBtn) shopTabBtn.style.display = '';
+    }
+  }
+
+  /**
+   * 🤝 친구 도움요청 SOS 샌드박스 세션 초기화
+   * - 친구의 로컬스토리지 데이터를 전혀 건드리지 않고 휘발성 메모리 샌드박스로 실행
+   */
+  _initFriendHelpMode(payload) {
+    this.currentMode = 'HELP_FRIEND';
+    this.friendHelpPayload = payload;
+    this.storage.setMode('HELP_FRIEND');
+
+    this.inventory.isQuizMode = true;
+    this.inventory.init();
+
+    const targetRec = this.recipeBook.getRecipe(payload.recipeId);
+    if (targetRec && targetRec.step_id) {
+      this.inventory.unlockedStepId = Math.max(this.inventory.unlockedStepId, Number(targetRec.step_id));
+    }
+
+    // 친구 도움 모드: 질문자가 소유한 기초 재료만 노출
+    this.inventory.unlockedRecipeIds.clear();
+    this.inventory.purchasedIngredientIds.clear();
+    if (Array.isArray(payload.leafIngIds)) {
+      for (const id of payload.leafIngIds) {
+        this.inventory.purchasedIngredientIds.add(Number(id));
+      }
+    }
+    this.inventory._syncStepAndIngredients();
+
+    this.quizTargetRecipeId = Number(payload.recipeId);
+    this._updateTabBarForMode('QUIZ');
+    this.switchTab('brew');
+    this.renderAll();
+
+    this.showToast(`🤝 [${payload.sharerName}]님의 SOS 도착!\n친구가 가진 재료로 문제를 풀어주세요!`);
   }
 
   /**
@@ -517,11 +628,50 @@ class KSoolApp {
     const items = this.recipeBook.getRecipeItems(recipeId);
     if (!items || items.length === 0) return;
 
-    const missingIng = items.find(it => !this.inventory.isIngredientAvailable(it.ingredient_id));
-    if (missingIng) {
-      this.switchTab('shop');
-      this.showToast('🛒 아직 보유하지 않은 재료가 포함되어 있습니다! [🛒 재료상점] 탭에서 먼저 재료를 준비해주세요.');
-      return;
+    // 상세 진단 실행: 조합 미해금, 재고 부족, 상점 미구매를 구분
+    const missingDiag = this.inventory.getRecipeMissingRequirements(recipeId);
+    if (!missingDiag.isReady) {
+      if (missingDiag.missingCrafted.length > 0) {
+        const item = missingDiag.missingCrafted[0];
+        const ingName = item.ingredient ? this.brandResolver.resolveName(item.ingredient) : '재료';
+        const producerRec = item.producerRecipe;
+        this.audio.playFail();
+        if (producerRec) {
+          const prodName = this.brandResolver.resolveName(producerRec);
+          this.showToast(`🧪 선행 조합 재료인 '${ingName}'을(를) 먼저 [No.${String(producerRec.recipe_number).padStart(2, '0')} ${prodName}]에서 조합해주세요!`);
+          this.quizTargetRecipeId = producerRec.recipe_id;
+          this.currentTab = 'brew';
+          this.renderAll();
+        } else {
+          this.showToast(`🧪 선행 조합 재료인 '${ingName}'의 레시피를 먼저 연구실에서 조합해주세요!`);
+        }
+        return;
+      }
+
+      if (missingDiag.outOfStockCrafted.length > 0) {
+        const item = missingDiag.outOfStockCrafted[0];
+        const ingName = item.ingredient ? this.brandResolver.resolveName(item.ingredient) : '재료';
+        const producerRec = item.producerRecipe;
+        this.audio.playFail();
+        if (producerRec) {
+          const prodName = this.brandResolver.resolveName(producerRec);
+          this.showToast(`⚠️ '${ingName}'의 재고가 부족합니다! (필요: ${item.requiredCount}개 / 보유: ${item.stock}개)\n[No.${String(producerRec.recipe_number).padStart(2, '0')} ${prodName}]에서 먼저 조합해주세요!`);
+          this.quizTargetRecipeId = producerRec.recipe_id;
+          this.currentTab = 'brew';
+          this.renderAll();
+        } else {
+          this.showToast(`⚠️ '${ingName}'의 재고가 부족합니다! 연구실에서 먼저 조합해주세요.`);
+        }
+        return;
+      }
+
+      if (missingDiag.missingShop.length > 0) {
+        const item = missingDiag.missingShop[0];
+        const ingName = item.ingredient ? this.brandResolver.resolveName(item.ingredient) : '재료';
+        this.switchTab('shop');
+        this.showToast(`🛒 아직 보유하지 않은 재료 '${ingName}'이(가) 포함되어 있습니다! [🛒 재료상점] 탭에서 먼저 준비해주세요.`);
+        return;
+      }
     }
 
     if (items.length > this.config.maxUniqueSlots) {
@@ -611,14 +761,20 @@ class KSoolApp {
     const totalCount = allRecipes.length;
     const nextUnsolved = this.inventory.getNextQuizRecipe();
 
-    const navigableRecipes = allRecipes.filter(
-      r =>
-        this.inventory.isRecipeUnlocked(r.recipe_id) ||
-        this.inventory.isRecipeChallengeable(r) ||
-        Number(r.step_id) <= this.inventory.unlockedStepId
-    );
-    if (navigableRecipes.length === 0 && allRecipes.length > 0) {
-      navigableRecipes.push(allRecipes[0]);
+    let navigableRecipes;
+    if (this.currentMode === 'HELP_FRIEND') {
+      const fixedRec = this.recipeBook.getRecipe(this.quizTargetRecipeId);
+      navigableRecipes = fixedRec ? [fixedRec] : [];
+    } else {
+      navigableRecipes = allRecipes.filter(
+        r =>
+          this.inventory.isRecipeUnlocked(r.recipe_id) ||
+          this.inventory.isRecipeChallengeable(r) ||
+          Number(r.step_id) <= this.inventory.unlockedStepId
+      );
+      if (navigableRecipes.length === 0 && allRecipes.length > 0) {
+        navigableRecipes.push(allRecipes[0]);
+      }
     }
 
     let targetRec = this.recipeBook.getRecipe(this.quizTargetRecipeId);
@@ -645,14 +801,59 @@ class KSoolApp {
     const showHintBtn = !isUnlocked && isCollectionUnlocked;
     const needsShopMaterials = !isUnlocked && !isChallengeable;
 
-    let descAreaHtml = '';
-    if (needsShopMaterials) {
-      descAreaHtml = `
-        <button type="button" class="quiz-shop-needed-banner" id="quiz-go-shop-chip-btn" title="클릭하여 재료상점으로 이동">
-          <span>🛒 아직 보유하지 않은 재료(구매 또는 이전 번호 해금)가 필요합니다!</span>
-          <b>재료상점 탭 보기 ▸</b>
+    let sosBannerHtml = '';
+    if (this.currentMode === 'HELP_FRIEND') {
+      const sharer = this.friendHelpPayload?.sharerName || '친구';
+      sosBannerHtml = `
+        <div class="friend-sos-banner">
+          <div class="friend-sos-title">🤝 [${sharer}]님의 SOS 도움 요청</div>
+          <div class="friend-sos-desc">친구가 보유한 재료로 대신 문제를 풀어주고 있습니다. (임시 풀이 샌드박스)</div>
+          <button type="button" class="friend-sos-exit-btn" id="sos-exit-btn">❌ 나가기 (내 게임으로)</button>
+        </div>
+      `;
+    }
+
+    let sosShareBtnHtml = '';
+    if (!isUnlocked && this.friendHelpService && this.currentMode !== 'HELP_FRIEND') {
+      sosShareBtnHtml = `
+        <button type="button" class="quiz-sos-share-btn" id="quiz-sos-share-btn" title="친구에게 이 문제 링크를 보내 도움 요청하기">
+          💌 친구에게 도움요청
         </button>
       `;
+    }
+
+    const missingDiag = !isUnlocked ? this.inventory.getRecipeMissingRequirements(targetRec.recipe_id) : null;
+    let descAreaHtml = '';
+    if (needsShopMaterials) {
+      if (missingDiag && missingDiag.missingCrafted.length > 0) {
+        const item = missingDiag.missingCrafted[0];
+        const ingName = item.ingredient ? this.brandResolver.resolveName(item.ingredient) : '재료';
+        const prodRec = item.producerRecipe;
+        const prodLabel = prodRec ? `[No.${String(prodRec.recipe_number).padStart(2, '0')} ${this.brandResolver.resolveName(prodRec)}]` : '선행 레시피';
+        descAreaHtml = `
+          <button type="button" class="quiz-shop-needed-banner" id="quiz-go-producer-btn" data-jump-recipe-id="${prodRec ? prodRec.recipe_id : ''}" title="클릭하여 선행 조합 레시피로 이동" style="border-color:#38bdf8; background:rgba(14,165,233,0.12); color:#38bdf8;">
+            <span>🧪 선행 조합 재료인 '${ingName}'을(를) 먼저 ${prodLabel}에서 조합해야 합니다!</span>
+            <b>선행 연구로 이동 ▸</b>
+          </button>
+        `;
+      } else if (missingDiag && missingDiag.outOfStockCrafted.length > 0) {
+        const item = missingDiag.outOfStockCrafted[0];
+        const ingName = item.ingredient ? this.brandResolver.resolveName(item.ingredient) : '재료';
+        const prodRec = item.producerRecipe;
+        descAreaHtml = `
+          <button type="button" class="quiz-shop-needed-banner" id="quiz-go-producer-btn" data-jump-recipe-id="${prodRec ? prodRec.recipe_id : ''}" title="클릭하여 선행 조합 레시피로 이동" style="border-color:#fbbf24; background:rgba(245,158,11,0.12); color:#fbbf24;">
+            <span>⚠️ '${ingName}'의 재고가 부족합니다! (필요: ${item.requiredCount}개 / 보유: ${item.stock}개)</span>
+            <b>재료 조합하러 가기 ▸</b>
+          </button>
+        `;
+      } else {
+        descAreaHtml = `
+          <button type="button" class="quiz-shop-needed-banner" id="quiz-go-shop-chip-btn" title="클릭하여 재료상점으로 이동">
+            <span>🛒 아직 보유하지 않은 재료(상점 구매 필요)가 포함되어 있습니다!</span>
+            <b>재료상점 탭 보기 ▸</b>
+          </button>
+        `;
+      }
     } else {
       descAreaHtml = `
         <div class="quiz-desc-text">
@@ -699,6 +900,7 @@ class KSoolApp {
     }
 
     container.innerHTML = `
+      ${sosBannerHtml}
       <div class="brew-quiz-card">
         <div class="quiz-question-row">
           <div class="quiz-icon-col">
@@ -723,6 +925,7 @@ class KSoolApp {
               </div>
             </div>
             ${descAreaHtml}
+            ${sosShareBtnHtml}
           </div>
         </div>
       </div>
@@ -732,6 +935,33 @@ class KSoolApp {
   }
 
   _bindBrewQuizEvents(container, navigableRecipes, targetRec) {
+    const sosExitBtn = container.querySelector('#sos-exit-btn');
+    if (sosExitBtn) {
+      sosExitBtn.onclick = () => {
+        this.audio?.playTap?.();
+        if (typeof window !== 'undefined' && window.history && window.location) {
+          window.history.replaceState({}, '', window.location.pathname);
+        }
+        const savedMode = (typeof localStorage !== 'undefined' ? localStorage.getItem('ksool_active_mode') : null) || 'TYCOON';
+        this.selectGameMode(savedMode, false);
+      };
+    }
+
+    const quizSosShareBtn = container.querySelector('#quiz-sos-share-btn');
+    if (quizSosShareBtn && targetRec) {
+      quizSosShareBtn.onclick = async () => {
+        this.audio?.playTap?.();
+        const leafIngIds = Array.from(this.inventory.purchasedIngredientIds || []);
+        const shareData = {
+          recipeId: targetRec.recipe_id,
+          recipeNumber: targetRec.recipe_number,
+          recipeName: this.brandResolver.resolveName(targetRec),
+          sharerName: this.inventory.playerName || '주점 주인장',
+          leafIngIds: leafIngIds
+        };
+        await this.friendHelpService.shareHelp(shareData, (msg) => this.showToast(msg));
+      };
+    }
     const jumpBtn = container.querySelector('#quiz-jump-btn');
     if (jumpBtn) {
       jumpBtn.onclick = () => {
@@ -745,6 +975,18 @@ class KSoolApp {
       quizShopBannerBtn.onclick = () => {
         this.audio.playTap();
         this.switchTab('shop');
+      };
+    }
+
+    const quizProducerBannerBtn = container.querySelector('#quiz-go-producer-btn');
+    if (quizProducerBannerBtn) {
+      quizProducerBannerBtn.onclick = () => {
+        const jumpId = Number(quizProducerBannerBtn.getAttribute('data-jump-recipe-id'));
+        this.audio.playTap();
+        if (jumpId) {
+          this.quizTargetRecipeId = jumpId;
+          this._renderBrewStepQuizBar();
+        }
       };
     }
 
@@ -979,8 +1221,6 @@ class KSoolApp {
 
     // 기본적으로 최소 4칸을 보여주되, 4칸 이상 담기면 동적으로 계속 늘어남
     const displaySlotCount = Math.max(this.config.maxUniqueSlots, slots.length + (this.config.unlimitedSlotsMode ? 1 : 0));
-    const stepConfig = this.inventory ? this.inventory.getCurrentStepConfig() : null;
-    const canIncreaseQty = stepConfig ? (stepConfig.maxCountPerSlot > 1) : true;
 
     const html = [];
     for (let i = 0; i < displaySlotCount; i++) {
@@ -991,23 +1231,14 @@ class KSoolApp {
         const target = detIng || baseIng;
         const name = this.brandResolver.resolveName(target);
         const detailBadge = detIng ? `<span class="slot-detail-tag">특산</span>` : '';
-
-        const plusDisabledAttr = !canIncreaseQty ? 'disabled' : '';
-        const plusStyle = canIncreaseQty
-          ? 'width:17px; height:17px; border-radius:50%; background:#2563eb; border:1px solid #60a5fa; color:#ffffff; font-size:11px; font-weight:900; display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0; line-height:1;'
-          : 'width:17px; height:17px; border-radius:50%; background:#334155; border:1px solid #475569; color:#94a3b8; font-size:11px; font-weight:900; display:flex; align-items:center; justify-content:center; cursor:not-allowed; opacity:0.35; padding:0; line-height:1;';
-        const plusTitle = canIncreaseQty ? '수량 1개 증가' : '비율 조절 해금(4단계 비어 펍부터) 후 수량을 늘릴 수 있습니다';
+        const countBadge = slot.count > 1 ? `<span class="slot-count-badge" title="가마솥 투입 수량">${slot.count}</span>` : '';
 
         html.push(`
-          <div class="pot-slot filled" data-pot-slot-idx="${i}" title="${name} (수량: ${slot.count}개)">
+          <div class="pot-slot filled" data-pot-slot-idx="${i}" title="${name} (수량: ${slot.count}개 · 클릭하면 개수가 1 줄어듭니다)">
             ${detailBadge}
             <span class="slot-emoji">${target ? (window.KSool?.pixelIcon ? window.KSool.pixelIcon(target, 28) : target.emoji) : '🍶'}</span>
             <span class="slot-name">${name}</span>
-            <div class="slot-qty-stepper" style="display:inline-flex; align-items:center; gap:2px; margin-top:2px; z-index:4;">
-              <button type="button" class="slot-stepper-btn minus" data-slot-dec-idx="${i}" title="수량 1개 감소" style="width:17px; height:17px; border-radius:50%; background:#334155; border:1px solid #475569; color:#f8fafc; font-size:11px; font-weight:900; display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0; line-height:1;">-</button>
-              <span class="slot-stepper-num" style="min-width:14px; text-align:center; font-size:0.75rem; font-weight:900; color:#f59e0b;">${slot.count}</span>
-              <button type="button" class="slot-stepper-btn plus" data-slot-inc-idx="${i}" title="${plusTitle}" ${plusDisabledAttr} style="${plusStyle}">+</button>
-            </div>
+            ${countBadge}
           </div>
         `);
       } else {
@@ -1022,55 +1253,7 @@ class KSoolApp {
 
     slotsGrid.innerHTML = html.join('');
 
-    // 슬롯 Stepper 마이너스 (-) 버튼: 수량 1 감소
-    slotsGrid.querySelectorAll('[data-slot-dec-idx]').forEach(btn => {
-      btn.onclick = (e) => {
-        e.stopPropagation();
-        this._clearMixBtnAlert();
-        const idx = Number(btn.getAttribute('data-slot-dec-idx'));
-        this.craftingPot.decrementSlot(idx);
-        this.audio.playTap();
-        this._renderPotSlots();
-        this._updateIngredientsPotBadges();
-        this.suggestionBoardView.render();
-      };
-    });
-
-    // 슬롯 Stepper 플러스 (+) 버튼: 수량 1 증가
-    slotsGrid.querySelectorAll('[data-slot-inc-idx]').forEach(btn => {
-      btn.onclick = (e) => {
-        e.stopPropagation();
-        this._clearMixBtnAlert();
-        const idx = Number(btn.getAttribute('data-slot-inc-idx'));
-        const slot = this.craftingPot.getSlots()[idx];
-        if (slot && this.inventory.isCraftedIngredient(slot.baseId)) {
-          const totalStock = this.inventory.getIngredientStock(slot.baseId);
-          const inPot = this.craftingPot.getSlots()
-            .filter(s => s.baseId === slot.baseId)
-            .reduce((sum, s) => sum + s.count, 0);
-          if (inPot >= totalStock) {
-            this.audio.playFail();
-            const ing = this.recipeBook.getBaseIngredient(slot.baseId);
-            const name = ing ? this.brandResolver.resolveName(ing) : '재료';
-            this.showToast(`⚠️ '${name}'의 재고가 부족합니다! (보유: ${totalStock}개)`);
-            return;
-          }
-        }
-        const stepConfig = this.inventory.getCurrentStepConfig();
-        const incRes = this.craftingPot.incrementSlot(idx, stepConfig);
-        if (!incRes.ok) {
-          this.audio.playFail();
-          this.showToast(incRes.message || '더 이상 수량을 늘릴 수 없습니다.');
-          return;
-        }
-        this.audio.playTap();
-        this._renderPotSlots();
-        this._updateIngredientsPotBadges();
-        this.suggestionBoardView.render();
-      };
-    });
-
-    // 슬롯 카드 전체 클릭: 기본적으로 수량 1 감소 (또는 제거)
+    // 슬롯 카드 전체 클릭: 수량 1 감소 (0개 되면 슬롯 제거)
     slotsGrid.querySelectorAll('[data-pot-slot-idx]').forEach(el => {
       el.onclick = () => {
         this._clearMixBtnAlert();
@@ -1120,20 +1303,9 @@ class KSoolApp {
   }
 
   _createIngredientCardHtml(ing, potSlots = []) {
-    const isCrafted = this.inventory.isCraftedIngredient(ing.ingredient_id);
     const inPotCount = potSlots
       .filter(s => s.baseId === ing.ingredient_id)
       .reduce((acc, s) => acc + s.count, 0);
-
-    let stockBadgeHtml = '';
-    let isDisabled = false;
-
-    if (isCrafted) {
-      const totalStock = this.inventory.getIngredientStock(ing.ingredient_id);
-      const availableStock = Math.max(0, totalStock - inPotCount);
-      isDisabled = availableStock === 0;
-      stockBadgeHtml = `<span class="ing-stock-badge ${isDisabled ? 'zero' : ''}">${availableStock}</span>`;
-    }
 
     const details = this.recipeBook.getDetailsForBase(ing.ingredient_id);
     const hasCustomPicker =
@@ -1153,12 +1325,11 @@ class KSoolApp {
     const name = this.brandResolver.resolveName(ing);
 
     return `
-        <div class="ing-card ${inPotCount > 0 ? 'in-pot' : ''} ${hasCustomPicker ? 'has-picker' : ''} ${isDisabled ? 'is-disabled' : ''}"
+        <div class="ing-card ${inPotCount > 0 ? 'in-pot' : ''} ${hasCustomPicker ? 'has-picker' : ''}"
              data-base-ing-id="${ing.ingredient_id}"
-             ${isDisabled ? 'aria-disabled="true"' : ''}
-             title="${isDisabled ? `${name} (재고 없음 - 직접 조합 필요)` : `${name} (클릭하여 가마솥에 담기)`}">
-          ${stockBadgeHtml}
+             title="${name} (클릭하여 가마솥에 담기)">
           ${pickerLabel ? `<button type="button" class="ing-picker-btn" data-open-detail-picker="${ing.ingredient_id}" title="상세 재료 선택 팝업 열기">${pickerLabel} ▾</button>` : ''}
+          ${inPotCount > 1 ? `<span class="slot-count-badge" title="가마솥 투입 비율">${inPotCount}</span>` : ''}
           <span class="ing-emoji">${window.KSool?.pixelIcon ? window.KSool.pixelIcon(ing, 32) : ing.emoji}</span>
           <span class="ing-name">${name}</span>
         </div>
@@ -1204,13 +1375,6 @@ class KSoolApp {
       const card = e.target.closest('[data-base-ing-id]');
       if (card) {
         const baseId = Number(card.getAttribute('data-base-ing-id'));
-        if (card.classList.contains('is-disabled')) {
-          this.audio.playFail();
-          const ing = this.recipeBook.getBaseIngredient(baseId);
-          const name = ing ? this.brandResolver.resolveName(ing) : '재료';
-          this.showToast(`⚠️ '${name}'의 재고가 없습니다! 연구실에서 먼저 조합해주세요.`);
-          return;
-        }
         this._addIngredientToPot(baseId, null);
       }
     });
@@ -1231,22 +1395,17 @@ class KSoolApp {
       const inPotCount = countMap.get(id) || 0;
       card.classList.toggle('in-pot', inPotCount > 0);
 
-      const isCrafted = this.inventory.isCraftedIngredient(id);
-      if (isCrafted) {
-        const totalStock = this.inventory.getIngredientStock(id);
-        const availableStock = Math.max(0, totalStock - inPotCount);
-        const isDisabled = availableStock === 0;
-        card.classList.toggle('is-disabled', isDisabled);
-        card.setAttribute('aria-disabled', isDisabled ? 'true' : 'false');
-
-        let badge = card.querySelector('.ing-stock-badge');
-        if (!badge) {
-          badge = document.createElement('span');
-          badge.className = 'ing-stock-badge';
-          card.prepend(badge);
+      let countBadge = card.querySelector('.slot-count-badge');
+      if (inPotCount > 1) {
+        if (!countBadge) {
+          countBadge = document.createElement('span');
+          countBadge.className = 'slot-count-badge';
+          countBadge.title = '가마솥 투입 비율';
+          card.appendChild(countBadge);
         }
-        badge.textContent = availableStock;
-        badge.classList.toggle('zero', isDisabled);
+        countBadge.textContent = inPotCount;
+      } else if (countBadge) {
+        countBadge.remove();
       }
     });
   }
@@ -1368,9 +1527,6 @@ class KSoolApp {
       </div>
 
       <div class="shop-scroll-body">
-        <div class="lab-shop-starter-banner">
-          <span>🎁 <b>기본 무료 지급 재료 (5종)</b> : 💧물 · ❄️눈 · 💨공기 · 🍬설탕 · 🍋레몬</span>
-        </div>
         ${stageSectionsHtml.join('')}
       </div>
     `;
@@ -1397,18 +1553,16 @@ class KSoolApp {
   _addIngredientToPot(baseId, detailId = null, isExplicit = false) {
     this._clearMixBtnAlert();
     const bId = Number(baseId);
-    if (this.inventory.isCraftedIngredient(bId)) {
-      const totalStock = this.inventory.getIngredientStock(bId);
-      const inPot = this.craftingPot.getSlots()
-        .filter(s => s.baseId === bId)
-        .reduce((sum, s) => sum + s.count, 0);
-      if (inPot >= totalStock) {
-        this.audio.playFail();
-        const ing = this.recipeBook.getBaseIngredient(bId);
-        const name = ing ? this.brandResolver.resolveName(ing) : '재료';
-        this.showToast(`⚠️ '${name}'의 재고가 부족합니다! 연구실에서 먼저 조합해주세요.`);
-        return;
+    if (!this.inventory.isIngredientAvailable(bId)) {
+      this.audio.playFail();
+      const ing = this.recipeBook.getBaseIngredient(bId);
+      const name = ing ? this.brandResolver.resolveName(ing) : '재료';
+      if (this.inventory.isCraftedIngredient(bId)) {
+        this.showToast(`🧪 '${name}'은(는) 직접 조합하여 먼저 해금해야 하는 재료입니다!`);
+      } else {
+        this.showToast(`🛒 '${name}'은(는) 아직 보유하지 않은 재료입니다!`);
       }
+      return;
     }
     const stepConfig = this.inventory.getCurrentStepConfig();
     let effectiveDetailId = detailId;
@@ -1647,6 +1801,77 @@ class KSoolApp {
         return;
       }
 
+      // [친구 SOS 풀이 모드] 정답 발견 시 축하 및 정답 복사 / 본게임 시작
+      if (this.currentMode === 'HELP_FRIEND') {
+        const plainFormula = items.map(it => {
+          const det = this.recipeBook.getDetailIngredient(it.detail_ingredient_id);
+          const base = this.recipeBook.getBaseIngredient(it.ingredient_id);
+          const target = det || base;
+          return `${this.brandResolver.resolveName(target)} ${it.ratio || 1}개`;
+        }).join(' + ');
+
+        content.innerHTML = `
+          <div style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:12px;">
+            <div style="background:rgba(16,185,129,0.2); border:1px solid #10b981; border-radius:12px; padding:8px 16px; color:#34d399; font-weight:800; font-size:1.05rem;">
+              🎉 친구의 SOS 문제 해결 성공!
+            </div>
+            <div class="craft-result-info-card">
+              <div class="craft-result-left">
+                <div class="craft-result-emoji">${window.KSool?.pixelIcon ? window.KSool.pixelIcon(rec, 48) : rec.emoji}</div>
+                <div class="craft-result-name">${this.brandResolver.resolveName(rec)}</div>
+              </div>
+              <div class="craft-result-desc">
+                ${rec.description}
+              </div>
+            </div>
+            <div style="width:100%; background:#0f172a; border:1px solid #334155; border-radius:10px; padding:10px; font-size:0.85rem; color:#fcd34d; font-weight:800;">
+              ✨ 발견한 정답 조합: ${recipeFormula}
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px; width:100%; margin-top:6px;">
+              <button class="mix-btn" id="sos-copy-answer-btn" style="background:linear-gradient(135deg, #10b981, #059669); border-color:#34d399; font-weight:800; font-size:0.92rem; padding:12px;">
+                📋 정답 복사해서 친구에게 알려주기
+              </button>
+              <button class="clear-pot-btn" id="sos-play-my-game-btn" style="background:#1e293b; border:1px solid #475569; color:#e2e8f0; font-size:0.88rem; padding:10px;">
+                🎮 나도 K-술 연금술사 본게임 시작하기
+              </button>
+            </div>
+          </div>
+        `;
+
+        modal.classList.add('active');
+        const copyAnsBtn = content.querySelector('#sos-copy-answer-btn');
+        if (copyAnsBtn) {
+          copyAnsBtn.onclick = async () => {
+            this.audio?.playTap?.();
+            const recName = this.brandResolver.resolveName(rec);
+            const ansText = `[K-술 연금술사 SOS 정답]\n내가 '${recName}' 정답 조합을 찾았어!\n👉 조합: ${plainFormula}\n얼른 조합해서 해금해봐! 🍶✨`;
+            if (navigator?.clipboard?.writeText) {
+              try {
+                await navigator.clipboard.writeText(ansText);
+                this.showToast('📋 정답이 클립보드에 복사되었습니다!\n친구에게 메신저로 보내주세요.');
+                return;
+              } catch (_) {}
+            }
+            this.showToast(`정답: ${plainFormula}`);
+          };
+        }
+        const playMyGameBtn = content.querySelector('#sos-play-my-game-btn');
+        if (playMyGameBtn) {
+          playMyGameBtn.onclick = () => {
+            modal.classList.remove('active');
+            if (typeof window !== 'undefined' && window.history && window.location) {
+              window.history.replaceState({}, '', window.location.pathname);
+            }
+            const savedMode = (typeof localStorage !== 'undefined' ? localStorage.getItem('ksool_active_mode') : null) || 'TYCOON';
+            this.selectGameMode(savedMode, true);
+          };
+        }
+        modal.onclick = (e) => {
+          if (e.target === modal) modal.classList.remove('active');
+        };
+        return;
+      }
+
       // [CASE B] 완전히 새로운 K-술 최초 발견 (화려한 축하 연출)
       let unifiedUnlockBanner = '';
       const hasChainUnlock = Boolean(result.newlyUnlockedIngredient);
@@ -1735,7 +1960,7 @@ class KSoolApp {
       const curStage = eng?.getCurrentMapStage?.();
       const unlockedOrderableList = eng ? eng.getStageOrderableUnlockedRecipes(curStage?.id) : [];
       const unlockedOrderableCount = unlockedOrderableList.length;
-      const minOrderableReq = eng?.MIN_ORDERABLE_TO_START || 3;
+      const minOrderableReq = eng?.MIN_ORDERABLE_TO_START || 4;
       const canStartStoreNow = isOrderableInTycoon && unlockedOrderableCount >= minOrderableReq;
 
       let tycoonSellNoticeHtml = '';
@@ -2084,6 +2309,19 @@ class KSoolApp {
           window.KSool.PixelIconRegistry.toggleTheme();
           this.audio.playTap();
           this.renderAll();
+        }
+      };
+    }
+
+    // 상단 🏠 모드 선택 버튼
+    const modeSelectPortalBtn = document.getElementById('mode-select-portal-btn');
+    if (modeSelectPortalBtn) {
+      modeSelectPortalBtn.onclick = () => {
+        this.audio?.playTap?.();
+        if (this.modeSelectPortalView) {
+          this.modeSelectPortalView.open((chosenMode) => {
+            this.selectGameMode(chosenMode, true);
+          });
         }
       };
     }

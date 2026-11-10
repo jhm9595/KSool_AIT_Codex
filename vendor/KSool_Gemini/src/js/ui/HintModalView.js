@@ -904,10 +904,9 @@ class HintModalView {
   }
 
   _getOptionsForStage(stage, overrideCatId = null) {
-    const recipeItems = this.recipeBook.getRecipeItems(this.activeRecipeId);
-    const targetBaseIds = new Set(recipeItems.map(it => Number(it.ingredient_id)));
+    const isSandbox = Boolean(this.inventory.unlockAllSandboxMode);
     const unlockedBaseIngs = Array.from(this.recipeBook.baseIngredients.values()).filter(ing =>
-      targetBaseIds.has(Number(ing.ingredient_id)) || this.inventory.isIngredientAvailable(ing.ingredient_id)
+      isSandbox || this.inventory.isIngredientAvailable(ing.ingredient_id)
     );
 
     if (stage === 1) {
@@ -942,7 +941,7 @@ class HintModalView {
 
     const solvedBaseIds = this.baseballEngine.getAnswerTokens(this.activeRecipeId, 2).map(Number);
     const detailOpts = Array.from(this.recipeBook.detailIngredients.values())
-      .filter(det => solvedBaseIds.includes(Number(det.base_ingredient_id)) && (targetBaseIds.has(Number(det.base_ingredient_id)) || this.inventory.isIngredientAvailable(det.base_ingredient_id)))
+      .filter(det => solvedBaseIds.includes(Number(det.base_ingredient_id)) && (isSandbox || this.inventory.isIngredientAvailable(det.base_ingredient_id)))
       .map(det => {
         const resolvedName = this.brandResolver.resolveName(det);
         return {

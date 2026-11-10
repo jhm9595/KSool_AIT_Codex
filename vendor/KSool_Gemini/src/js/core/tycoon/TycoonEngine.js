@@ -23,7 +23,7 @@ class TycoonEngine {
     this.leaderboard = new window.KSool.TycoonLeaderboardService();
 
     this.PERSIST_KEY = 'ksool_tycoon_persistent_v1';
-    this.MIN_ORDERABLE_TO_START = 3; // 영업 시작을 위해 필요한 최소 해금 판매 음료 수 (탄산수·사이다·레모네이드 3종)
+    this.MIN_ORDERABLE_TO_START = 4; // 영업 시작을 위해 필요한 최소 해금 판매 음료 수 (탄산수·사이다·레모네이드·토닉워터 4종)
     this.GROWTH_QUOTA_COUNT = 5; // 일반 성장 영업(GROWTH) 1회당 목표 판매 잔수 (5잔 완판 시 일일 정산)
 
     this.MAP_STAGES = [
@@ -239,6 +239,17 @@ class TycoonEngine {
   }
 
   /**
+   * 타이쿤 재고(stockMap)로 보관 가능한 레시피인지 판별합니다.
+   * - 주문 가능한 음료·주류
+   * - 다른 레시피의 조합 부재료로 쓰이는 중간 생산 재료(얼음, 탄산수, 청 등 unlocks_ingredient_id를 가진 모든 레시피)
+   */
+  isStorableInStock(rec) {
+    if (!rec) return false;
+    if (this.isOrderableRecipe(rec)) return true;
+    return Boolean(rec.unlocks_ingredient_id);
+  }
+
+  /**
    * 손님이 주문 가능한 품목인지 판별합니다.
    * - 기준: [주류(ALCOHOL)], [음료(DRINK)], [최종조합(!unlocks_ingredient_id)] 3가지에 해당하는 레시피만 주문 가능
    * - 얼음(NATURE), 청/농축액/누룩/식초(ETC), 원두/미숫가루(GRAIN), 아이스크림/초콜릿/단팥죽(DESSERT) 등
@@ -408,23 +419,78 @@ class TycoonEngine {
    * (타이쿤 종료 시 모두 소멸)
    */
   getStockCountForIngredient(ingredientId) {
-    if (!this.session || !this.session.stockMap || !this.recipeBook) return 0;
+    if (!this.session || !this.recipeBook) return 0;
     const producers = this.recipeBook.producerRecipesByIngId?.get(Number(ingredientId)) || [];
     if (producers.length === 0) return 0;
     let total = 0;
-    for (const rId of producers) {
-      total += (this.session.stockMap.get(this.buildStockKey(rId)) || 0);
+    if (this.session.stockMap) {
+      for (const rId of producers) {
+        total += (this.session.stockMap.get(this.buildStockKey(rId)) || 0);
+      }
+    }
+    // 중앙 접시(Plate) 위에 올려진 음료도 조합 재료로서 사용 가능 수량에 포함
+    if (this.session.platedStockKey) {
+      const parsed = this.parseStockKey(this.session.platedStockKey);
+      if (parsed && producers.includes(parsed.recipeId)) {
+        total += 1;
+      }
     }
     return total;
   }
 
   getTotalSessionStockCount() {
-    if (!this.session || !this.session.stockMap) return 0;
+    if (!this.session) return 0;
     let total = 0;
-    for (const cnt of this.session.stockMap.values()) {
-      if (cnt > 0) total += cnt;
+    if (this.session.stockMap) {
+      for (const cnt of this.session.stockMap.values()) {
+        if (cnt > 0) total += cnt;
+      }
+    }
+    // 중앙 접시(Plate) 위에 완성품이 있다면 재고 총 수량에 포함
+    if (this.session.platedStockKey) {
+      total += 1;
     }
     return total;
+  }
+
+  /**
+   * 타이쿤에서 조합 재료(bId: 탄산수, 얼음 등)를 소비할 때:
+   * 이번 영업 중에 만들어 보관한 타이쿤 접시 및 임시 재고(stockMap)에서 차감합니다.
+   * (타이쿤은 연구실 재고와 분리되어 해당 판 내에서 직접 조주한 재고로만 운영됩니다)
+   */
+  consumeIngredientInTycoon(baseId, amount = 1) {
+    let remain = Number(amount) || 1;
+    if (remain <= 0) return;
+
+    const producers = this.recipeBook?.producerRecipesByIngId?.get(Number(baseId)) || [];
+
+    // 1. 중앙 접시(Plate) 위에 올라간 음료/재료가 해당 재료라면 접시를 비우며 우선 차감
+    if (remain > 0 && this.session?.platedStockKey) {
+      const parsed = this.parseStockKey(this.session.platedStockKey);
+      if (parsed && producers.includes(parsed.recipeId)) {
+        this.session.platedStockKey = null;
+        remain -= 1;
+      }
+    }
+
+    // 2. 타이쿤 임시 보관 재고(stockMap)에서 차감
+    if (remain > 0 && this.session?.stockMap) {
+      for (const rId of producers) {
+        if (remain <= 0) break;
+        const key = this.buildStockKey(rId);
+        const cur = this.session.stockMap.get(key) || 0;
+        if (cur > 0) {
+          const deduct = Math.min(cur, remain);
+          const next = cur - deduct;
+          if (next <= 0) {
+            this.session.stockMap.delete(key);
+          } else {
+            this.session.stockMap.set(key, next);
+          }
+          remain -= deduct;
+        }
+      }
+    }
   }
 
   calculateOrderPrice(recipeId, orderType = 'NORMAL', combo = 0, wave = 1) {
@@ -522,14 +588,14 @@ class TycoonEngine {
 
     const stage = this.getCurrentMapStage();
     const unlockedOrderable = this.getStageOrderableUnlockedRecipes(stage.id);
-    const minReq = options?.allowTutorialSingleMenu ? 1 : (this.MIN_ORDERABLE_TO_START || 3);
+    const minReq = options?.allowTutorialSingleMenu ? 1 : (this.MIN_ORDERABLE_TO_START || 4);
     if (unlockedOrderable.length < minReq) {
       return {
         ok: false,
         needsResearch: true,
         unlockedCount: unlockedOrderable.length,
         minRequired: minReq,
-        message: `점포 영업을 시작하려면 최소 ${minReq}종의 판매 음료를 [🔬 연구실]에서 해금해야 합니다! (현재 ${unlockedOrderable.length}/${minReq}종 해금 — 탄산수·사이다·레모네이드 3종을 먼저 연구해보세요!)`
+        message: `점포 영업을 시작하려면 최소 ${minReq}종의 판매 음료를 [🔬 연구실]에서 해금해야 합니다! (현재 ${unlockedOrderable.length}/${minReq}종 해금 — 탄산수·사이다·레모네이드·토닉워터 4종을 먼저 연구해보세요!)`
       };
     }
 
@@ -775,6 +841,20 @@ class TycoonEngine {
     const dId = detailId ? Number(detailId) : null;
     const pot = this.session.potSlots;
 
+    // 연구실에서 직접 조합해 해금해야 하는 중간 재료(탄산수, 얼음 등)의 보유 재고(타이쿤 세션 직접 조주분) 검증
+    if (this.inventory && this.inventory.isCraftedIngredient(bId) && !this.inventory.unlockAllSandboxMode) {
+      const ing = this.recipeBook.getBaseIngredient(bId);
+      const name = ing ? this.brandResolver.resolveName(ing) : '재료';
+      if (!this.inventory.isIngredientAvailable(bId)) {
+        return { ok: false, message: `'${name}'은(는) [🔬 연구실]에서 먼저 직접 조합해 해금해야 합니다!` };
+      }
+      const sessionStock = this.getStockCountForIngredient(bId);
+      const inPotCount = pot.filter(s => s.baseId === bId).reduce((acc, s) => acc + s.count, 0);
+      if (inPotCount >= sessionStock) {
+        return { ok: false, message: `'${name}'의 재고가 없습니다! (보유: ${sessionStock}개) 타이쿤 가마솥에서 먼저 조합해주세요.` };
+      }
+    }
+
     const existing = pot.find(s => s.baseId === bId && (s.detailId || null) === dId);
     const totalCount = pot.reduce((acc, s) => acc + s.count, 0);
 
@@ -856,16 +936,28 @@ class TycoonEngine {
       };
     }
 
-    // 기존에 접시 위에 올려져 있던 음료·주류가 있다면 한 판 한정 임시 재고(stockMap)로 자동 이동
+    // 기존에 접시 위에 올려져 있던 음료·주류/조합재료가 있다면 한 판 한정 임시 재고(stockMap)로 자동 이동
     let movedPrevToStock = null;
     if (this.session.platedStockKey) {
       const prevKey = this.session.platedStockKey;
       const parsedPrev = this.parseStockKey(prevKey);
       const prevRec = parsedPrev ? this.recipeBook.getRecipe(parsedPrev.recipeId) : null;
-      if (prevRec && this.isOrderableRecipe(prevRec)) {
+      if (prevRec && this.isStorableInStock(prevRec)) {
         const prevCnt = this.session.stockMap.get(prevKey) || 0;
         this.session.stockMap.set(prevKey, prevCnt + 1);
         movedPrevToStock = prevKey;
+      }
+      this.session.platedStockKey = null; // 가마솥 재료 차감 전 접시를 비워 차감 로직의 중복 오인식 방지
+    }
+
+    // 가마솥에 투입된 중간 조합 재료(탄산수, 얼음 등)의 재고 차감 (임시 재고 우선 소진 후 연구실 재고 차감)
+    // 주의: 타이쿤에서 생산된 완성품은 접시(platedStockKey)/임시재고(stockMap)로 관리되므로
+    // 연구실 인벤토리에 이중으로 addIngredientStock을 호출하지 않아야 숫자가 일치합니다.
+    if (this.inventory && !this.inventory.unlockAllSandboxMode) {
+      for (const slot of this.session.potSlots) {
+        if (this.inventory.isCraftedIngredient(slot.baseId)) {
+          this.consumeIngredientInTycoon(slot.baseId, slot.count || 1);
+        }
       }
     }
 
@@ -891,8 +983,8 @@ class TycoonEngine {
   }
 
   /**
-   * 중앙 접시 위의 완성 음료·주류를 이번 타이쿤 판 한정의 임시 재고(stockMap)로 보관합니다.
-   * (음료·주류만 보관 가능하며, 타이쿤 게임이 끝나면 모두 사라집니다)
+   * 중앙 접시 위의 완성 음료·주류 및 중간 조합재료를 이번 타이쿤 판 한정의 임시 재고(stockMap)로 보관합니다.
+   * (타이쿤 게임이 끝나면 모두 사라집니다)
    */
   storePlateToStock() {
     if (!this.session || !this.session.platedStockKey) {
@@ -902,7 +994,7 @@ class TycoonEngine {
     const stockKey = this.session.platedStockKey;
     const parsed = this.parseStockKey(stockKey);
     const rec = parsed ? this.recipeBook.getRecipe(parsed.recipeId) : null;
-    if (rec && !this.isOrderableRecipe(rec)) {
+    if (rec && !this.isStorableInStock(rec)) {
       this.session.platedStockKey = null;
       return { ok: true, clearedNonDrink: true };
     }
@@ -925,7 +1017,7 @@ class TycoonEngine {
   }
 
   /**
-   * 이번 타이쿤 판의 임시 재고(stockMap)에 보관된 음료·주류를 중앙 접시 위로 꺼냅니다.
+   * 이번 타이쿤 판의 임시 재고(stockMap)에 보관된 음료·주류/조합재료를 중앙 접시 위로 꺼냅니다.
    */
   moveStockToPlate(stockKey) {
     if (!this.session || !this.session.stockMap) return { ok: false, message: '세션이 없습니다.' };
@@ -945,7 +1037,7 @@ class TycoonEngine {
       const prevKey = this.session.platedStockKey;
       const parsedPrev = this.parseStockKey(prevKey);
       const prevRec = parsedPrev ? this.recipeBook.getRecipe(parsedPrev.recipeId) : null;
-      if (!prevRec || this.isOrderableRecipe(prevRec)) {
+      if (!prevRec || this.isStorableInStock(prevRec)) {
         swappedBackKey = prevKey;
         const prevCnt = this.session.stockMap.get(swappedBackKey) || 0;
         this.session.stockMap.set(swappedBackKey, prevCnt + 1);

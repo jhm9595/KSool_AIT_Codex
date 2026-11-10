@@ -18,6 +18,7 @@ class InventoryManager {
     this.craftFailCount = 0;
     this.hasSeenIntroStory = false;
     this.hasSeenIntroTutorial = false;
+    this.isQuizMode = false; // 🔬 퀴즈 모드 여부 (단계 돌파 시 재료 무료 자동 지급)
     this.shownTabIntros = {
       collection: true,
       fridge: true,
@@ -46,6 +47,7 @@ class InventoryManager {
     this.craftFailCount = 0;
     this.hasSeenIntroStory = false;
     this.hasSeenIntroTutorial = false;
+    this.isQuizMode = false; // 🔬 퀴즈 모드 여부 (단계 돌파 시 재료 무료 자동 지급)
     this.shownTabIntros = {
       collection: true,
       fridge: true,
@@ -73,7 +75,7 @@ class InventoryManager {
       }
       if (Array.isArray(saved.purchasedIngredientIds)) {
         saved.purchasedIngredientIds.forEach(id => this.purchasedIngredientIds.add(Number(id)));
-      } else if (this.unlockedRecipeIds.size > 0) {
+      } else if (this.unlockedRecipeIds.size > 0 && !('ingredientStock' in saved)) {
         // 기존 세이브 호환: 이미 해금한 레시피에 사용된 리프 재료는 구매 완료 처리
         for (const rId of this.unlockedRecipeIds) {
           const items = this.recipeBook.getRecipeItems(rId) || [];
@@ -326,13 +328,14 @@ class InventoryManager {
   }
 
   /**
-   * 해당 재료의 현재 가용/보유 재고 수량 반환 (기초 재료는 Infinity)
+   * 해당 재료의 연구실 가용 재고 반환:
+   * 연구실에서는 해금된 모든 재료를 무제한(Infinity)으로 자유롭게 연구/조합할 수 있습니다.
+   * (재고 제약은 타이쿤 점포 영업 세션에만 적용)
    */
   getIngredientStock(ingredientId) {
     const id = Number(ingredientId);
-    if (!this.isCraftedIngredient(id) || this.unlockAllSandboxMode) return Infinity;
     if (!this.unlockedIngredientIds.has(id)) return 0;
-    return typeof this.ingredientStock[id] === 'number' ? Math.max(0, this.ingredientStock[id]) : 0;
+    return Infinity;
   }
 
   /**
@@ -424,6 +427,47 @@ class InventoryManager {
     return isNew;
   }
 
+  /**
+   * 해당 레시피를 만들기 위해 필요한 재료들의 상태를 진단합니다.
+   * - missingCrafted: 아직 한 번도 조합하지 않은 선행 조합 재료 목록
+   * - outOfStockCrafted: 조합은 해금되었으나 현재 가용 재고가 부족한 조합 재료 목록
+   * - missingShop: 아직 상점에서 구매하지 않은 재료 목록
+   */
+  getRecipeMissingRequirements(recipeId) {
+    const res = {
+      isReady: true,
+      missingCrafted: [],
+      outOfStockCrafted: [],
+      missingShop: []
+    };
+    if (!this.recipeBook) return res;
+    const items = this.recipeBook.getRecipeItems(recipeId);
+    if (!items || items.length === 0) return res;
+
+    for (const it of items) {
+      const ingId = Number(it.ingredient_id);
+      const baseIng = this.recipeBook.getBaseIngredient(ingId);
+      const reqCount = Number(it.ratio) || 1;
+      const isCrafted = this.isCraftedIngredient(ingId);
+
+      if (isCrafted) {
+        if (!this.unlockedIngredientIds.has(ingId)) {
+          const producers = this.recipeBook.producerRecipesByIngId.get(ingId) || [];
+          const producerRecipe = producers.length > 0 ? this.recipeBook.getRecipe(producers[0]) : null;
+          res.missingCrafted.push({ ingredient: baseIng, producerRecipe, requiredCount: reqCount });
+          res.isReady = false;
+        }
+      } else {
+        if (!this.isIngredientAvailable(ingId)) {
+          res.missingShop.push({ ingredient: baseIng, requiredCount: reqCount });
+          res.isReady = false;
+        }
+      }
+    }
+
+    return res;
+  }
+
   isRecipeChallengeable(recipe) {
     if (!recipe) return false;
     if (this.unlockAllSandboxMode) return true;
@@ -499,11 +543,52 @@ class InventoryManager {
       newlyUnlockedIngredient = unlockedIng;
     }
 
+    let stageAutoUnlockedIngredients = [];
+    let advancedStageCfg = null;
+    if (this.isQuizMode && this.recipeBook?.progression) {
+      const stageRecipes = this.recipeBook.getAllRecipes().filter(r => Number(r.step_id) === this.unlockedStepId);
+      const allStageUnlocked = stageRecipes.length > 0 && stageRecipes.every(r => this.unlockedRecipeIds.has(r.recipe_id));
+
+      if (allStageUnlocked && this.unlockedStepId < 6) {
+        this.unlockedStepId += 1;
+        advancedStageCfg = this.recipeBook.progression.getStepConfig(this.unlockedStepId);
+        const newShopItems = this.recipeBook.progression.getShopIngredientsForStep(this.unlockedStepId) || [];
+        for (const item of newShopItems) {
+          this.purchasedIngredientIds.add(Number(item.id));
+          const base = this.recipeBook.getBaseIngredient(item.id);
+          if (base) stageAutoUnlockedIngredients.push(base);
+        }
+      }
+    }
+
     this._syncStepAndIngredients();
     this._recalculateLevel();
     this.save();
 
-    return { isNew, newlyUnlockedIngredient, stepUpInfo: null };
+    return {
+      isNew,
+      newlyUnlockedIngredient,
+      stepUpInfo: null,
+      stageAutoUnlockedIngredients,
+      advancedStageCfg
+    };
+  }
+
+  /**
+   * 🔬 K-술 조합 퀴즈 모드 전용: 현재 단계까지 필요한 모든 기초 재료를 상점 결제 없이 100% 무료 자동 지급
+   */
+  syncQuizModeStageIngredients() {
+    this.isQuizMode = true;
+    if (!this.recipeBook?.progression) return;
+    const progression = this.recipeBook.progression;
+    for (let s = 1; s <= this.unlockedStepId; s++) {
+      const shopItems = progression.getShopIngredientsForStep(s) || [];
+      for (const item of shopItems) {
+        this.purchasedIngredientIds.add(Number(item.id));
+      }
+    }
+    this._syncStepAndIngredients();
+    this.save();
   }
 
   getHintState(recipeId) {

@@ -57,6 +57,21 @@ function transform(dir) {
   }
 }
 transform(join(output, 'src'));
+// The new upstream portal must not cover the app after its active flag clears.
+const layoutPath = join(output, 'src/css/layout.css');
+writeFileSync(layoutPath, readFileSync(layoutPath, 'utf8') + '\n.mode-portal-overlay:not(.active){display:none!important}\n');
+// Web-origin SOS URLs cannot reopen an Apps in Toss mini-app. Keep the sandbox
+// reader, but do not offer a broken localhost/WebView URL as a share action.
+const appPath = join(output, 'src/js/app.js');
+writeFileSync(appPath, readFileSync(appPath, 'utf8').replace(
+  "if (!isUnlocked && this.friendHelpService && this.currentMode !== 'HELP_FRIEND')",
+  "if (false /* SOS requires an Apps in Toss ingress URL */)"
+));
+const portalPath = join(output, 'src/js/ui/ModeSelectPortalView.js');
+writeFileSync(portalPath, readFileSync(portalPath, 'utf8').replace(
+  '<li><span>🤝</span> <strong>친구 SOS 공유:</strong> 막히는 문제 친구와 함께 풀기</li>', ''
+));
+
 // Upstream 9ab2022: the CHOICE back button referenced a later const, causing
 // a temporal-dead-zone ReferenceError on every hint screen. Patch generated
 // code only, and naturally skip this once upstream fixes the spelling.
@@ -78,6 +93,6 @@ html = html.replaceAll('./src/', '/game/src/').replaceAll('./assets/', '/game/as
 html = html.replace(/<title>.*?<\/title>/, '<title>K-Sool</title>');
 html = html.replace(/^.*<meta property="og:(?:image|url)".*\r?\n/gm, '');
 html = html.replace('maximum-scale=1.0, user-scalable=no, ', '');
-html = html.replace('</head>', '  <script type="module" src="/src/ait/main.js"></script>\n</head>');
+html = html.replace('</head>', '  <script type="module" src="/src/ait/main.js"></script>\n  <script type="module" src="/src/ait/modes.js"></script>\n</head>');
 writeFileSync(join(app, 'index.html'), html);
 console.log('K-Sool prepared: local assets, local suggestions, free hints.');

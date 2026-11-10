@@ -10,9 +10,15 @@
 
   class SettingsModalView {
     constructor(modalId = 'settings-modal', contentId = 'settings-modal-content', app = null) {
-      this.modalId = modalId;
-      this.contentId = contentId;
-      this.app = app;
+      if (typeof modalId === 'object' && modalId !== null) {
+        this.modalId = modalId.modalId || 'settings-modal';
+        this.contentId = modalId.contentId || 'settings-modal-content';
+        this.app = modalId.app || null;
+      } else {
+        this.modalId = modalId;
+        this.contentId = contentId;
+        this.app = app;
+      }
       this.isOpen = false;
       this._lastActiveElement = null;
       this._boundKeyHandler = this._handleKeyDown.bind(this);
@@ -121,6 +127,25 @@
       const volPercent = audioService ? audioService.getVolumePercent() : 70;
       const soundIcon = this._getSoundIcon(isMuted, volPercent);
 
+      const currentTrack = audioService?.getTycoonBgmTrack?.() || 'kpop_dance';
+      const availableTracks = audioService?.getAvailableBgmTracks?.() || [];
+
+      const bgmTracksHtml = availableTracks.map(t => {
+        const isSelected = t.id === currentTrack;
+        return `
+          <div class="settings-bgm-card ${isSelected ? 'active' : ''}" data-bgm-track-id="${t.id}" role="button" tabindex="0">
+            <div class="settings-bgm-info">
+              <div class="settings-bgm-header">
+                <span class="settings-bgm-name">${t.name}</span>
+                ${t.badge ? `<span class="settings-bgm-badge">${t.badge}</span>` : ''}
+              </div>
+              <div class="settings-bgm-desc">${t.desc}</div>
+            </div>
+            <div class="settings-bgm-select-indicator">${isSelected ? '✓' : ''}</div>
+          </div>
+        `;
+      }).join('');
+
       content.innerHTML = `
         <div class="modal-header">
           <div style="display:flex; align-items:center; gap:8px;">
@@ -153,7 +178,16 @@
             </div>
           </div>
 
-          <!-- 2. 게임 가이드 & 튜토리얼 -->
+          <!-- 2. 타이쿤 배경음악(BGM) 설정 -->
+          <div class="settings-section">
+            <div class="settings-section-title">🎵 타이쿤 배경음악 (BGM) 스타일</div>
+            <div class="settings-desc">점포 영업 중 흘러나오는 BGM 스타일을 선택하세요. 카드를 누르면 미리듣기와 함께 즉시 변경됩니다.</div>
+            <div class="settings-bgm-list" id="settings-bgm-list">
+              ${bgmTracksHtml}
+            </div>
+          </div>
+
+          <!-- 3. 게임 가이드 & 튜토리얼 -->
           <div class="settings-section">
             <div class="settings-section-title">게임 가이드 & 튜토리얼</div>
             <div class="settings-guide-actions">
@@ -166,7 +200,7 @@
             </div>
           </div>
 
-          <!-- 3. 전체 진행도 초기화 -->
+          <!-- 4. 전체 진행도 초기화 -->
           <div class="settings-section settings-danger-section">
             <div class="settings-section-title" style="color:#f87171;">진행도 초기화</div>
             <div class="settings-reset-card" style="border-bottom:none; padding:0;">
@@ -298,6 +332,30 @@
           }
         };
       }
+
+      // 2. 타이쿤 BGM 스타일 선택
+      const bgmCards = container.querySelectorAll('.settings-bgm-card');
+      bgmCards.forEach(card => {
+        const handleSelect = () => {
+          const trackId = card.getAttribute('data-bgm-track-id');
+          if (!trackId || !audioService) return;
+          audioService.setTycoonBgmTrack(trackId);
+          audioService.previewBgmTrack(trackId);
+          bgmCards.forEach(c => {
+            const isActive = c.getAttribute('data-bgm-track-id') === trackId;
+            c.classList.toggle('active', isActive);
+            const indicator = c.querySelector('.settings-bgm-select-indicator');
+            if (indicator) indicator.textContent = isActive ? '✓' : '';
+          });
+        };
+        card.onclick = handleSelect;
+        card.onkeydown = (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleSelect();
+          }
+        };
+      });
 
       // 3. 게임 가이드 & 실전 튜토리얼 열기
       const openGuideBtn = container.querySelector('#settings-open-guide-btn');

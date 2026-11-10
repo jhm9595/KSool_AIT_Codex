@@ -56,34 +56,34 @@ class StoryTutorialModalView {
       {
         type: 'TUTORIAL',
         guideKey: 'LAB_CRAFT',
-        stepLabel: 'GUIDE 01 · 연구실 조합 & 재료상점 탭',
+        stepLabel: 'GUIDE 01 · 연구실 조합',
         speaker: '조작 가이드 1/4',
-        line1: '① [🔬 연구실]에서 재료를 골라 담고 [🔬 조합하기]를 눌러 음료를 해금하세요!',
-        line2: '잘못 담은 재료는 [비우기]로 초기화하고, 영업 수익(💰)으로 하단 [🛒 재료상점] 탭에서 새 재료를 구매합니다.'
+        line1: '재료를 골라 담고 [🔬 조합하기]를 눌러 새 음료를 만드세요.',
+        line2: '잘못 담았을 땐 [비우기]로 빼고, 수익(💰)으로 [🛒 재료상점]에서 새 재료를 살 수 있어요.'
       },
       {
         type: 'TUTORIAL',
         guideKey: 'LAB_HINT',
-        stepLabel: 'GUIDE 02 · [힌트] 버튼 위치 & 힌트 화면',
+        stepLabel: 'GUIDE 02 · 힌트 보기',
         speaker: '조작 가이드 2/4',
-        line1: '② 조합이 막힐 땐 문제 카드 왼쪽의 [힌트] 버튼을 눌러 힌트 팝업을 여세요!',
-        line2: '힌트 팝업에서 [은박 복권 설명 단서], [STEP 1 외형 그림 미니게임], [STEP 2 베이스볼 재료·비율 추리]를 이용할 수 있어요.'
+        line1: '조합이 막힐 땐 문제 카드의 [힌트] 버튼을 누르세요.',
+        line2: '복권 긁기와 미니게임으로 어떤 재료가 필요한지 단서를 얻을 수 있어요.'
       },
       {
         type: 'TUTORIAL',
         guideKey: 'TYCOON_SERVE',
-        stepLabel: 'GUIDE 03 · 주점 제조 & 종(🛎️) 서빙',
+        stepLabel: 'GUIDE 03 · 점포 판매',
         speaker: '조작 가이드 3/4',
-        line1: '③ 손님 주문을 보고 하단에서 [⚗️조합]한 뒤, 오른쪽 [🛎️종]을 눌러 서빙하세요!',
-        line2: '조합하면 카운터 중앙 접시 위에 완성 음료가 올라갑니다. 그 상태에서 오른쪽 종을 터치하면 판매 완료!'
+        line1: '손님 주문대로 음료를 [⚗️조합]해 접시에 올리세요.',
+        line2: '오른쪽 [🛎️ 종]을 터치하면 판매가 완료됩니다.'
       },
       {
         type: 'TUTORIAL',
         guideKey: 'TYCOON_RULES',
-        stepLabel: 'GUIDE 04 · 가격(메뉴판) · 콤보 · 주의사항',
+        stepLabel: 'GUIDE 04 · 서빙 팁',
         speaker: '조작 가이드 4/4',
-        line1: '④ 음료 가격은 [📋메뉴판]에서 확인하고, 연속 서빙으로 [COMBO +N원] 보너스를 챙기세요!',
-        line2: '제한시간 게이지가 다 닳거나 다른 음료를 서빙하면 손님이 집으로 돌아가고 콤보가 초기화됩니다!'
+        line1: '시간 안에 연속 서빙하면 [COMBO 보너스(💰)]를 받아요.',
+        line2: '손님 대기시간이 다 지나기 전에 빠르게 음료를 만들어 서빙하세요!'
       }
     ];
   }
@@ -255,7 +255,7 @@ class StoryTutorialModalView {
             </div>
             <div class="gm-legend-chip chip-emerald">
               <b>② [🔬 조합하기] 해금</b>
-              <span>정답 비율이면 새 음료 해금! (점포 영업 최소 3종)</span>
+              <span>정답 비율이면 새 음료 해금! (점포 영업 최소 4종)</span>
             </div>
             <div class="gm-legend-chip chip-amber">
               <b>③ 하단 [🛒 재료상점] 탭</b>
@@ -537,7 +537,7 @@ class StoryTutorialModalView {
             ${dotsHtml}
           </div>
           <button type="button" class="cutscene-skip-btn" id="cutscene-skip-btn" title="건너뛰기">
-            SKIP ▸▸
+            건너뛰기 ✕
           </button>
         </div>
 
@@ -555,7 +555,9 @@ class StoryTutorialModalView {
           </div>
           <div class="cutscene-Prompt-footer">
             ${this.currentIndex > 0 ? `<button type="button" class="cutscene-prev-mini" id="cutscene-prev-btn">◂ 이전</button>` : `<span></span>`}
-            <span class="cutscene-tap-prompt">${isLast ? '터치하여 시작하기 ▸' : '화면을 터치하여 계속 ▸'}</span>
+            <button type="button" class="cutscene-next-btn ${isLast ? 'is-start' : ''}" id="cutscene-next-btn">
+              ${isLast ? '시작하기 🚀' : '다음 ▸'}
+            </button>
           </div>
         </div>
       </div>
@@ -564,9 +566,18 @@ class StoryTutorialModalView {
     const tapSurface = container.querySelector('#cutscene-tap-surface');
     if (tapSurface) {
       tapSurface.onclick = (e) => {
-        if (e.target.closest('#cutscene-skip-btn') || e.target.closest('#cutscene-prev-btn')) {
+        if (e.target.closest('#cutscene-skip-btn') || e.target.closest('#cutscene-prev-btn') || e.target.closest('#cutscene-next-btn')) {
           return;
         }
+        this.nextSlide();
+      };
+    }
+
+    const nextBtn = container.querySelector('#cutscene-next-btn');
+    if (nextBtn) {
+      nextBtn.onclick = (e) => {
+        e.stopPropagation();
+        this.audio?.playTap?.();
         this.nextSlide();
       };
     }
@@ -672,9 +683,9 @@ class StoryTutorialModalView {
     return [
       // STEP 1: 점포 화면 -> 하단 [🔬 연구실] 탭 실제 클릭 유도
       {
-        stepBadge: 'STEP 1 / 12 · 연구실 이동',
-        title: '① 하단의 [🔬 연구실] 탭을 눌러보세요!',
-        desc: '점포에서 음료를 팔려면 먼저 연구실에서 판매할 음료를 해금해야 합니다.<br/>화면 맨 아래 <b>[🔬 연구실]</b> 탭 버튼을 실제로 눌러 이동해보세요!',
+        stepBadge: '1 / 12 · 연구실 이동',
+        title: '🔬 연구실로 이동하기',
+        desc: '음료를 판매하려면 먼저 연구실에서 만들어야 해요.<br/>아래 <b>[🔬 연구실]</b>을 눌러보세요!',
         targetSelector: '.tab-btn[data-tab-target="brew"]',
         mode: 'CLICK_TARGET',
         handLabel: '연구실 터치!',
@@ -684,14 +695,14 @@ class StoryTutorialModalView {
           }
         }
       },
-      // STEP 2: 연구실 화면 -> 문제 카드 왼쪽의 [힌트] 버튼 위치 안내 & 눌렀을 때 열리는 힌트 팝업 설명
+      // STEP 2: 연구실 화면 -> 문제 카드 왼쪽의 [힌트] 버튼 위치 안내
       {
-        stepBadge: 'STEP 2 / 12 · [힌트] 버튼 위치 & 힌트 화면 안내',
-        title: '② 조합이 어려울 땐 문제 카드 왼쪽 [힌트] 버튼을 누르세요!',
-        desc: '문제 카드 왼쪽의 <b>[힌트]</b> 버튼을 누르면 <b>[🕵️ 단계별 힌트 추리]</b> 팝업이 열립니다!<br/>• <b>은박 복권 긁기</b>: 어떤 재료가 들어가는지 문장 단서 확인<br/>• <b>STEP 1 (외형 그림)</b>: 미니게임으로 완성 음료 아이콘 확인<br/>• <b>STEP 2 (베이스볼 추리)</b>: 재료 종류·비율(S/B) 정답 추리',
+        stepBadge: '2 / 12 · 힌트 확인',
+        title: '💡 막힐 땐 [힌트] 확인!',
+        desc: '어떤 재료가 들어갈지 모를 땐 <b>[힌트]</b>를 누르면 레시피 단서를 볼 수 있어요.',
         targetSelector: '#brew-step-quiz-bar .brew-quiz-card',
         mode: 'NEXT_BTN',
-        nextBtnLabel: '다음: 직접 재료 담아보기 ▸',
+        nextBtnLabel: '다음: 재료 담아보기 ▸',
         pins: [
           { selector: '#quiz-open-hint-btn', label: '💡 [힌트] 버튼 위치', color: 'amber' }
         ],
@@ -706,11 +717,11 @@ class StoryTutorialModalView {
           this.app.renderBrewView();
         }
       },
-      // STEP 3: 연구실 화면 -> 하단 재료에서 [💧 물] 실제 클릭 유도
+      // STEP 3: 연구실 화면 -> 하단 재료에서 [💧 물] 선택
       {
-        stepBadge: 'STEP 3 / 12 · 재료 선택 (1/2)',
-        title: '③ 하단 재료에서 [💧 물] 카드를 실제로 눌러보세요!',
-        desc: '문제 카드의 단서(<em>“물과 공기가 만나 톡 쏘는 탄산수가 됩니다”</em>)를 보고,<br/>하단 재료 목록에서 <b>[💧 물]</b> 카드를 터치해 슬롯에 담아보세요!',
+        stepBadge: '3 / 12 · 첫 번째 재료',
+        title: '💧 [물] 담기',
+        desc: '탄산수를 만들기 위해 아래에서 <b>[💧 물]</b>을 터치하세요.',
         targetSelector: '#ingredients-grid [data-base-ing-id="202"]',
         mode: 'CLICK_TARGET',
         handLabel: '💧 물 터치!',
@@ -722,11 +733,11 @@ class StoryTutorialModalView {
           this.app.renderBrewView();
         }
       },
-      // STEP 4: 연구실 화면 -> 하단 재료에서 [💨 공기] 실제 클릭 유도 & [비우기] 위치 안내
+      // STEP 4: 연구실 화면 -> 하단 재료에서 [💨 공기] 선택 & 비우기 안내
       {
-        stepBadge: 'STEP 4 / 12 · 재료 선택 (2/2) & 비우기 안내',
-        title: '④ 이어서 옆의 [💨 공기] 카드를 눌러보세요!',
-        desc: '물 1개가 슬롯에 담겼어요! 이제 <b>[💨 공기]</b> 카드를 실제로 터치하세요.<br/>(※ 만약 잘못된 재료를 넣었을 땐 우측 <b>[비우기]</b> 버튼으로 언제든 초기화할 수 있어요!)',
+        stepBadge: '4 / 12 · 두 번째 재료',
+        title: '💨 [공기] 담기',
+        desc: '이어서 옆의 <b>[💨 공기]</b>를 터치하세요.<br/>(실수했을 땐 우측 <b>[비우기]</b>로 뺄 수 있어요)',
         targetSelector: '#ingredients-grid [data-base-ing-id="205"]',
         mode: 'CLICK_TARGET',
         handLabel: '💨 공기 터치!',
@@ -734,16 +745,16 @@ class StoryTutorialModalView {
           { selector: '#clear-pot-btn', label: '실수 시 [비우기]', color: 'rose' }
         ]
       },
-      // STEP 5: 연구실 화면 -> [🔬 조합하기] 실제 클릭하여 탄산수 해금!
+      // STEP 5: 연구실 화면 -> [🔬 조합하기] 눌러 탄산수 해금
       {
-        stepBadge: 'STEP 5 / 12 · 조합하기 & 레시피 해금',
-        title: '⑤ [🔬 조합하기] 버튼을 눌러 음료를 해금하세요!',
-        desc: '슬롯에 <b>물 1 + 공기 1</b>이 담겼습니다! 깜빡이는 <b>[🔬 조합하기]</b> 버튼을 실제로 눌러 탄산수를 해금하세요!<br/>(※ 판매 수익을 모으면 하단 <b>[🛒 재료상점]</b> 탭에서 새 재료를 구매할 수 있어요)',
+        stepBadge: '5 / 12 · 조합하기',
+        title: '✨ [조합하기]로 음료 해금!',
+        desc: '물과 공기가 모였어요! <b>[🔬 조합하기]</b>를 눌러 탄산수를 완성하세요.',
         targetSelector: '#mix-btn',
         mode: 'CLICK_TARGET',
         handLabel: '조합하기 터치!',
         pins: [
-          { selector: '.tab-btn[data-tab-target="shop"]', label: '새 재료 구매는 [🛒재료상점]', color: 'amber' }
+          { selector: '.tab-btn[data-tab-target="shop"]', label: '새 재료는 [🛒재료상점]', color: 'amber' }
         ],
         beforeClick: () => {
           if (this.inventory) {
@@ -766,18 +777,18 @@ class StoryTutorialModalView {
       },
       // STEP 6: 연구실 화면 -> 하단 [🏪 점포] 탭 실제 클릭 유도
       {
-        stepBadge: 'STEP 6 / 12 · 점포로 이동',
-        title: '⑥ 해금한 음료를 팔러 하단 [🏪 점포] 탭을 눌러보세요!',
-        desc: '방금 직접 조합해 해금한 <b>[탄산수]</b>를 손님에게 팔아보는 연습을 해볼까요?<br/>화면 맨 아래의 <b>[🏪 점포]</b> 탭을 실제로 터치해 가게로 이동하세요!',
+        stepBadge: '6 / 12 · 점포 이동',
+        title: '🏪 점포로 판매하러 가기',
+        desc: '탄산수 완성! 이제 손님에게 팔아볼까요?<br/>하단의 <b>[🏪 점포]</b>를 눌러주세요.',
         targetSelector: '.tab-btn[data-tab-target="tycoon"]',
         mode: 'CLICK_TARGET',
         handLabel: '🏪 점포 터치!'
       },
       // STEP 7: 점포 로비 화면 -> [🏪 영업 시작하기] 실제 클릭 유도
       {
-        stepBadge: 'STEP 7 / 12 · 점포 영업 시작',
-        title: '⑦ [🏪 영업 시작하기] 버튼을 눌러 손님을 맞이하세요!',
-        desc: '점포 영업을 시작하면 목표 판매량(5잔)을 팔 때마다 일일 수익이 정산됩니다.<br/>실제 <b>[🏪 영업 시작하기]</b> 버튼을 눌러 첫 영업을 시작해보세요!',
+        stepBadge: '7 / 12 · 영업 시작',
+        title: '🚀 영업 시작하기',
+        desc: '<b>[영업 시작하기]</b>를 눌러 첫 손님을 맞이해보세요!',
         targetSelector: '.lobby-start-biz-btn',
         mode: 'CLICK_TARGET',
         handLabel: '영업 시작 터치!',
@@ -797,24 +808,24 @@ class StoryTutorialModalView {
           }
         }
       },
-      // STEP 8: 실제 주점 카운터 화면 -> [📋 메뉴판] 가격 확인 & 손님 말풍선 제한시간 안내
+      // STEP 8: 실제 주점 카운터 화면 -> 주문 & 제한시간 확인
       {
-        stepBadge: 'STEP 8 / 12 · 메뉴판 가격 & 제한시간 확인',
-        title: '⑧ 카운터의 [📋 메뉴판]과 손님 주문 말풍선을 확인하세요!',
-        desc: '<b>① 왼쪽 [📋 메뉴판]</b>: 음료수당 <b>판매 가격(💰)</b>과 해금한 레시피 조합법이 표시됩니다.<br/><b>② 손님 말풍선 & 초록색 바</b>: 손님이 원하는 음료(<b>탄산수</b>)와 남은 대기시간입니다. 게이지가 다 닳기 전에 서빙해야 해요!',
+        stepBadge: '8 / 12 · 주문 & 대기시간',
+        title: '⏱️ 손님 주문 확인하기',
+        desc: '말풍선에 적힌 <b>탄산수</b>를 초록색 시간 게이지가 줄어들기 전에 만들어야 해요!',
         targetSelector: '.tycoon-counter-scene',
         mode: 'NEXT_BTN',
-        nextBtnLabel: '다음: 주문 음료 제조하기 ▸',
+        nextBtnLabel: '다음: 재료 넣기 ▸',
         pins: [
-          { selector: '#tycoon-counter-menu-hotspot', label: '① 📋 메뉴판 (가격·조합법)', color: 'sky' },
-          { selector: '#tycoon-order-bubble', label: '② 주문 음료 & 제한시간 바', color: 'emerald' }
+          { selector: '#tycoon-counter-menu-hotspot', label: '📋 메뉴판 (가격·레시피)', color: 'sky' },
+          { selector: '#tycoon-order-bubble', label: '주문 음료 & 대기시간 바', color: 'emerald' }
         ]
       },
       // STEP 9: 실제 주점 하단 조리대 -> [💧 물] 실제 클릭 유도
       {
-        stepBadge: 'STEP 9 / 12 · 주점 재료 선택 (1/2)',
-        title: '⑨ 손님이 주문한 [탄산수]를 위해 [💧 물]을 터치하세요!',
-        desc: '말풍선의 <b>[탄산수]</b> 주문을 보고, 하단 조리대에서 실제 <b>[💧 물]</b> 카드를 터치해 슬롯에 1개 담아보세요!',
+        stepBadge: '9 / 12 · 주문 재료 (1/2)',
+        title: '💧 조리대에 [물] 담기',
+        desc: '주문받은 탄산수를 만들기 위해 아래에서 <b>[💧 물]</b>을 터치하세요.',
         targetSelector: '.tycoon-ings-scroll-grid [data-tycoon-base-ing="202"]',
         mode: 'CLICK_TARGET',
         handLabel: '💧 물 터치!',
@@ -828,9 +839,9 @@ class StoryTutorialModalView {
       },
       // STEP 10: 실제 주점 하단 조리대 -> [💨 공기] 실제 클릭 유도 & [비우기] 안내
       {
-        stepBadge: 'STEP 10 / 12 · 주점 재료 선택 (2/2) & 비우기 안내',
-        title: '⑩ 이어서 옆의 [💨 공기] 카드를 터치하세요!',
-        desc: '이제 <b>[💨 공기]</b> 카드를 실제로 눌러 물 1 + 공기 1을 맞추세요!<br/>(※ 조리 중 다른 재료를 잘못 넣었을 땐 우측 <b>[비우기]</b> 버튼으로 즉시 비울 수 있습니다)',
+        stepBadge: '10 / 12 · 주문 재료 (2/2)',
+        title: '💨 조리대에 [공기] 담기',
+        desc: '이어서 <b>[💨 공기]</b>를 터치하세요.',
         targetSelector: '.tycoon-ings-scroll-grid [data-tycoon-base-ing="205"]',
         mode: 'CLICK_TARGET',
         handLabel: '💨 공기 터치!',
@@ -840,23 +851,23 @@ class StoryTutorialModalView {
       },
       // STEP 11: 실제 주점 하단 조리대 -> [⚗️조합] 실제 클릭하여 접시에 올리기
       {
-        stepBadge: 'STEP 11 / 12 · 접시 위에 올리기',
-        title: '⑪ [⚗️조합] 버튼을 실제로 눌러 접시 위에 올리세요!',
-        desc: '재료 비율이 맞으면 버튼에 <b>[🍽️탄산수]</b>가 표시됩니다.<br/>깜빡이는 <b>[⚗️조합]</b> 버튼을 눌러 카운터 중앙 접시 위에 완성 음료를 올려보세요!',
+        stepBadge: '11 / 12 · 음료 제조',
+        title: '🍽️ [조합] 눌러 접시에 올리기',
+        desc: '재료가 맞으면 버튼이 활성화됩니다.<br/><b>[⚗️조합]</b>을 눌러 카운터 접시에 올려보세요.',
         targetSelector: '#tycoon-craft-stock-btn',
         mode: 'CLICK_TARGET',
         handLabel: '⚗️조합 터치!'
       },
-      // STEP 12: 실제 주점 카운터 -> 오른쪽 [🛎️ 서빙 종] 실제 터치 서빙 & 콤보·주의사항 안내
+      // STEP 12: 실제 주점 카운터 -> 오른쪽 [🛎️ 서빙 종] 실제 터치 서빙
       {
-        stepBadge: 'STEP 12 / 12 · 종(🛎️) 서빙 & 콤보·주의사항',
-        title: '⑫ 오른쪽 [🛎️ 서빙 종]을 터치해 판매를 완료하세요!',
-        desc: '<b>🛎️ 서빙 방법</b>: 중앙 접시에 음료를 올린 뒤 오른쪽 <b>[🛎️ 종]</b>을 터치하면 판매됩니다!<br/><b>🔥 연속 서빙(COMBO +N)</b>: 연속으로 올바르게 서빙하면 손님 머리 위에 <b>COMBO +N</b>이 뜨며 <b>콤보 수만큼 보너스(+N원)</b>를 더 받아요!<br/><b>⚠️ 주의사항</b>: 제한시간이 지나거나 다른 음료를 내면 <b>손님이 집으로 돌아가고 콤보가 끊깁니다!</b>',
+        stepBadge: '12 / 12 · 서빙 완료',
+        title: '🛎️ 서빙 종 울리기',
+        desc: '접시에 올린 음료를 오른쪽 <b>[🛎️ 종]</b>을 눌러 손님에게 전달하세요!',
         targetSelector: '#tycoon-service-bell-img',
         mode: 'CLICK_TARGET',
         handLabel: '🛎️ 종 터치!',
         pins: [
-          { selector: '#tycoon-center-plate-btn', label: '중앙 접시 (탄산수)', color: 'sky' }
+          { selector: '#tycoon-center-plate-btn', label: '중앙 접시 (완성 음료)', color: 'sky' }
         ],
         afterClick: () => {
           if (this.app?.tycoonView) {
@@ -869,7 +880,7 @@ class StoryTutorialModalView {
               tv._syncGlobalTabBarVisibility(false);
               tv.render();
               this.app?.switchTab?.('brew');
-              this.app?.showToast?.('🎉 튜토리얼 완료! 연구실에서 무료 재료로 나머지 음료(사이다·레모네이드 등 3종)를 직접 조합해 정식 영업을 시작해보세요!');
+              this.app?.showToast?.('🎉 튜토리얼 완료! 연구실에서 새 음료들을 조합하고 정식 영업을 시작해보세요!');
             }, 650);
           }
         }
@@ -963,6 +974,15 @@ class StoryTutorialModalView {
       : `bottom: 18px;`;
 
     const isClickMode = step.mode === 'CLICK_TARGET';
+    const totalSteps = this._liveTutorialSteps.length;
+    const currentStepNum = this._liveStepIdx + 1;
+    const progressPercent = Math.min(100, Math.round((currentStepNum / totalSteps) * 100));
+    const isLastLiveStep = this._liveStepIdx === totalSteps - 1;
+
+    let nextBtnText = isLastLiveStep ? '완료하기 🎉' : '다음 ▸';
+    if (!isClickMode && step.nextBtnLabel) {
+      nextBtnText = step.nextBtnLabel;
+    }
 
     layer.innerHTML = `
       <!-- 실제 타겟 요소를 비추는 반투명 다크 스포트라이트 홀 -->
@@ -983,17 +1003,24 @@ class StoryTutorialModalView {
 
       <!-- 반투명 코치마크 가이드 설명 카드 -->
       <div class="coach-message-card" style="${cardPosStyle}">
+        <!-- 상단 미니 프로그레스 바 -->
+        <div class="coach-progress-bar-wrap">
+          <div class="coach-progress-bar-fill" style="width: ${progressPercent}%;"></div>
+        </div>
+
         <div class="coach-card-top">
-          <span class="coach-step-badge">${step.stepBadge}</span>
-          <button type="button" class="coach-skip-btn" id="coach-skip-tutorial-btn">튜토리얼 종료 ✕</button>
+          <span class="coach-step-badge">${step.stepBadge || `${currentStepNum} / ${totalSteps}`}</span>
+          <button type="button" class="coach-skip-btn" id="coach-skip-tutorial-btn">건너뛰기 ✕</button>
         </div>
         <h4 class="coach-card-title">${step.title}</h4>
         <div class="coach-card-desc">${step.desc}</div>
         <div class="coach-card-footer">
-          ${isClickMode
-            ? `<span class="coach-action-hint">👆 화면의 빛나는 실제 버튼을 직접 눌러보세요!</span>`
-            : `<button type="button" class="coach-next-step-btn" id="coach-next-step-btn">${step.nextBtnLabel || '다음 단계로 ▸'}</button>`
-          }
+          <span class="coach-action-hint">
+            ${isClickMode ? '👇 버튼을 직접 누르거나' : '💡 확인 후'}
+          </span>
+          <button type="button" class="coach-next-step-btn ${isLastLiveStep ? 'is-finish' : ''}" id="coach-next-step-btn">
+            ${nextBtnText}
+          </button>
         </div>
       </div>
     `;
@@ -1008,13 +1035,30 @@ class StoryTutorialModalView {
       };
     }
 
-    // NEXT_BTN 모드 버튼
+    // NEXT_BTN 및 CLICK_TARGET 모드 공용 다음 버튼 (어디서든 [다음]을 눌러 직관적 진행 가능!)
     const nextBtn = layer.querySelector('#coach-next-step-btn');
     if (nextBtn) {
       nextBtn.onclick = (e) => {
         e.stopPropagation();
         this.audio?.playTap?.();
-        this._runLiveStepSetupAndRender(this._liveStepIdx + 1);
+
+        if (isClickMode) {
+          if (typeof step.beforeClick === 'function') {
+            step.beforeClick();
+          }
+          if (targetEl && typeof targetEl.click === 'function') {
+            targetEl.click();
+          }
+          const delayMs = step.afterClickDelayMs || 80;
+          setTimeout(() => {
+            if (typeof step.afterClick === 'function') {
+              step.afterClick();
+            }
+            this._runLiveStepSetupAndRender(this._liveStepIdx + 1);
+          }, delayMs);
+        } else {
+          this._runLiveStepSetupAndRender(this._liveStepIdx + 1);
+        }
       };
     }
 

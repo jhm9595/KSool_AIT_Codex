@@ -52,6 +52,10 @@ try {
   await page.goto(url);
   await page.waitForFunction(() => window.ksoolApp?.recipeBook.recipes.size > 0);
   await page.addStyleTag({ content: '.ait-panel-root{display:none!important}' });
+  await page.locator('#portal-start-tycoon-btn').waitFor();
+  await page.screenshot({ path: join(artifacts, 'mode-portal.png') });
+  await page.locator('#portal-start-tycoon-btn').click();
+  await page.locator('#mode-portal-modal').waitFor({ state: 'hidden' });
   await page.locator('#cutscene-skip-btn').waitFor();
   await page.screenshot({ path: join(artifacts, 'prologue.png') });
   assert(await page.locator('#story-tutorial-content img').evaluate(img => img.complete && img.naturalWidth > 0));
@@ -71,32 +75,10 @@ try {
   await page.reload();
   await page.waitForFunction(() => window.ksoolApp?.inventory.isRecipeUnlocked(12));
   assert(await page.evaluate(() => window.ksoolApp.inventory.isRecipeUnlocked(11)));
-  // Current upstream requires three sellable drinks before opening the shop.
+  // Current upstream requires four sellable drinks before opening the shop.
   await page.evaluate(() => window.ksoolApp.switchTab('brew'));
-  for (const recipe of [58, 14]) {
-    // Intermediate ingredients now have persistent consumable stock. Rebuild
-    // depleted inputs through the actual crafting engine before the next UI craft.
-    await page.evaluate(id => {
-      const a = window.ksoolApp;
-      const ensure = (ingredientId, count) => {
-        if (a.recipeBook.isLeafIngredient(ingredientId)) return;
-        while (a.inventory.getIngredientStock(ingredientId) < count) {
-          const producer = a.recipeBook.producerRecipesByIngId.get(ingredientId)?.[0];
-          if (!producer) throw Error(`Missing producer for ${ingredientId}`);
-          const items = a.recipeBook.getRecipeItems(producer);
-          for (const item of items) ensure(item.ingredient_id, item.ratio);
-          a.craftingPot.clear();
-          for (const item of items) for (let n = 0; n < item.ratio; n++) {
-            const added = a.craftingPot.tapIngredient(item.ingredient_id, item.detail_ingredient_id, a.inventory.getCurrentStepConfig());
-            if (!added.ok) throw Error('Cannot replenish intermediate stock');
-          }
-          if (!a.alchemyEngine.executeCraft(producer).isSuccess) throw Error('Stock craft failed');
-        }
-      };
-      for (const item of a.recipeBook.getRecipeItems(id)) ensure(item.ingredient_id, item.ratio);
-      a.craftingPot.clear();
-      a.renderBrewView();
-    }, recipe);
+  for (const recipe of [58, 14, 52]) {
+    await page.evaluate(() => { window.ksoolApp.craftingPot.clear(); window.ksoolApp.renderBrewView(); });
     const items = await page.evaluate(id => window.ksoolApp.recipeBook.getRecipeItems(id).map(it => ({ id: it.ingredient_id, cat: window.ksoolApp.recipeBook.getBaseIngredient(it.ingredient_id).category_id })), recipe);
     for (const item of items) {
       await page.locator(`[data-ing-cat="${item.cat}"]`).click();
@@ -107,27 +89,38 @@ try {
     await page.locator('#result-close-btn').click();
     await page.evaluate(() => { const a = window.ksoolApp; a.pendingTabIntroQueue = []; document.querySelectorAll('.modal-overlay.active').forEach(el => el.classList.remove('active')); });
   }
-  assert.equal(await page.evaluate(() => window.ksoolApp.inventory.getIngredientStock(204)), 0, 'Carbonated water consumed by soda and lemonade');
   await page.reload();
-  await page.waitForFunction(() => window.ksoolApp?.inventory.isRecipeUnlocked(14));
-  assert.equal(await page.evaluate(() => window.ksoolApp.inventory.getIngredientStock(204)), 0, 'Zero stock survives reload without legacy refill');
+  await page.waitForFunction(() => window.ksoolApp?.inventory.isRecipeUnlocked(52));
   await page.evaluate(() => {
     const a = window.ksoolApp;
     a.switchTab('brew'); a.selectedIngCategory = 'DRINK'; a.renderBrewView();
   });
-  assert.equal(await page.locator('[data-base-ing-id="204"]').getAttribute('aria-disabled'), 'true', 'Zero-stock card is disabled');
+  assert.notEqual(await page.locator('[data-base-ing-id="204"]').getAttribute('aria-disabled'), 'true', 'Unlocked research ingredients remain reusable');
   await page.locator('[data-base-ing-id="204"]').click();
-  assert.equal(await page.evaluate(() => window.ksoolApp.craftingPot.getSlots().length), 0, 'Zero-stock input cannot enter pot');
+  assert.equal(await page.evaluate(() => window.ksoolApp.craftingPot.getSlots().length), 1, 'Research input remains selectable after repeated crafting');
 
   const results = await page.evaluate(async () => {
     const a = window.ksoolApp, e = a.tycoonView.engine, inv = a.inventory;
     const assert = (v, message) => { if (!v) throw Error(message); };
     assert(e.startGame('GROWTH').ok, 'Start first sale');
     const firstRecipe = e.session.activeOrder.recipeId;
-    for (const item of a.recipeBook.getRecipeItems(firstRecipe)) {
-      for (let n = 0; n < item.ratio; n++) e.tapIngredientInTycoonPot(item.ingredient_id, item.detail_ingredient_id);
-    }
-    assert(e.craftToPlate().ok, 'Craft order');
+    const prepareSale = (id, depth = 0) => {
+      assert(depth < 30, 'Tycoon production cycle');
+      const items = a.recipeBook.getRecipeItems(id);
+      for (const item of items) {
+        if (a.recipeBook.isLeafIngredient(item.ingredient_id)) continue;
+        while (e.getStockCountForIngredient(item.ingredient_id) < item.ratio) {
+          const producer = a.recipeBook.producerRecipesByIngId.get(item.ingredient_id)?.[0];
+          assert(producer, 'Tycoon stock producer');
+          prepareSale(producer, depth + 1);
+          assert(e.storePlateToStock().ok, 'Store intermediate');
+        }
+      }
+      e.clearTycoonPot();
+      for (const item of items) for (let n = 0; n < item.ratio; n++) assert(e.tapIngredientInTycoonPot(item.ingredient_id, item.detail_ingredient_id).ok, 'Tycoon input');
+      assert(e.craftToPlate().ok, 'Craft order');
+    };
+    prepareSale(firstRecipe);
     const cash = e.persistentWallet, price = e.session.activeOrder.price;
     assert(e.ringBellToServe().isCorrect && e.persistentWallet === cash + price, 'Serve and money');
     e.persistentWallet = 51;
@@ -185,18 +178,6 @@ try {
     const craft = (recipeId, depth = 0) => {
       assert(depth < 100, 'Stock producer cycle');
       const items = a.recipeBook.getRecipeItems(recipeId);
-      const required = new Map();
-      for (const it of items) required.set(it.ingredient_id, (required.get(it.ingredient_id) || 0) + it.ratio);
-      for (let attempt = 0; ; attempt++) {
-        assert(attempt < 100, 'Unable to prepare intermediate stock');
-        const missing = [...required].filter(([id, count]) => inv.getIngredientStock(id) < count);
-        if (!missing.length) break;
-        for (const [id, count] of missing) while (inv.getIngredientStock(id) < count) {
-          const producer = a.recipeBook.producerRecipesByIngId.get(id)?.[0];
-          assert(producer, `No stock producer ${id}`);
-          craft(producer, depth + 1);
-        }
-      }
       a.craftingPot.clear();
       for (const it of items) for (let n = 0; n < it.ratio; n++) {
         assert(a.craftingPot.tapIngredient(it.ingredient_id, it.detail_ingredient_id, inv.getCurrentStepConfig()).ok, 'Stock recipe input');
@@ -230,6 +211,30 @@ try {
   await page.evaluate(() => window.__ksoolPlatform.back());
   assert.equal(await page.locator('#live-interactive-tutorial-layer').count(), 0);
 
+  // Switching modes must not replace the long-lived tycoon save.
+  const tycoonSave = await page.evaluate(() => localStorage.getItem('ksool_alchemy_v2_state'));
+  await page.locator('#open-settings-btn').click();
+  await page.locator('#ait-mode-select-btn').click();
+  await page.locator('#portal-start-quiz-btn').click();
+  await page.waitForFunction(() => window.ksoolApp.currentMode === 'QUIZ');
+  assert.equal(await page.locator('#mode-portal-modal').isVisible(), false);
+  assert.equal(await page.locator('#quiz-sos-share-btn').count(), 0, 'No unusable WebView SOS links');
+  await page.evaluate(() => {
+    const a = window.ksoolApp;
+    if (a.inventory.isRecipeUnlocked(11)) throw Error('Quiz must start with independent progress');
+    a.craftingPot.clear();
+    for (const item of a.recipeBook.getRecipeItems(11)) for (let n = 0; n < item.ratio; n++) a.craftingPot.tapIngredient(item.ingredient_id, item.detail_ingredient_id, a.inventory.getCurrentStepConfig());
+    if (!a.alchemyEngine.executeCraft(11).isSuccess) throw Error('Quiz craft');
+    a.inventory.save();
+  });
+  assert.equal(await page.evaluate(() => localStorage.getItem('ksool_alchemy_v2_state')), tycoonSave, 'Quiz saves cannot touch tycoon progress');
+  await page.reload();
+  await page.waitForFunction(() => window.ksoolApp?.currentMode === 'QUIZ' && window.ksoolApp.inventory.isRecipeUnlocked(11));
+  await page.locator('#open-settings-btn').click();
+  await page.locator('#ait-mode-select-btn').click();
+  await page.locator('#portal-start-tycoon-btn').click();
+  assert.equal(await page.evaluate(() => window.ksoolApp.inventory.unlockedRecipeIds.size), 84, 'Tycoon progress restored after mode switch');
+
   const legacyContext = await browser.newContext();
   await legacyContext.addInitScript(() => {
     localStorage.setItem('ksool_alchemy_v2_state', JSON.stringify({ unlockedStepId: 2, unlockedRecipeIds: [5, 11, 12], hasSeenIntroStory: true, hasSeenIntroTutorial: true }));
@@ -240,7 +245,7 @@ try {
   await legacy.goto(url);
   await legacy.waitForFunction(() => window.ksoolApp?.inventory.isRecipeUnlocked(5));
   assert(await legacy.evaluate(() => window.ksoolApp.inventory.isIngredientAvailable(203)));
-  assert.equal(await legacy.evaluate(() => window.ksoolApp.inventory.getIngredientStock(204)), 1, 'Legacy intermediate stock migrates once');
+  assert.equal(await legacy.evaluate(() => window.ksoolApp.inventory.getIngredientStock(204)), Infinity, 'Legacy unlocked research ingredients remain available');
   assert(await legacy.evaluate(() => window.ksoolApp.audio.isMuted));
   assert.equal(forbidden.length, 0, `Upstream request: ${forbidden}`);
   assert.deepEqual(errors, []);

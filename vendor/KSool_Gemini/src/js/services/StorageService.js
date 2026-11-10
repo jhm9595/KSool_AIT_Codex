@@ -7,7 +7,8 @@ class AudioService {
     const savedVol = localStorage.getItem('ksool_sound_volume');
     this.volume = savedVol !== null ? Math.max(0, Math.min(1, parseFloat(savedVol))) : 0.7;
 
-    // 🏮 타이쿤 국악 풍류(굿거리/세마치 장단) BGM 시퀀서 상태 (우측 상단 설정창 음량/음소거와 100% 연동)
+    // 🏮 타이쿤 BGM 멀티트랙 시퀀서 (K-POP 비트 & 국악 퓨전 등 다양한 스타일 지원)
+    this.tycoonBgmTrack = localStorage.getItem('ksool_tycoon_bgm_track') || 'kpop_dance';
     this.isBgmEnabled = true;
     this._bgmActive = false;
     this._bgmTimer = null;
@@ -15,6 +16,70 @@ class AudioService {
     this._bgmNextNoteTime = 0;
     this._bgmMasterGain = null;
     this._bgmWave = 1;
+  }
+
+  getAvailableBgmTracks() {
+    return [
+      { id: 'kpop_dance', name: '⚡ K-POP 댄스 비트', badge: '대표곡', desc: '신나고 중독적인 최신 K-POP 아이돌 댄스 팝 & 펀치 비트' },
+      { id: 'kpop_synth', name: '🌆 K-POP 시티팝 & 신스', badge: '감성', desc: '서울 야경 감성의 세련된 신스웨이브 & 그루브 베이스' },
+      { id: 'k_fusion', name: '🥁 조선 퓨전 K-비트', badge: '대취타', desc: '웅장한 808 트랩 비트와 한국 전통 관악 태평소의 만남' },
+      { id: 'korean_tavern', name: '🏮 한국 전통 주막 풍류', badge: '국악', desc: '구수한 대금 요성과 장구 굿거리 장단의 전통 풍류' },
+      { id: 'retro_8bit', name: '👾 레트로 8비트 칩튠', badge: '아케이드', desc: '톡톡 튀는 고전 오락실 아케이드 칩튠 사운드' },
+      { id: 'off', name: '🔇 BGM 끄기', badge: '', desc: '배경음악 없이 게임 효과음만 출력' }
+    ];
+  }
+
+  getTycoonBgmTrack() {
+    return this.tycoonBgmTrack || 'kpop_dance';
+  }
+
+  setTycoonBgmTrack(trackId) {
+    const valid = ['kpop_dance', 'kpop_synth', 'k_fusion', 'korean_tavern', 'retro_8bit', 'off'];
+    this.tycoonBgmTrack = valid.includes(trackId) ? trackId : 'kpop_dance';
+    try {
+      localStorage.setItem('ksool_tycoon_bgm_track', this.tycoonBgmTrack);
+    } catch (_) {}
+    this._bgmStep = 0;
+    if (this.ctx) {
+      this._bgmNextNoteTime = this.ctx.currentTime + 0.05;
+    }
+    this._syncBgmMasterVolume();
+    return this.tycoonBgmTrack;
+  }
+
+  previewBgmTrack(trackId) {
+    const effVol = this.getEffectiveVolume();
+    if (effVol <= 0 || trackId === 'off') return;
+    const ctx = this._getContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    try {
+      if (trackId === 'kpop_dance') {
+        this._playKick(now, 0.38);
+        this._playHiHat(now + 0.12, 0.14, true);
+        this._playSnare(now + 0.24, 0.28);
+        this._playSynthLead(this._midiToFreq(81), now, 0.2, 0.28);
+        this._playSynthLead(this._midiToFreq(84), now + 0.15, 0.25, 0.28);
+      } else if (trackId === 'kpop_synth') {
+        this._playKick(now, 0.32);
+        this._playSynthPadChord([50, 53, 57, 60].map(m => this._midiToFreq(m)), now, 0.6, 0.22);
+        this._playSynthLead(this._midiToFreq(74), now + 0.16, 0.3, 0.22, 'triangle');
+      } else if (trackId === 'k_fusion') {
+        this._playKick(now, 0.45);
+        this._playSnare(now + 0.24, 0.32);
+        this._playFusionLead(this._midiToFreq(74), now, 0.22, 0.30);
+        this._playFusionLead(this._midiToFreq(79), now + 0.16, 0.32, 0.30, true);
+      } else if (trackId === 'korean_tavern') {
+        this._playJangguBuk(now, 0.32);
+        this._playJangguChae(now, 0.16);
+        this._playDaegeumNote(this._midiToFreq(69), now, 0.5, true);
+      } else if (trackId === 'retro_8bit') {
+        this._playChiptune(this._midiToFreq(72), now, 0.08, 0.22);
+        this._playChiptune(this._midiToFreq(76), now + 0.08, 0.08, 0.22);
+        this._playChiptune(this._midiToFreq(79), now + 0.16, 0.08, 0.22);
+        this._playChiptune(this._midiToFreq(84), now + 0.24, 0.16, 0.22);
+      }
+    } catch (_) {}
   }
 
   _getContext() {
@@ -140,10 +205,12 @@ class AudioService {
     this._bgmTimer = setInterval(() => {
       if (!this._bgmActive || !this.ctx) return;
       while (this._bgmNextNoteTime < this.ctx.currentTime + 0.18) {
-        this._scheduleKoreanTavernStep(this._bgmStep, this._bgmNextNoteTime);
-        this._advanceKoreanTavernStep();
+        if (this.tycoonBgmTrack !== 'off') {
+          this._scheduleStepByTrack(this.tycoonBgmTrack, this._bgmStep, this._bgmNextNoteTime);
+        }
+        this._advanceStepByTrack(this.tycoonBgmTrack);
       }
-    }, 45);
+    }, 40);
   }
 
   stopTycoonBgm() {
@@ -157,6 +224,462 @@ class AudioService {
         this._bgmMasterGain.gain.setTargetAtTime(0.0001, this.ctx.currentTime, 0.08);
       } catch (_) {}
     }
+  }
+
+  _advanceStepByTrack(track) {
+    if (track === 'korean_tavern') {
+      this._advanceKoreanTavernStep();
+      return;
+    }
+
+    let bpm = 124;
+    if (track === 'kpop_dance') {
+      bpm = Math.min(142, 124 + (this._bgmWave - 1) * 2);
+    } else if (track === 'kpop_synth') {
+      bpm = Math.min(124, 108 + (this._bgmWave - 1) * 1.5);
+    } else if (track === 'k_fusion') {
+      bpm = Math.min(110, 96 + (this._bgmWave - 1) * 1.5);
+    } else if (track === 'retro_8bit') {
+      bpm = Math.min(150, 134 + (this._bgmWave - 1) * 2);
+    } else {
+      bpm = 120;
+    }
+
+    const stepSec = (60 / bpm) / 4;
+    this._bgmNextNoteTime += stepSec;
+    this._bgmStep = (this._bgmStep + 1) % 64;
+  }
+
+  _scheduleStepByTrack(track, step, t) {
+    if (this.isMutedState() || !this._bgmMasterGain) return;
+    if (track === 'korean_tavern') {
+      this._scheduleKoreanTavernStep(step, t);
+    } else if (track === 'kpop_dance') {
+      this._scheduleKpopDanceStep(step, t);
+    } else if (track === 'kpop_synth') {
+      this._scheduleKpopSynthStep(step, t);
+    } else if (track === 'k_fusion') {
+      this._scheduleKFusionStep(step, t);
+    } else if (track === 'retro_8bit') {
+      this._scheduleRetro8BitStep(step, t);
+    }
+  }
+
+  /**
+   * ⚡ 1. K-POP 댄스 비트 (아이돌 댄스 팝: 4-on-the-floor + 펀치 킥 + 16비트 햇 + 펑키 베이스 + IV-V-iii-vi 훅)
+   */
+  _scheduleKpopDanceStep(step, t) {
+    const bar = Math.floor(step / 16); // 0: F, 1: G, 2: Em, 3: Am
+    const stepInBar = step % 16;
+
+    // 1) 4-on-the-floor 킥 (0, 4, 8, 12 + 14박 싱코페이션)
+    if (stepInBar === 0 || stepInBar === 4 || stepInBar === 8 || stepInBar === 12) {
+      this._playKick(t, 0.34);
+    } else if ((bar === 1 || bar === 3) && stepInBar === 14) {
+      this._playKick(t, 0.28);
+    }
+
+    // 2) 백비트 스네어/클랩 (4, 12박)
+    if (stepInBar === 4 || stepInBar === 12) {
+      this._playSnare(t, 0.22);
+    }
+
+    // 3) 16비트 하이햇 (업비트 2, 6, 10, 14에 오픈 하이햇 "칫!")
+    const isUpbeat = (stepInBar === 2 || stepInBar === 6 || stepInBar === 10 || stepInBar === 14);
+    if (isUpbeat) {
+      this._playHiHat(t, 0.12, true);
+    } else {
+      this._playHiHat(t, 0.07, false);
+    }
+
+    // 4) 펑키 옥타브 베이스 (F - G - Em - Am)
+    const baseMidiByBar = [53, 55, 52, 57];
+    const root = baseMidiByBar[bar];
+    const bassSteps = [0, 3, 6, 8, 10, 12, 14];
+    if (bassSteps.includes(stepInBar)) {
+      const isOctaveDown = (stepInBar === 3 || stepInBar === 10);
+      const noteFreq = this._midiToFreq(isOctaveDown ? root - 12 : root);
+      this._playSynthBass(noteFreq, t, 0.14, 0.26, true);
+    }
+
+    // 5) K-POP 멜로디 훅
+    const kpopHooks = {
+      0: 81, 3: 84, 6: 81, 8: 79, 10: 77, 12: 79, 14: 81,
+      16: 83, 19: 86, 22: 83, 24: 81, 26: 79, 28: 81, 30: 83,
+      32: 79, 35: 83, 38: 79, 40: 78, 42: 76, 44: 79, 46: 83,
+      48: 84, 51: 83, 54: 81, 56: 76, 58: 81, 60: 84, 62: 83
+    };
+    if (kpopHooks[step] !== undefined) {
+      this._playSynthLead(this._midiToFreq(kpopHooks[step]), t, 0.20, 0.20, 'sawtooth');
+    }
+  }
+
+  /**
+   * 🌆 2. K-POP 시티팝 & 신스웨이브 (서울 야경 감성: Dm7-G7-Cmaj7-Am7 + 그루브 슬랩 베이스 + 신스 패드)
+   */
+  _scheduleKpopSynthStep(step, t) {
+    const bar = Math.floor(step / 16);
+    const stepInBar = step % 16;
+
+    // 1) 부드러운 킥 (0, 6, 10)
+    if (stepInBar === 0 || stepInBar === 6 || stepInBar === 10) {
+      this._playKick(t, 0.30);
+    }
+
+    // 2) 리버브 스네어 (4, 12)
+    if (stepInBar === 4 || stepInBar === 12) {
+      this._playSnare(t, 0.20, false);
+    }
+
+    // 3) 하이햇
+    if (stepInBar % 2 === 0) {
+      this._playHiHat(t, 0.08, stepInBar === 10);
+    }
+
+    // 4) 신스 패드 화음 (마디 첫 박)
+    if (stepInBar === 0) {
+      const chords = [
+        [50, 53, 57, 60], // Dm7
+        [43, 53, 55, 59], // G7
+        [48, 52, 55, 59], // Cmaj7
+        [45, 52, 57, 60]  // Am7
+      ];
+      this._playSynthPadChord(chords[bar].map(m => this._midiToFreq(m)), t, 1.4, 0.16);
+    }
+
+    // 5) 시티팝 베이스 라인
+    const roots = [50, 43, 48, 45];
+    if (stepInBar === 0 || stepInBar === 3 || stepInBar === 8 || stepInBar === 11 || stepInBar === 14) {
+      const note = stepInBar === 3 ? roots[bar] + 12 : roots[bar];
+      this._playSynthBass(this._midiToFreq(note), t, 0.18, 0.24, false);
+    }
+
+    // 6) 감성 시티팝 리드
+    const cityPopLead = {
+      0: 72, 4: 76, 8: 77, 10: 76, 12: 74,
+      16: 71, 20: 74, 24: 76, 26: 74, 28: 71,
+      32: 67, 36: 72, 40: 76, 42: 79, 44: 76,
+      48: 81, 52: 79, 56: 76, 58: 74, 60: 72
+    };
+    if (cityPopLead[step] !== undefined) {
+      this._playSynthLead(this._midiToFreq(cityPopLead[step]), t, 0.30, 0.18, 'triangle');
+    }
+  }
+
+  /**
+   * 🥁 3. 조선 퓨전 K-비트 (대취타 트랩 비트 + 태평소 팡파르 + 808 서브 베이스)
+   */
+  _scheduleKFusionStep(step, t) {
+    const bar = Math.floor(step / 16);
+    const stepInBar = step % 16;
+
+    // 1) 808 서브 킥
+    if (stepInBar === 0) {
+      this._playKick(t, 0.42, 0.9);
+      this._playSynthBass(this._midiToFreq(38), t, 0.45, 0.32);
+    } else if (stepInBar === 6) {
+      this._playKick(t, 0.35, 0.95);
+    } else if (stepInBar === 10) {
+      this._playKick(t, 0.38, 0.9);
+      this._playSynthBass(this._midiToFreq(43), t, 0.35, 0.30);
+    }
+
+    // 2) 트랩 스네어 (8박)
+    if (stepInBar === 8) {
+      this._playSnare(t, 0.30, true);
+    }
+
+    // 3) 트랩 하이햇 롤 (14, 15에 빠른 롤)
+    if (stepInBar === 14 || stepInBar === 15) {
+      this._playHiHat(t, 0.12, false);
+      this._playHiHat(t + 0.05, 0.14, false);
+    } else if (stepInBar % 2 === 0) {
+      this._playHiHat(t, 0.09, false);
+    }
+
+    // 4) 태평소 국악 팡파르
+    const fusionFanfare = {
+      0: 74, 3: 79, 6: 81,
+      16: 86, 20: 83, 24: 81, 28: 79,
+      32: 76, 35: 79, 38: 81, 42: 83,
+      48: 86, 52: 81, 56: 79, 60: 74
+    };
+    if (fusionFanfare[step] !== undefined) {
+      this._playFusionLead(this._midiToFreq(fusionFanfare[step]), t, 0.28, 0.26, true);
+    }
+
+    // 5) 거문고/가야금 줄 튕김
+    if (stepInBar === 4 || stepInBar === 12) {
+      this._playGeomungoDeepPluck(this._midiToFreq(62), t, 0.25, 0.20);
+      this._playGeomungoDeepPluck(this._midiToFreq(67), t + 0.03, 0.22, 0.18);
+    }
+  }
+
+  /**
+   * 👾 4. 레트로 8비트 아케이드 (고전 오락실 칩튠 아르페지오 & 워킹 베이스)
+   */
+  _scheduleRetro8BitStep(step, t) {
+    const bar = Math.floor(step / 16);
+    const stepInBar = step % 16;
+
+    // 1) 칩튠 드럼
+    if (stepInBar === 0 || stepInBar === 8) {
+      this._playKick(t, 0.28);
+    }
+    if (stepInBar === 4 || stepInBar === 12) {
+      this._playSnare(t, 0.18, true);
+    }
+    if (stepInBar % 2 === 0) {
+      this._playHiHat(t, 0.06, false);
+    }
+
+    // 2) 트라이앵글 워킹 베이스
+    const bassChords = [48, 52, 53, 55];
+    const root = bassChords[bar];
+    const bassOffsets = [0, 7, 12, 7];
+    const offset = bassOffsets[Math.floor(stepInBar / 4)];
+    this._playChiptune(this._midiToFreq(root + offset), t, 0.12, 0.22, 'triangle');
+
+    // 3) 통통 튀는 스퀘어 아르페지오
+    const arpNotes = [72, 76, 79, 84, 79, 76];
+    const noteMidi = arpNotes[stepInBar % arpNotes.length];
+    this._playChiptune(this._midiToFreq(noteMidi), t, 0.09, 0.18, 'square');
+  }
+
+  /**
+   * 🎹 신디사이저 및 드럼 사운드 합성기 라이브러리
+   */
+  _playKick(t, vol = 0.32, punch = 1) {
+    const ctx = this.ctx;
+    if (!ctx || !this._bgmMasterGain) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(155 * punch, t);
+    osc.frequency.exponentialRampToValueAtTime(42, t + 0.085);
+    gain.gain.setValueAtTime(vol, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
+    osc.connect(gain);
+    gain.connect(this._bgmMasterGain);
+    osc.start(t);
+    osc.stop(t + 0.15);
+  }
+
+  _playSnare(t, vol = 0.22, snappy = true) {
+    const ctx = this.ctx;
+    if (!ctx || !this._bgmMasterGain) return;
+    const osc = ctx.createOscillator();
+    const oscGain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(190, t);
+    osc.frequency.exponentialRampToValueAtTime(95, t + 0.06);
+    oscGain.gain.setValueAtTime(vol * 0.7, t);
+    oscGain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+    osc.connect(oscGain);
+    oscGain.connect(this._bgmMasterGain);
+    osc.start(t);
+    osc.stop(t + 0.09);
+
+    const dur = snappy ? 0.12 : 0.08;
+    const len = Math.max(1, Math.floor(ctx.sampleRate * dur));
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (len * 0.28));
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 1850;
+    bp.Q.value = 1.4;
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(vol, t);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    src.connect(bp);
+    bp.connect(noiseGain);
+    noiseGain.connect(this._bgmMasterGain);
+    src.start(t);
+  }
+
+  _playHiHat(t, vol = 0.10, isOpen = false) {
+    const ctx = this.ctx;
+    if (!ctx || !this._bgmMasterGain) return;
+    const dur = isOpen ? 0.14 : 0.038;
+    const len = Math.max(1, Math.floor(ctx.sampleRate * dur));
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (len * 0.35));
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const hp = ctx.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = 7500;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(vol, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    src.connect(hp);
+    hp.connect(gain);
+    gain.connect(this._bgmMasterGain);
+    src.start(t);
+  }
+
+  _playSynthBass(freq, t, dur = 0.16, vol = 0.28, isSlap = false) {
+    const ctx = this.ctx;
+    if (!ctx || !this._bgmMasterGain) return;
+    const osc = ctx.createOscillator();
+    const subOsc = ctx.createOscillator();
+    const filter = ctx.createBiquadFilter();
+    const gain = ctx.createGain();
+
+    osc.type = isSlap ? 'sawtooth' : 'triangle';
+    osc.frequency.setValueAtTime(freq, t);
+
+    subOsc.type = 'sine';
+    subOsc.frequency.setValueAtTime(freq * 0.5, t);
+
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(isSlap ? 1600 : 750, t);
+    filter.frequency.exponentialRampToValueAtTime(180, t + dur);
+
+    gain.gain.setValueAtTime(0.001, t);
+    gain.gain.linearRampToValueAtTime(vol, t + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0008, t + dur);
+
+    osc.connect(filter);
+    subOsc.connect(filter);
+    filter.connect(gain);
+    gain.connect(this._bgmMasterGain);
+
+    osc.start(t);
+    subOsc.start(t);
+    osc.stop(t + dur + 0.02);
+    subOsc.stop(t + dur + 0.02);
+  }
+
+  _playSynthLead(freq, t, dur = 0.18, vol = 0.20, type = 'sawtooth') {
+    const ctx = this.ctx;
+    if (!ctx || !this._bgmMasterGain) return;
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const filter = ctx.createBiquadFilter();
+    const gain = ctx.createGain();
+
+    osc1.type = type;
+    osc1.frequency.setValueAtTime(freq, t);
+
+    osc2.type = 'triangle';
+    osc2.frequency.setValueAtTime(freq * 1.004, t);
+
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(2600, t);
+    filter.frequency.exponentialRampToValueAtTime(900, t + dur);
+
+    gain.gain.setValueAtTime(0.001, t);
+    gain.gain.linearRampToValueAtTime(vol, t + 0.015);
+    gain.gain.setValueAtTime(vol * 0.85, t + Math.max(0.03, dur * 0.7));
+    gain.gain.exponentialRampToValueAtTime(0.0008, t + dur);
+
+    osc1.connect(filter);
+    osc2.connect(filter);
+    filter.connect(gain);
+    gain.connect(this._bgmMasterGain);
+
+    osc1.start(t);
+    osc2.start(t);
+    osc1.stop(t + dur + 0.02);
+    osc2.stop(t + dur + 0.02);
+  }
+
+  _playSynthPadChord(freqs, t, dur = 0.8, vol = 0.14) {
+    const ctx = this.ctx;
+    if (!ctx || !this._bgmMasterGain || !Array.isArray(freqs)) return;
+    const chordGain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(1400, t);
+    filter.frequency.exponentialRampToValueAtTime(600, t + dur);
+
+    chordGain.gain.setValueAtTime(0.001, t);
+    chordGain.gain.linearRampToValueAtTime(vol / freqs.length, t + 0.06);
+    chordGain.gain.exponentialRampToValueAtTime(0.0008, t + dur);
+
+    filter.connect(chordGain);
+    chordGain.connect(this._bgmMasterGain);
+
+    freqs.forEach(f => {
+      const osc = ctx.createOscillator();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(f, t);
+      osc.connect(filter);
+      osc.start(t);
+      osc.stop(t + dur + 0.03);
+    });
+  }
+
+  _playFusionLead(freq, t, dur = 0.28, vol = 0.24, vibrato = false) {
+    const ctx = this.ctx;
+    if (!ctx || !this._bgmMasterGain) return;
+    const osc = ctx.createOscillator();
+    const oscSub = ctx.createOscillator();
+    const filter = ctx.createBiquadFilter();
+    const gain = ctx.createGain();
+
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(freq * 0.98, t);
+    osc.frequency.exponentialRampToValueAtTime(freq, t + 0.035);
+
+    oscSub.type = 'sawtooth';
+    oscSub.frequency.setValueAtTime(freq, t);
+
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(2200, t);
+
+    if (vibrato) {
+      const lfo = ctx.createOscillator();
+      const lfoGain = ctx.createGain();
+      lfo.frequency.setValueAtTime(5.8, t);
+      lfoGain.gain.setValueAtTime(freq * 0.015, t);
+      lfo.connect(lfoGain);
+      lfoGain.connect(osc.frequency);
+      lfo.start(t);
+      lfo.stop(t + dur + 0.02);
+    }
+
+    gain.gain.setValueAtTime(0.001, t);
+    gain.gain.linearRampToValueAtTime(vol, t + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0008, t + dur);
+
+    osc.connect(filter);
+    oscSub.connect(filter);
+    filter.connect(gain);
+    gain.connect(this._bgmMasterGain);
+
+    osc.start(t);
+    oscSub.start(t);
+    osc.stop(t + dur + 0.02);
+    oscSub.stop(t + dur + 0.02);
+  }
+
+  _playChiptune(freq, t, dur = 0.12, vol = 0.18, type = 'square') {
+    const ctx = this.ctx;
+    if (!ctx || !this._bgmMasterGain) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t);
+
+    gain.gain.setValueAtTime(vol, t);
+    gain.gain.setValueAtTime(vol * 0.8, t + dur * 0.8);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+
+    osc.connect(gain);
+    gain.connect(this._bgmMasterGain);
+
+    osc.start(t);
+    osc.stop(t + dur + 0.01);
   }
 
   _advanceKoreanTavernStep() {
@@ -576,8 +1099,38 @@ class AudioService {
 
 class StorageService {
   constructor() {
+    this.mode = 'TYCOON'; // 'TYCOON' | 'QUIZ' | 'HELP_FRIEND'
     this.KEY = 'ksool_alchemy_v2_state';
     this.BACKUP_KEY = 'ksool_alchemy_v2_state_bak';
+    this._inMemoryState = null;
+    this.lastLoadStatus = {
+      hasExistingSave: false,
+      isCorrupted: false,
+      fromBackup: false,
+      quarantined: false
+    };
+  }
+
+  /**
+   * 게임 모드에 따라 스토리지 키 분리:
+   * - TYCOON: 기존 'ksool_alchemy_v2_state' (기존 유저의 자금/레시피/단계 100% 보존)
+   * - QUIZ: 신규 'ksool_alchemy_quiz_v1_state' (순수 조합 퀴즈 전용 독립 세이브)
+   * - HELP_FRIEND: 휘발성 메모리 샌드박스 (로컬스토리지에 일절 쓰지 않음)
+   */
+  setMode(mode = 'TYCOON') {
+    this.mode = mode;
+    if (mode === 'QUIZ') {
+      this.KEY = 'ksool_alchemy_quiz_v1_state';
+      this.BACKUP_KEY = 'ksool_alchemy_quiz_v1_state_bak';
+    } else if (mode === 'HELP_FRIEND') {
+      this.KEY = null;
+      this.BACKUP_KEY = null;
+      this._inMemoryState = null;
+    } else {
+      this.mode = 'TYCOON';
+      this.KEY = 'ksool_alchemy_v2_state';
+      this.BACKUP_KEY = 'ksool_alchemy_v2_state_bak';
+    }
     this.lastLoadStatus = {
       hasExistingSave: false,
       isCorrupted: false,
@@ -621,6 +1174,12 @@ class StorageService {
   }
 
   loadState() {
+    if (this.mode === 'HELP_FRIEND') {
+      return this._inMemoryState ? JSON.parse(JSON.stringify(this._inMemoryState)) : null;
+    }
+
+    if (!this.KEY) return null;
+
     let raw = null;
     try {
       raw = localStorage.getItem(this.KEY);
@@ -694,6 +1253,14 @@ class StorageService {
 
   saveState(stateObj) {
     if (!stateObj) return;
+
+    if (this.mode === 'HELP_FRIEND') {
+      this._inMemoryState = JSON.parse(JSON.stringify(stateObj));
+      return;
+    }
+
+    if (!this.KEY) return;
+
     try {
       const serialized = JSON.stringify(stateObj);
       const existing = localStorage.getItem(this.KEY);
@@ -717,10 +1284,16 @@ class StorageService {
   }
 
   clearState() {
-    try {
-      localStorage.removeItem(this.KEY);
-      localStorage.removeItem(this.BACKUP_KEY);
-    } catch (e) {}
+    if (this.mode === 'HELP_FRIEND') {
+      this._inMemoryState = null;
+      return;
+    }
+    if (this.KEY) {
+      try {
+        localStorage.removeItem(this.KEY);
+        if (this.BACKUP_KEY) localStorage.removeItem(this.BACKUP_KEY);
+      } catch (e) {}
+    }
   }
 }
 

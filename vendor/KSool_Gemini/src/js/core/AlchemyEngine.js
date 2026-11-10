@@ -33,18 +33,6 @@ class AlchemyEngine {
       const usedSlots = [...slots];
       this.craftingPot.clear();
 
-      // 조합에 소모된 중간 재료(Non-Leaf) 재고 차감
-      for (const slot of usedSlots) {
-        if (!this.recipeBook.isLeafIngredient(slot.baseId)) {
-          this.inventory.consumeIngredientStock(slot.baseId, slot.count || 1);
-        }
-      }
-
-      // 새로 조합 완성된 결과물이 생산하는 재료가 있다면 재고 1개 지급!
-      if (matchedRecipe.unlocks_ingredient_id) {
-        this.inventory.addIngredientStock(matchedRecipe.unlocks_ingredient_id, 1);
-      }
-
       return {
         ok: true,
         isSuccess: true,

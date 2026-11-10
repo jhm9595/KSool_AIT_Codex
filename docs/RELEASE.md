@@ -45,3 +45,5 @@
 - https://developers-apps-in-toss.toss.im/documentation/sdk/domains-api/user/user.getanonymouskey.md
 - https://developers-apps-in-toss.toss.im/documentation/sdk/domains-api/screen/screen.close.md
 - https://developers-apps-in-toss.toss.im/documentation/sdk/events/graniteevent.md
+
+- 2026-11-10: 원본 38d2532의 모드별 저장 분리와 타이쿤 세션 재고를 반영했다. 설정에서 모드 전환 가능. 웹 origin 기반 친구 SOS 공유는 제외했으며, 정식 토스 진입 URL과 SDK 공유 연결·실기기 검증 전에는 활성화하지 않는다.

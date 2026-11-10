@@ -11,6 +11,8 @@ window.KSool = window.KSool || {};
  * 5. 구역 재료 100% 구매 + 구역 레시피 100% 해금 + 개업 자금 달성 시 다음 점포(2~6단계) 해금!
  * 6. 6단계 미래도시 바까지 모든 음료를 해금하면 목숨 3개(❤️❤️❤️) 서바이벌 [♾️ 무한모드] 오픈!
  */
+const ENABLE_LEADERBOARD = false; // 랭킹 시스템 정식 오픈 전까지 UI에서 숨김 처리
+
 class TycoonView {
   constructor(containerId, { app, config, recipeBook, inventory, brandResolver, pickerRegistry, audio }) {
     this.containerId = containerId;
@@ -278,10 +280,10 @@ class TycoonView {
             ? `<button type="button" class="hud-icon-btn" id="tycoon-open-story-btn" title="프롤로그 스토리 & 튜토리얼 다시보기">🎬</button>`
             : ''
           }
-          <button type="button" class="hud-icon-btn" id="tycoon-open-rank-btn" title="Top 100 랭킹">🏆</button>
+          ${ENABLE_LEADERBOARD ? `<button type="button" class="hud-icon-btn" id="tycoon-open-rank-btn" title="Top 100 랭킹">🏆</button>` : ''}
+          <button type="button" class="hud-icon-btn" id="tycoon-open-global-settings-btn" title="게임 설정 (배경음악 & 사운드 조절)">⚙️</button>
           ${isPlaying
-            ? `<button type="button" class="hud-icon-btn" id="tycoon-open-global-settings-btn" title="게임 설정 (음량 조절)">⚙️</button>
-               <button type="button" class="hud-icon-btn exit-btn" id="tycoon-back-lobby-btn" title="영업 마치고 점포 로비로 나가기">✕</button>`
+            ? `<button type="button" class="hud-icon-btn exit-btn" id="tycoon-back-lobby-btn" title="영업 마치고 점포 로비로 나가기">✕</button>`
             : ''
           }
         </div>
@@ -520,20 +522,37 @@ class TycoonView {
 
     if (this.selectedIngCat === 'STOCK') {
       const stockEntries = Array.from(s.stockMap ? s.stockMap.entries() : []).filter(([, qty]) => qty > 0);
-      if (stockEntries.length === 0) {
+      const hasPlated = Boolean(s.platedStockKey);
+
+      if (stockEntries.length === 0 && !hasPlated) {
         gridContentHtml = `
           <div class="tycoon-stock-empty-msg">
-            📦 현재 임시 보관된 음료·주류 재고가 없습니다.<br>
-            <span>접시 위의 완성 음료를 터치하면 이곳에 임시 보관되며, 영업이 끝나면 모두 사라집니다.</span>
+            📦 현재 보관된 재고나 접시 위 완성품이 없습니다.<br>
+            <span>가마솥에서 조합한 음료는 접시 위에 놓이며, 접시를 터치해 이곳에 보관할 수 있습니다.</span>
           </div>
         `;
       } else {
-        gridContentHtml = stockEntries.map(([stockKey, qty]) => {
+        const platedHtml = hasPlated ? (() => {
+          const meta = this.engine.getStockItemDisplayMeta(s.platedStockKey);
+          const icon = meta && meta.recipe
+            ? (window.KSool?.pixelIcon ? window.KSool.pixelIcon(meta.recipe, 24) : (meta.recipe.emoji || '🍶'))
+            : '🍶';
+          const name = meta ? meta.recipeName : '완성품';
+          return `
+            <div class="ing-card tycoon-compact-ing stock-item-card is-plated" data-tycoon-plate-touch="true" title="현재 중앙 접시 위에 놓인 완성품입니다 (터치하면 보관함으로 이동)">
+              <span class="stock-count-badge plate-badge">🍽️접시 1</span>
+              <span class="ing-emoji">${icon}</span>
+              <span class="ing-name">${name}</span>
+            </div>
+          `;
+        })() : '';
+
+        const storedHtml = stockEntries.map(([stockKey, qty]) => {
           const meta = this.engine.getStockItemDisplayMeta(stockKey);
           const icon = meta && meta.recipe
             ? (window.KSool?.pixelIcon ? window.KSool.pixelIcon(meta.recipe, 24) : (meta.recipe.emoji || '🍶'))
             : '🍶';
-          const name = meta ? meta.recipeName : '보관 음료';
+          const name = meta ? meta.recipeName : '보관 재고';
           return `
             <div class="ing-card tycoon-compact-ing stock-item-card" data-stock-tab-item="${stockKey}" title="터치하면 중앙 접시 위로 꺼냅니다">
               <span class="stock-count-badge">📦${qty}</span>
@@ -542,6 +561,8 @@ class TycoonView {
             </div>
           `;
         }).join('');
+
+        gridContentHtml = platedHtml + storedHtml;
       }
     } else {
       const allIngs = allBase
@@ -553,9 +574,18 @@ class TycoonView {
           .filter(sl => sl.baseId === ing.ingredient_id)
           .reduce((acc, sl) => acc + sl.count, 0);
 
-        const stockCount = this.engine.getStockCountForIngredient
-          ? this.engine.getStockCountForIngredient(ing.ingredient_id)
-          : 0;
+        const isCrafted = this.inventory ? this.inventory.isCraftedIngredient(ing.ingredient_id) : false;
+        let isDisabled = false;
+        let stockBadgeHtml = '';
+
+        if (isCrafted && !this.inventory?.unlockAllSandboxMode) {
+          const sessionStock = this.engine.getStockCountForIngredient
+            ? this.engine.getStockCountForIngredient(ing.ingredient_id)
+            : 0;
+          const availableStock = Math.max(0, sessionStock - inPotCount);
+          isDisabled = availableStock === 0;
+          stockBadgeHtml = `<span class="ing-stock-badge ${isDisabled ? 'zero' : ''}" title="보유 재고: ${availableStock}개">${availableStock}</span>`;
+        }
 
         const details = this.recipeBook.getDetailsForBase(ing.ingredient_id);
         const hasPicker =
@@ -567,9 +597,12 @@ class TycoonView {
         const icon = window.KSool?.pixelIcon ? window.KSool.pixelIcon(ing, 24) : ing.emoji;
 
         return `
-          <div class="ing-card tycoon-compact-ing ${inPotCount > 0 ? 'in-pot' : ''}" data-tycoon-base-ing="${ing.ingredient_id}">
+          <div class="ing-card tycoon-compact-ing ${inPotCount > 0 ? 'in-pot' : ''} ${isDisabled ? 'is-disabled' : ''}"
+               data-tycoon-base-ing="${ing.ingredient_id}"
+               ${isDisabled ? 'aria-disabled="true"' : ''}
+               title="${isDisabled ? `${name} (재고 없음 - [🔬 연구실]에서 직접 조합 필요)` : `${name} (클릭하여 조주 가마솥에 담기)`}">
+            ${stockBadgeHtml}
             ${hasPicker ? `<button type="button" class="ing-picker-btn" data-tycoon-detail-picker="${ing.ingredient_id}">상세▾</button>` : ''}
-            ${stockCount > 0 ? `<span class="stock-count-badge" title="이번 영업 임시 재고 ${stockCount}개">📦${stockCount}</span>` : ''}
             ${inPotCount > 0 ? `<span class="slot-count-badge" title="가마솥 투입 비율">${inPotCount}</span>` : ''}
             <span class="ing-emoji">${icon}</span>
             <span class="ing-name">${name}</span>
@@ -609,7 +642,7 @@ class TycoonView {
     };
 
     const isInfiniteUnlocked = this.inventory ? this.inventory.isInfiniteModeUnlocked() : false;
-    const minReq = this.engine.MIN_ORDERABLE_TO_START || 3;
+    const minReq = this.engine.MIN_ORDERABLE_TO_START || 4;
     const quotaCount = this.engine.getStageQuotaCount ? this.engine.getStageQuotaCount(currentStage.id) : (this.engine.GROWTH_QUOTA_COUNT || 5);
     const isTutorialActive = Boolean(this.app?.storyTutorialModalView?._isLiveTutorialActive);
     const needsFirstResearch = !isTutorialActive && currentStage.orderableUnlockedCount < minReq;
@@ -731,7 +764,7 @@ class TycoonView {
 
   _renderGameOverScreen(s) {
     const savedName = this.engine.leaderboard.getSavedPlayerName() || '';
-    const isRankingMode = s.mode === 'INFINITE' || s.mode === 'TIME_ATTACK';
+    const isRankingMode = ENABLE_LEADERBOARD && (s.mode === 'INFINITE' || s.mode === 'TIME_ATTACK');
     const isGrowthQuota = s.mode === 'GROWTH' && s.isQuotaCleared;
     const stage = this.engine.getCurrentMapStage();
     const modeLabel = s.mode === 'TIME_ATTACK'
@@ -912,9 +945,6 @@ class TycoonView {
               <small>구매한 재료는 [🔬 연구실]과 [🏪 점포]에 즉시 추가됩니다</small>
             </div>
             <div class="notebook-cust-list shop-scroll-list">
-              <div class="shop-free-starter-notice">
-                🎁 기본 무료 지급 재료(5종): <b>물 · 눈 · 공기 · 설탕 · 레몬</b> (No.01 얼음, No.02 탄산수, No.03 사이다, No.04 레모네이드 연구 가능)
-              </div>
               ${stageSectionsHtml}
             </div>
           </div>
@@ -922,7 +952,7 @@ class TycoonView {
       `;
     }
 
-    if (this.activeSubModal === 'LEADERBOARD') {
+    if (ENABLE_LEADERBOARD && this.activeSubModal === 'LEADERBOARD') {
       const list = this.engine.leaderboard.cachedRankings[this.leaderboardTab] || [];
       const rowsHtml = list.slice(0, 100).map((r, i) => {
         const rank = i + 1;
@@ -1103,7 +1133,7 @@ class TycoonView {
 
     const currentStage = this.engine.getCurrentMapStage();
     const unlockedOrders = this.engine.getStageOrderableUnlockedRecipes(currentStage.id);
-    const minReq = this.engine.MIN_ORDERABLE_TO_START || 3;
+    const minReq = this.engine.MIN_ORDERABLE_TO_START || 4;
     const isTutorialActive = Boolean(this.app?.storyTutorialModalView?._isLiveTutorialActive);
     if (!isTutorialActive && unlockedOrders.length < minReq) {
       this.app?.showToast?.(`🔬 영업을 시작하려면 최소 ${minReq}종의 판매 음료를 해금해야 합니다! (현재 ${unlockedOrders.length}/${minReq}종) 연구실로 이동합니다!`);
@@ -1593,6 +1623,18 @@ class TycoonView {
       };
     });
 
+    // [📦 재고] 탭의 접시 위 카드 터치 -> 보관함으로 이동
+    rootEl.querySelectorAll('[data-tycoon-plate-touch]').forEach(plateCard => {
+      plateCard.onclick = () => {
+        const res = this.engine.storePlateToStock();
+        if (res && res.ok) {
+          this.audio?.playTap?.();
+          this._updatePlateAndBellInDom();
+          this._updateBottomAreaInDom();
+        }
+      };
+    });
+
     rootEl.querySelectorAll('[data-tycoon-base-ing]').forEach(ingCard => {
       ingCard.onclick = (e) => {
         const pickerBtn = e.target.closest('[data-tycoon-detail-picker]');
@@ -1602,6 +1644,16 @@ class TycoonView {
           this._openTycoonDetailPicker(baseId);
           return;
         }
+
+        if (ingCard.classList.contains('is-disabled')) {
+          this.audio?.playFail?.();
+          const baseId = Number(ingCard.getAttribute('data-tycoon-base-ing'));
+          const ing = this.recipeBook.getBaseIngredient(baseId);
+          const name = ing ? this.brandResolver.resolveName(ing) : '재료';
+          this.app?.showToast?.(`⚠️ '${name}'의 재고가 없습니다! 타이쿤 가마솥에서 먼저 조합해주세요.`);
+          return;
+        }
+
         const baseId = Number(ingCard.getAttribute('data-tycoon-base-ing'));
         const tapRes = this.engine.tapIngredientInTycoonPot(baseId, null);
         if (tapRes && tapRes.ok === false) {
@@ -1764,8 +1816,13 @@ class TycoonView {
     const defaultBtn = content.querySelector('#picker-select-default');
     if (defaultBtn) {
       defaultBtn.onclick = () => {
+        const tapRes = this.engine.tapIngredientInTycoonPot(baseId, null);
+        if (tapRes && tapRes.ok === false) {
+          this.audio?.playFail?.();
+          this.app?.showToast?.(`⚠️ ${tapRes.message}`);
+          return;
+        }
         modal.classList.remove('active');
-        this.engine.tapIngredientInTycoonPot(baseId, null);
         this.audio?.playTap?.();
         this._updateBottomAreaInDom();
       };
@@ -1774,8 +1831,13 @@ class TycoonView {
     content.querySelectorAll('[data-detail-id]').forEach(el => {
       el.onclick = () => {
         const detId = Number(el.getAttribute('data-detail-id'));
+        const tapRes = this.engine.tapIngredientInTycoonPot(baseId, detId);
+        if (tapRes && tapRes.ok === false) {
+          this.audio?.playFail?.();
+          this.app?.showToast?.(`⚠️ ${tapRes.message}`);
+          return;
+        }
         modal.classList.remove('active');
-        this.engine.tapIngredientInTycoonPot(baseId, detId);
         this.audio?.playTap?.();
         this._updateBottomAreaInDom();
       };

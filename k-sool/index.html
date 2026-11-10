@@ -13,15 +13,16 @@
   <meta property="og:description" content="길거리 노점 음료수부터 미래도시 바의 특산 명주까지! 나만의 황금비율 주막 타이쿤 & 연금술 도감을 완성해보세요.">
   <!-- 모듈형 스타일시트 -->
   <link rel="stylesheet" href="/game/src/css/variables.css?v=20261107_02">
-  <link rel="stylesheet" href="/game/src/css/layout.css?v=20261107_02">
-  <link rel="stylesheet" href="/game/src/css/brew.css?v=20261109_01">
+  <link rel="stylesheet" href="/game/src/css/layout.css?v=20261110_02">
+  <link rel="stylesheet" href="/game/src/css/brew.css?v=20261109_02">
   <link rel="stylesheet" href="/game/src/css/pickers/picker_common.css?v=20261101_3">
   <link rel="stylesheet" href="/game/src/css/hint_center.css?v=20261107_02">
   <link rel="stylesheet" href="/game/src/css/fridge_recommender.css?v=20261102_13">
   <link rel="stylesheet" href="/game/src/css/suggestion_board.css?v=20261102_01">
   <link rel="stylesheet" href="/game/src/css/party_games.css?v=20261102_16">
-  <link rel="stylesheet" href="/game/src/css/tycoon.css?v=20261109_01">
+  <link rel="stylesheet" href="/game/src/css/tycoon.css?v=20261109_05">
   <script type="module" src="/src/ait/main.js"></script>
+  <script type="module" src="/src/ait/modes.js"></script>
 </head>
 <body>
 
@@ -38,7 +39,13 @@
           <span class="brand-inline-sub">한국의 술자리 연금술</span>
         </div>
       </div>
-      <button id="open-settings-btn" class="header-settings-btn" aria-label="설정" title="게임 설정">⚙️</button>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button id="mode-select-portal-btn" class="header-mode-portal-btn" title="모드 선택 (퀴즈 모드 / 타이쿤 모드 전환)">
+          <span class="portal-btn-icon">🏠</span>
+          <span class="portal-btn-label">모드 선택</span>
+        </button>
+        <button id="open-settings-btn" class="header-settings-btn" aria-label="설정" title="게임 설정">⚙️</button>
+      </div>
     </div>
 
     <div class="header-toolbar">
@@ -167,35 +174,40 @@
   <div id="recipe-inspector-modal" class="modal-overlay">
     <div id="recipe-inspector-content" class="modal-card recipe-inspector-card"></div>
   </div>
+
+  <!-- [모달 8] 모드 선택 포털 모달 (첫 진입 & 상단 [🏠 모드 선택] 버튼 연동) -->
+  <div id="mode-portal-modal" class="modal-overlay mode-portal-overlay"></div>
 </div>
 
 <!-- OOP 모듈 로드 (오프라인/로컬 file:// 및 웹서버 100% 호환) -->
 <script src="/game/src/js/config/SeedDataBundle.js?v=20261108_21"></script>
 <script src="/game/src/js/services/PixelIconRegistry.js?v=20261108_14"></script>
+<script src="/game/src/js/services/FriendHelpService.js?v=20261110_01"></script>
 <script src="/game/src/js/config/GameConfig.js?v=20261101_7"></script>
 <script src="/game/src/js/services/BrandResolver.js?v=20261101_7"></script>
-<script src="/game/src/js/services/StorageService.js?v=20261109_01"></script>
+<script src="/game/src/js/services/StorageService.js?v=20261110_02"></script>
 <script src="/game/src/js/services/AdService.js?v=20261101_1"></script>
 <script src="/game/src/js/core/CraftingPot.js?v=20261108_22"></script>
-<script src="/game/src/js/core/ProgressionEngine.js?v=20261108_21"></script>
+<script src="/game/src/js/core/ProgressionEngine.js?v=20261110_01"></script>
 <script src="/game/src/js/core/RecipeBook.js?v=20261109_01"></script>
-<script src="/game/src/js/core/InventoryManager.js?v=20261109_01"></script>
+<script src="/game/src/js/core/InventoryManager.js?v=20261109_05"></script>
 <script src="/game/src/js/core/hint/FeedbackHintStrategy.js?v=20261101_7"></script>
 <script src="/game/src/js/core/hint/BaseballHintEngine.js?v=20261101_7"></script>
 <script src="/game/src/js/core/hint/RatioHintProvider.js?v=20261101_7"></script>
 <script src="/game/src/js/core/hint/ImageMinigameSuite.js?v=20261103_3"></script>
 <script src="/game/src/js/core/fridge/FridgeMatcherEngine.js?v=20261101_7"></script>
 <script src="/game/src/js/core/suggestion/SuggestionService.js?v=20261101_10"></script>
-<script src="/game/src/js/core/AlchemyEngine.js?v=20261109_01"></script>
+<script src="/game/src/js/core/AlchemyEngine.js?v=20261109_05"></script>
 <script src="/game/src/js/ui/pickers/DetailPickerRegistry.js?v=20261102_01"></script>
 <script src="/game/src/js/ui/ScratchCardView.js?v=20261107_01"></script>
-<script src="/game/src/js/ui/HintModalView.js?v=20261108_21"></script>
+<script src="/game/src/js/ui/HintModalView.js?v=20261109_02"></script>
 <script src="/game/src/js/ui/FridgeRecommenderView.js?v=20261108_21"></script>
 <script src="/game/src/js/services/RecipeAnalysisIntegrator.js?v=20261103_01"></script>
 <script src="/game/src/js/ui/RecipeInspectorModalView.js?v=20261102_02"></script>
 <script src="/game/src/js/ui/SuggestionBoardView.js?v=20261108_25"></script>
-<script src="/game/src/js/ui/SettingsModalView.js?v=20261108_03"></script>
-<script src="/game/src/js/ui/StoryTutorialModalView.js?v=20261108_11"></script>
+<script src="/game/src/js/ui/SettingsModalView.js?v=20261110_02"></script>
+<script src="/game/src/js/ui/StoryTutorialModalView.js?v=20261109_05"></script>
+<script src="/game/src/js/ui/ModeSelectPortalView.js?v=20261110_01"></script>
 <script src="/game/src/js/ui/party/PartySoundSynth.js?v=20261102_02"></script>
 <script src="/game/src/js/ui/party/games/UpAndDownGame.js?v=20261106_01"></script>
 <script src="/game/src/js/ui/party/games/CapFlickGame.js?v=20261103_20"></script>
@@ -210,8 +222,8 @@
 <script src="/game/src/js/ui/party/PartyGameHubView.js?v=20261108_21"></script>
 <script src="/game/src/js/core/tycoon/TycoonCustomerPool.js?v=20261108_14"></script>
 <script src="/game/src/js/core/tycoon/TycoonLeaderboardService.js?v=20261103_01"></script>
-<script src="/game/src/js/core/tycoon/TycoonEngine.js?v=20261108_22"></script>
-<script src="/game/src/js/ui/TycoonView.js?v=20261109_01"></script>
-<script src="/game/src/js/app.js?v=20261109_01"></script>
+<script src="/game/src/js/core/tycoon/TycoonEngine.js?v=20261110_01"></script>
+<script src="/game/src/js/ui/TycoonView.js?v=20261110_02"></script>
+<script src="/game/src/js/app.js?v=20261110_02"></script>
 </body>
 </html>
