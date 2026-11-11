@@ -702,41 +702,47 @@ body.admin-mode .header-toolbar {
 
 
 /* ==========================================================================
-   🌟 모드 선택 포털 화면 (ModeSelectPortalView)
+   🌟 게임 모드 선택 SPA 게이트웨이 뷰 (#view-portal)
    ========================================================================== */
-.mode-portal-overlay {
-  z-index: 10050;
-  background: rgba(10, 15, 29, 0.94);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  display: flex;
+#view-portal.view {
+  width: 100%;
+  height: 100%;
+  min-height: calc(100vh - 58px);
+  min-height: calc(100dvh - 58px);
+  background: radial-gradient(circle at 50% 15%, rgba(14, 165, 233, 0.12) 0%, transparent 55%),
+              radial-gradient(circle at 50% 85%, rgba(245, 158, 11, 0.12) 0%, transparent 55%),
+              #0b1120;
+  display: none;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  box-sizing: border-box;
+  padding: 20px 16px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-.mode-portal-card {
+#view-portal.view.active {
+  display: flex !important;
+}
+
+.portal-spa-container {
   width: 100%;
-  max-width: 680px;
-  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-  border: 1.5px solid #475569;
-  border-radius: 22px;
-  padding: 24px 20px;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 35px rgba(56, 189, 248, 0.15);
+  max-width: 480px;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 18px;
-  animation: portalZoomIn 0.24s cubic-bezier(0.16, 1, 0.3, 1);
-  max-height: 94vh;
-  overflow-y: auto;
+  margin: auto 0;
+  animation: portalFadeIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes portalZoomIn {
-  from { opacity: 0; transform: scale(0.92); }
-  to { opacity: 1; transform: scale(1); }
+@keyframes portalFadeIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-.mode-portal-header {
+.portal-spa-hero {
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -744,72 +750,114 @@ body.admin-mode .header-toolbar {
   gap: 6px;
 }
 
-.portal-emblem {
-  font-size: 2.4rem;
-  line-height: 1;
-  filter: drop-shadow(0 4px 10px rgba(245, 158, 11, 0.4));
+.portal-spa-emblem-wrap {
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(14, 165, 233, 0.2) 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
 }
 
-.mode-portal-title {
+.portal-spa-emblem {
+  font-size: 2.2rem;
+  line-height: 1;
+  filter: drop-shadow(0 4px 10px rgba(245, 158, 11, 0.5));
+}
+
+.portal-spa-title {
   margin: 0;
-  font-size: 1.28rem;
+  font-size: 1.45rem;
   font-weight: 900;
   color: #f8fafc;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.5px;
 }
 
-.mode-portal-subtitle {
+.portal-spa-subtitle {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 0.84rem;
   color: #94a3b8;
-  line-height: 1.45;
-  max-width: 480px;
 }
 
-.mode-portal-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+.portal-spa-grid {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
   gap: 14px;
 }
 
-.mode-choice-card {
-  background: rgba(15, 23, 42, 0.85);
+/* 2대 모드 카드 (영역 전체가 버튼) */
+.portal-mode-card {
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(15, 23, 42, 0.95);
   border: 2px solid #334155;
-  border-radius: 16px;
-  padding: 18px 16px;
+  border-radius: 18px;
+  padding: 16px 16px;
   display: flex;
   flex-direction: column;
   gap: 10px;
   cursor: pointer;
+  text-align: left;
+  user-select: none;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   overflow: hidden;
-  user-select: none;
+  color: inherit;
+  font-family: inherit;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
-.mode-choice-card:hover {
+.portal-mode-card * {
+  pointer-events: none;
+}
+
+.portal-mode-card:hover {
   transform: translateY(-3px);
-  border-color: #64748b;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
 }
 
-.mode-choice-card#mode-choice-quiz:hover {
+.portal-mode-card:active {
+  transform: scale(0.985);
+}
+
+/* 퀴즈 모드 테마 */
+.portal-mode-card.quiz {
+  border-color: rgba(56, 189, 248, 0.5);
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.12) 0%, rgba(15, 23, 42, 0.96) 100%);
+}
+
+.portal-mode-card.quiz:hover,
+.portal-mode-card.quiz.is-active-mode {
   border-color: #38bdf8;
-  box-shadow: 0 10px 28px rgba(14, 165, 233, 0.25);
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.22) 0%, rgba(15, 23, 42, 0.98) 100%);
+  box-shadow: 0 10px 32px rgba(14, 165, 233, 0.3);
 }
 
-.mode-choice-card#mode-choice-tycoon:hover {
+/* 타이쿤 모드 테마 */
+.portal-mode-card.tycoon {
+  border-color: rgba(245, 158, 11, 0.5);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(15, 23, 42, 0.96) 100%);
+}
+
+.portal-mode-card.tycoon:hover,
+.portal-mode-card.tycoon.is-active-mode {
   border-color: #f59e0b;
-  box-shadow: 0 10px 28px rgba(245, 158, 11, 0.25);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.22) 0%, rgba(15, 23, 42, 0.98) 100%);
+  box-shadow: 0 10px 32px rgba(245, 158, 11, 0.3);
 }
 
-.mode-choice-card.is-active-mode {
-  border-color: #38bdf8;
-  background: linear-gradient(180deg, rgba(14, 165, 233, 0.12) 0%, rgba(15, 23, 42, 0.95) 100%);
+.portal-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
 }
 
-.mode-card-badge {
-  align-self: flex-start;
+.portal-card-badge {
   font-size: 0.65rem;
   font-weight: 800;
   padding: 3px 8px;
@@ -817,141 +865,151 @@ body.admin-mode .header-toolbar {
   letter-spacing: -0.2px;
 }
 
-.mode-card-badge.quiz {
-  background: rgba(14, 165, 233, 0.2);
-  color: #38bdf8;
-  border: 1px solid rgba(56, 189, 248, 0.5);
+.portal-card-badge.quiz {
+  background: rgba(14, 165, 233, 0.25);
+  color: #7dd3fc;
+  border: 1px solid rgba(56, 189, 248, 0.4);
 }
 
-.mode-card-badge.tycoon {
-  background: rgba(245, 158, 11, 0.2);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.5);
+.portal-card-badge.tycoon {
+  background: rgba(245, 158, 11, 0.25);
+  color: #fde047;
+  border: 1px solid rgba(245, 158, 11, 0.4);
 }
 
-.mode-card-icon-area {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 1.5rem;
-  margin: 2px 0;
-}
-
-.mode-card-arrow {
-  font-size: 0.95rem;
-  color: #64748b;
-}
-
-.mode-card-title {
-  margin: 0;
-  font-size: 1.05rem;
+.portal-card-current-tag {
+  font-size: 0.64rem;
   font-weight: 800;
-  color: #f8fafc;
-}
-
-.mode-card-desc {
-  margin: 0;
-  font-size: 0.74rem;
   color: #94a3b8;
-  line-height: 1.45;
-  min-height: 48px;
+  background: rgba(51, 65, 85, 0.6);
+  padding: 2px 7px;
+  border-radius: 6px;
+  border: 1px solid rgba(100, 116, 139, 0.4);
 }
 
-.mode-feature-list {
-  list-style: none;
-  padding: 0;
-  margin: 4px 0 8px 0;
+.portal-card-main {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  border-top: 1px dashed rgba(100, 116, 139, 0.35);
-  padding-top: 10px;
+  align-items: flex-start;
+  gap: 14px;
 }
 
-.mode-feature-list li {
-  font-size: 0.70rem;
-  color: #cbd5e1;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.mode-feature-list li span {
-  font-size: 0.85rem;
-  flex-shrink: 0;
-}
-
-.mode-feature-list li strong {
-  color: #f1f5f9;
-}
-
-.mode-card-btn {
-  margin-top: auto;
-  width: 100%;
-  padding: 10px 14px;
-  border-radius: 10px;
-  font-size: 0.84rem;
-  font-weight: 800;
-  border: none;
-  cursor: pointer;
-  transition: all 0.15s ease;
+.portal-card-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  flex-shrink: 0;
+  font-size: 1.6rem;
 }
 
-.mode-card-btn.quiz-btn {
-  background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%);
-  color: #ffffff;
-  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
+.portal-card-icon-box.quiz {
+  background: rgba(14, 165, 233, 0.2);
+  border: 1px solid rgba(56, 189, 248, 0.45);
 }
 
-.mode-card-btn.quiz-btn:hover {
-  background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
-  transform: translateY(-1px);
+.portal-card-icon-box.tycoon {
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid rgba(245, 158, 11, 0.45);
 }
 
-.mode-card-btn.tycoon-btn {
-  background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
-  color: #1e1b4b;
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+.portal-card-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
-.mode-card-btn.tycoon-btn:hover {
-  background: linear-gradient(135deg, #b45309 0%, #d97706 100%);
-  transform: translateY(-1px);
+.portal-card-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #f8fafc;
+  letter-spacing: -0.3px;
 }
 
-.mode-portal-footer {
+.portal-card-desc {
+  margin: 0;
+  font-size: 0.76rem;
+  color: #cbd5e1;
+  font-weight: 600;
+}
+
+.portal-card-bullets {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.portal-card-bullets span {
+  font-size: 0.70rem;
+  color: #94a3b8;
+  line-height: 1.35;
+}
+
+.portal-card-action {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(71, 85, 105, 0.4);
+}
+
+.portal-card-action.quiz {
+  color: #38bdf8;
+}
+
+.portal-card-action.tycoon {
+  color: #fbbf24;
+}
+
+.portal-card-arrow {
+  font-size: 0.95rem;
+  transition: transform 0.15s ease;
+}
+
+.portal-mode-card:hover .portal-card-arrow {
+  transform: translateX(4px);
+}
+
+.portal-spa-footer {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  padding-top: 6px;
-  border-top: 1px solid rgba(71, 85, 105, 0.5);
+  width: 100%;
   text-align: center;
 }
 
-.portal-safe-badge {
-  font-size: 0.70rem;
-  color: #94a3b8;
-}
-
-.portal-cancel-btn {
-  background: transparent;
-  border: 1px solid #475569;
-  color: #94a3b8;
-  font-size: 0.75rem;
-  padding: 6px 14px;
-  border-radius: 8px;
+.portal-return-btn {
+  background: rgba(30, 41, 59, 0.9);
+  border: 1.5px solid #475569;
+  border-radius: 12px;
+  color: #e2e8f0;
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 10px 18px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  width: 100%;
+  transition: all 0.18s ease;
 }
 
-.portal-cancel-btn:hover {
-  background: rgba(51, 65, 85, 0.5);
-  color: #f1f5f9;
+.portal-return-btn:hover {
+  background: rgba(51, 65, 85, 0.95);
+  border-color: #94a3b8;
+  color: #ffffff;
+}
+
+.portal-spa-notice {
+  margin: 0;
+  font-size: 0.72rem;
+  color: #64748b;
 }
 
 /* ==========================================================================

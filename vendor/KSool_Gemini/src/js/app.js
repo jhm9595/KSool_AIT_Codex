@@ -144,8 +144,22 @@ class KSoolApp {
     this.currentMode = (typeof localStorage !== 'undefined' ? localStorage.getItem('ksool_active_mode') : null) || 'TYCOON';
     this.friendHelpPayload = null;
     this.friendHelpService = window.KSool?.FriendHelpService ? new window.KSool.FriendHelpService() : null;
+    this.platformBridge = window.KSool?.PlatformBridge ? new window.KSool.PlatformBridge() : null;
+
+    if (window.KSool?.FriendSosSolveView) {
+      this.friendSosSolveView = new window.KSool.FriendSosSolveView({
+        viewId: 'view-sos',
+        recipeBook: this.recipeBook,
+        alchemyEngine: this.alchemyEngine,
+        brandResolver: this.brandResolver,
+        audio: this.audio,
+        platformBridge: this.platformBridge,
+        app: this
+      });
+    }
+
     if (window.KSool?.ModeSelectPortalView) {
-      this.modeSelectPortalView = new window.KSool.ModeSelectPortalView('mode-portal-modal', {
+      this.modeSelectPortalView = new window.KSool.ModeSelectPortalView('view-portal', {
         app: this,
         audio: this.audio
       });
@@ -199,16 +213,10 @@ class KSoolApp {
     if (!isFriendHelp) {
       const savedMode = typeof localStorage !== 'undefined' ? localStorage.getItem('ksool_active_mode') : null;
       if (!savedMode) {
-        // 첫 진입: 모드 선택 포털 오픈
+        // 첫 진입: 전체 화면 SPA 모드 선택 게이트웨이 뷰 오픈
         this.storage.setMode('TYCOON');
         this.inventory.init();
-        if (this.modeSelectPortalView) {
-          this.modeSelectPortalView.open((chosenMode) => {
-            this.selectGameMode(chosenMode, true);
-          });
-        } else {
-          this.selectGameMode('TYCOON', false);
-        }
+        this.switchTab('portal');
       } else {
         this.selectGameMode(savedMode, false);
       }
@@ -266,25 +274,51 @@ class KSoolApp {
   }
 
   /**
+   * 단일 탭 접근 정책
+   * - 퀴즈 모드 및 친구 도움 모드: tycoon(점포), shop(재료상점) 접근 불가
+   * - 인벤토리의 isTabUnlocked(target) 조건 만족 여부 검사
+   */
+  canAccessTab(target, mode = this.currentMode) {
+    if (target === 'portal' || target === 'sos') return true;
+    if (target === 'fridge') return false; // fridge는 party 내부 게임
+
+    const isQuizOrHelp = (mode === 'QUIZ' || mode === 'HELP_FRIEND');
+    if (isQuizOrHelp) {
+      if (target === 'tycoon' || target === 'shop') {
+        return false;
+      }
+    }
+
+    return this.inventory ? Boolean(this.inventory.isTabUnlocked(target)) : true;
+  }
+
+  getDefaultTabForMode(mode = this.currentMode) {
+    if (mode === 'HELP_FRIEND') {
+      return 'sos';
+    }
+    if (mode === 'QUIZ') {
+      return 'brew';
+    }
+    return 'tycoon';
+  }
+
+  /**
    * 탭바 네비게이션을 현재 모드에 맞게 제어
    * - 퀴즈 모드: 점포(타이쿤) 및 재료상점 탭 숨김 처리 (조합 퀴즈 연구실 + 도감·힌트 + 술게임 유지)
    * - 타이쿤 모드: 점포, 연구실, 재료상점, 도감, 술게임 전체 노출
    */
   _updateTabBarForMode(mode) {
-    const tycoonTabBtn = document.querySelector('.tab-btn[data-tab-target="tycoon"]');
-    const shopTabBtn = document.querySelector('.tab-btn[data-tab-target="shop"]');
-    if (mode === 'QUIZ') {
-      if (tycoonTabBtn) tycoonTabBtn.style.display = 'none';
-      if (shopTabBtn) shopTabBtn.style.display = 'none';
-    } else {
-      if (tycoonTabBtn) tycoonTabBtn.style.display = '';
-      if (shopTabBtn) shopTabBtn.style.display = '';
-    }
+    document.querySelectorAll('[data-tab-target]').forEach(btn => {
+      const target = btn.getAttribute('data-tab-target');
+      const isVisible = this.canAccessTab(target, mode);
+      btn.style.display = isVisible ? '' : 'none';
+    });
   }
 
   /**
    * 🤝 친구 도움요청 SOS 샌드박스 세션 초기화
    * - 친구의 로컬스토리지 데이터를 전혀 건드리지 않고 휘발성 메모리 샌드박스로 실행
+   * - 기존 연구실(brew)을 쪼개 쓰지 않고, 100% 독립된 전용 풀이 뷰(FriendSosSolveView)로 진입!
    */
   _initFriendHelpMode(payload) {
     this.currentMode = 'HELP_FRIEND';
@@ -294,25 +328,11 @@ class KSoolApp {
     this.inventory.isQuizMode = true;
     this.inventory.init();
 
-    const targetRec = this.recipeBook.getRecipe(payload.recipeId);
-    if (targetRec && targetRec.step_id) {
-      this.inventory.unlockedStepId = Math.max(this.inventory.unlockedStepId, Number(targetRec.step_id));
+    if (this.friendSosSolveView) {
+      this.friendSosSolveView.open(payload);
+    } else {
+      this.switchTab('sos');
     }
-
-    // 친구 도움 모드: 질문자가 소유한 기초 재료만 노출
-    this.inventory.unlockedRecipeIds.clear();
-    this.inventory.purchasedIngredientIds.clear();
-    if (Array.isArray(payload.leafIngIds)) {
-      for (const id of payload.leafIngIds) {
-        this.inventory.purchasedIngredientIds.add(Number(id));
-      }
-    }
-    this.inventory._syncStepAndIngredients();
-
-    this.quizTargetRecipeId = Number(payload.recipeId);
-    this._updateTabBarForMode('QUIZ');
-    this.switchTab('brew');
-    this.renderAll();
 
     this.showToast(`🤝 [${payload.sharerName}]님의 SOS 도착!\n친구가 가진 재료로 문제를 풀어주세요!`);
   }
@@ -335,7 +355,11 @@ class KSoolApp {
         }
       }
     } else if (hash.startsWith('#tycoon')) {
-      this.switchTab('tycoon');
+      if (this.canAccessTab('tycoon')) {
+        this.switchTab('tycoon');
+      } else {
+        this.switchTab(this.getDefaultTabForMode());
+      }
     } else if (hash.startsWith('#collection')) {
       this.switchTab('collection');
     } else if (hash.startsWith('#suggestions')) {
@@ -353,8 +377,12 @@ class KSoolApp {
    * 오프라인이나 file:// 직접 실행 시 내장 SeedDataBundle로 즉시 폴백합니다.
    */
   async _loadHybridData() {
-    if (window.location.protocol === 'file:') {
+    // 0ms 즉시 시작: SeedDataBundle이 이미 메모리에 로드되어 있다면 네트워크 지연/실패 없이 즉시 사용
+    if (window.KSool?.SeedDataBundle) {
       return window.KSool.SeedDataBundle;
+    }
+    if (window.location.protocol === 'file:') {
+      return window.KSool?.SeedDataBundle;
     }
     try {
       const [categories, ingredients_base, ingredients_detail, recipes, recipe_ingredients, external_hints] =
@@ -375,6 +403,14 @@ class KSoolApp {
   renderAll() {
     this.renderTabBar();
     this.renderHeader();
+    if (this.currentTab === 'portal') {
+      this.modeSelectPortalView?.render?.();
+      return;
+    }
+    if (this.currentTab === 'sos') {
+      this.friendSosSolveView?.render?.();
+      return;
+    }
     this.renderBrewView();
     this.renderShopView();
     this.renderCollectionView();
@@ -395,7 +431,13 @@ class KSoolApp {
       return;
     }
 
-    if (!this.inventory.isTabUnlocked(target)) return;
+    if (!this.canAccessTab(target)) {
+      const defTab = this.getDefaultTabForMode();
+      if (this.currentTab !== defTab && this.canAccessTab(defTab)) {
+        this.switchTab(defTab);
+      }
+      return;
+    }
     if (this.currentTab === 'party' && target !== 'party') {
       this.partyGameHubView.onLeavePartyTab();
     }
@@ -413,13 +455,24 @@ class KSoolApp {
   }
 
   renderTabBar() {
-    if (this.currentTab === 'fridge' || !this.inventory.isTabUnlocked(this.currentTab)) {
-      this.currentTab = 'tycoon';
+    const isFullScreen = (this.currentTab === 'portal' || this.currentTab === 'sos');
+    const tabBar = document.querySelector('.tab-bar');
+    if (tabBar) {
+      tabBar.style.display = isFullScreen ? 'none' : '';
+    }
+
+    const modePortalBtn = document.getElementById('mode-select-portal-btn');
+    if (modePortalBtn) {
+      modePortalBtn.style.display = isFullScreen ? 'none' : '';
+    }
+
+    if (!isFullScreen && (this.currentTab === 'fridge' || !this.canAccessTab(this.currentTab))) {
+      this.currentTab = this.getDefaultTabForMode();
     }
 
     document.querySelectorAll('[data-tab-target]').forEach(btn => {
       const target = btn.getAttribute('data-tab-target');
-      const isVisible = target !== 'fridge' && this.inventory.isTabUnlocked(target);
+      const isVisible = this.canAccessTab(target);
       btn.style.display = isVisible ? '' : 'none';
       btn.classList.toggle('active', target === this.currentTab);
     });
@@ -801,27 +854,6 @@ class KSoolApp {
     const showHintBtn = !isUnlocked && isCollectionUnlocked;
     const needsShopMaterials = !isUnlocked && !isChallengeable;
 
-    let sosBannerHtml = '';
-    if (this.currentMode === 'HELP_FRIEND') {
-      const sharer = this.friendHelpPayload?.sharerName || '친구';
-      sosBannerHtml = `
-        <div class="friend-sos-banner">
-          <div class="friend-sos-title">🤝 [${sharer}]님의 SOS 도움 요청</div>
-          <div class="friend-sos-desc">친구가 보유한 재료로 대신 문제를 풀어주고 있습니다. (임시 풀이 샌드박스)</div>
-          <button type="button" class="friend-sos-exit-btn" id="sos-exit-btn">❌ 나가기 (내 게임으로)</button>
-        </div>
-      `;
-    }
-
-    let sosShareBtnHtml = '';
-    if (!isUnlocked && this.friendHelpService && this.currentMode !== 'HELP_FRIEND') {
-      sosShareBtnHtml = `
-        <button type="button" class="quiz-sos-share-btn" id="quiz-sos-share-btn" title="친구에게 이 문제 링크를 보내 도움 요청하기">
-          💌 친구에게 도움요청
-        </button>
-      `;
-    }
-
     const missingDiag = !isUnlocked ? this.inventory.getRecipeMissingRequirements(targetRec.recipe_id) : null;
     let descAreaHtml = '';
     if (needsShopMaterials) {
@@ -899,8 +931,33 @@ class KSoolApp {
       leftActionBtnHtml = `<button type="button" class="quiz-infer-btn" id="quiz-open-hint-btn">힌트</button>`;
     }
 
+    const titleGroupHtml = `<span class="quiz-target-title">${resolvedName}</span>`;
+    const navRightHtml = `
+      <div class="quiz-nav-right">
+        <button type="button" class="quiz-nav-btn" id="quiz-prev-btn" ${hasPrev ? '' : 'disabled'} title="이전 번호">◀</button>
+        <button type="button" class="quiz-num-badge" id="quiz-jump-btn" title="클릭하여 원하는 번호나 단계로 바로 이동" style="cursor:pointer; background:rgba(30,41,59,0.9); border:1px solid #475569; border-radius:6px; padding:3px 7px; color:#e2e8f0; font-weight:700;">
+          ${targetRec.formatted_number} <span class="quiz-num-total" style="font-size:0.75rem; color:#94a3b8;">/ ${totalCount} ▾</span>
+        </button>
+        <button type="button" class="quiz-nav-btn" id="quiz-next-btn" ${hasNext ? '' : 'disabled'} title="다음 번호">▶</button>
+      </div>
+    `;
+
+    const recipeItems = (typeof this.recipeBook.getRecipeItems === 'function'
+      ? this.recipeBook.getRecipeItems(targetRec.recipe_id)
+      : (this.recipeBook.getIngredientsForRecipe ? this.recipeBook.getIngredientsForRecipe(targetRec.recipe_id) : [])) || [];
+    const hasMultipleRatio = recipeItems.some(it => Number(it.ratio) > 1);
+    const isStep4OrAbove = Number(targetRec.step_id) >= 4;
+
+    let ratioTipHtml = '';
+    if (!isUnlocked && (hasMultipleRatio || isStep4OrAbove)) {
+      ratioTipHtml = `
+        <div class="quiz-ratio-tip-badge" style="font-size:0.71rem; color:#fde047; background:rgba(245,158,11,0.14); border:1px solid rgba(245,158,11,0.35); border-radius:6px; padding:3px 7px; margin-top:2px; display:inline-flex; align-items:center; gap:4px; line-height:1.25;">
+          <span>⚖️</span> <span><b>황금비율 TIP:</b> 재료 카드를 <b>여러 번 터치</b>하면 개수(비율)가 올라갑니다!</span>
+        </div>
+      `;
+    }
+
     container.innerHTML = `
-      ${sosBannerHtml}
       <div class="brew-quiz-card">
         <div class="quiz-question-row">
           <div class="quiz-icon-col">
@@ -914,18 +971,12 @@ class KSoolApp {
           <div class="quiz-question-body">
             <div class="quiz-header-inline">
               <div class="quiz-title-group">
-                <span class="quiz-target-title">${resolvedName}</span>
+                ${titleGroupHtml}
               </div>
-              <div class="quiz-nav-right">
-                <button type="button" class="quiz-nav-btn" id="quiz-prev-btn" ${hasPrev ? '' : 'disabled'} title="이전 번호">◀</button>
-                <button type="button" class="quiz-num-badge" id="quiz-jump-btn" title="클릭하여 원하는 번호나 단계로 바로 이동" style="cursor:pointer; background:rgba(30,41,59,0.9); border:1px solid #475569; border-radius:6px; padding:3px 7px; color:#e2e8f0; font-weight:700;">
-                  ${targetRec.formatted_number} <span class="quiz-num-total" style="font-size:0.75rem; color:#94a3b8;">/ ${totalCount} ▾</span>
-                </button>
-                <button type="button" class="quiz-nav-btn" id="quiz-next-btn" ${hasNext ? '' : 'disabled'} title="다음 번호">▶</button>
-              </div>
+              ${navRightHtml}
             </div>
             ${descAreaHtml}
-            ${sosShareBtnHtml}
+            ${ratioTipHtml}
           </div>
         </div>
       </div>
@@ -935,33 +986,6 @@ class KSoolApp {
   }
 
   _bindBrewQuizEvents(container, navigableRecipes, targetRec) {
-    const sosExitBtn = container.querySelector('#sos-exit-btn');
-    if (sosExitBtn) {
-      sosExitBtn.onclick = () => {
-        this.audio?.playTap?.();
-        if (typeof window !== 'undefined' && window.history && window.location) {
-          window.history.replaceState({}, '', window.location.pathname);
-        }
-        const savedMode = (typeof localStorage !== 'undefined' ? localStorage.getItem('ksool_active_mode') : null) || 'TYCOON';
-        this.selectGameMode(savedMode, false);
-      };
-    }
-
-    const quizSosShareBtn = container.querySelector('#quiz-sos-share-btn');
-    if (quizSosShareBtn && targetRec) {
-      quizSosShareBtn.onclick = async () => {
-        this.audio?.playTap?.();
-        const leafIngIds = Array.from(this.inventory.purchasedIngredientIds || []);
-        const shareData = {
-          recipeId: targetRec.recipe_id,
-          recipeNumber: targetRec.recipe_number,
-          recipeName: this.brandResolver.resolveName(targetRec),
-          sharerName: this.inventory.playerName || '주점 주인장',
-          leafIngIds: leafIngIds
-        };
-        await this.friendHelpService.shareHelp(shareData, (msg) => this.showToast(msg));
-      };
-    }
     const jumpBtn = container.querySelector('#quiz-jump-btn');
     if (jumpBtn) {
       jumpBtn.onclick = () => {
@@ -1110,9 +1134,22 @@ class KSoolApp {
         const isUnlocked = this.inventory.isRecipeUnlocked(r.recipe_id);
         const name = this.brandResolver.resolveName(r);
         const icon = window.KSool?.pixelIcon ? window.KSool.pixelIcon(r, 22) : (r.emoji || '🍶');
-        const statusBadge = isUnlocked
-          ? `<span style="color:#10b981; font-size:0.72rem; font-weight:700; background:rgba(16,185,129,0.15); padding:2px 6px; border-radius:4px;">완료 ✅</span>`
-          : `<span style="color:#f59e0b; font-size:0.72rem; font-weight:700; background:rgba(245,158,11,0.15); padding:2px 6px; border-radius:4px;">연구중 🔬</span>`;
+
+        let statusBadge = '';
+        if (isUnlocked) {
+          statusBadge = `<span style="color:#10b981; font-size:0.72rem; font-weight:700; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3); padding:2px 6px; border-radius:4px;">완료 ✅</span>`;
+        } else {
+          const missing = this.inventory.getRecipeMissingRequirements(r.recipe_id);
+          if (missing.missingCrafted.length > 0) {
+            statusBadge = `<span style="color:#38bdf8; font-size:0.7rem; font-weight:700; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); padding:2px 6px; border-radius:4px;">하위조합 필요 🧪</span>`;
+          } else if (missing.missingShop.length > 0) {
+            statusBadge = `<span style="color:#fbbf24; font-size:0.7rem; font-weight:700; background:rgba(251,191,36,0.15); border:1px solid rgba(251,191,36,0.3); padding:2px 6px; border-radius:4px;">재료구매 필요 🛒</span>`;
+          } else if (missing.outOfStockCrafted.length > 0) {
+            statusBadge = `<span style="color:#fb923c; font-size:0.7rem; font-weight:700; background:rgba(251,146,60,0.15); border:1px solid rgba(251,146,60,0.3); padding:2px 6px; border-radius:4px;">재료부족 ⚠️</span>`;
+          } else {
+            statusBadge = `<span style="color:#34d399; font-size:0.7rem; font-weight:700; background:rgba(52,211,153,0.15); border:1px solid rgba(52,211,153,0.3); padding:2px 6px; border-radius:4px;">연구 가능 🧪</span>`;
+          }
+        }
 
         return `
           <button type="button" class="recipe-jump-item-btn" data-jump-recipe-id="${r.recipe_id}" style="display:flex; align-items:center; justify-content:space-between; width:100%; padding:9px 12px; background:${isCurrent ? '#1e3a8a' : '#0f172a'}; border:1px solid ${isCurrent ? '#3b82f6' : '#334155'}; border-radius:8px; cursor:pointer; color:#e2e8f0; text-align:left; transition:all 0.15s ease;">
@@ -1844,7 +1881,8 @@ class KSoolApp {
           copyAnsBtn.onclick = async () => {
             this.audio?.playTap?.();
             const recName = this.brandResolver.resolveName(rec);
-            const ansText = `[K-술 연금술사 SOS 정답]\n내가 '${recName}' 정답 조합을 찾았어!\n👉 조합: ${plainFormula}\n얼른 조합해서 해금해봐! 🍶✨`;
+            const gameLink = typeof window !== 'undefined' ? `${window.location.origin}${window.location.pathname}` : '';
+            const ansText = `[K-술 연금술사 SOS 정답]\n내가 '${recName}' 황금 조합을 찾았어!\n👉 조합: ${plainFormula}\n얼른 조합해서 해금해봐! 🍶✨\n\n🎮 나도 K-술 연금술사 도전하기:\n${gameLink}`;
             if (navigator?.clipboard?.writeText) {
               try {
                 await navigator.clipboard.writeText(ansText);
@@ -1859,11 +1897,12 @@ class KSoolApp {
         if (playMyGameBtn) {
           playMyGameBtn.onclick = () => {
             modal.classList.remove('active');
-            if (typeof window !== 'undefined' && window.history && window.location) {
-              window.history.replaceState({}, '', window.location.pathname);
+            this.audio?.playTap?.();
+            if (this.platformBridge) {
+              this.platformBridge.handlePlayMyGameAction(this);
+            } else {
+              this.switchTab('portal');
             }
-            const savedMode = (typeof localStorage !== 'undefined' ? localStorage.getItem('ksool_active_mode') : null) || 'TYCOON';
-            this.selectGameMode(savedMode, true);
           };
         }
         modal.onclick = (e) => {
@@ -1955,27 +1994,53 @@ class KSoolApp {
         }
       }
 
+      const isTycoonMode = (this.currentMode === 'TYCOON');
       const eng = this.tycoonView?.engine;
-      const isOrderableInTycoon = Boolean(eng?.isOrderableRecipe(rec));
+      const isOrderableInTycoon = isTycoonMode && Boolean(eng?.isOrderableRecipe(rec));
       const curStage = eng?.getCurrentMapStage?.();
-      const unlockedOrderableList = eng ? eng.getStageOrderableUnlockedRecipes(curStage?.id) : [];
+      const unlockedOrderableList = (isTycoonMode && eng) ? eng.getStageOrderableUnlockedRecipes(curStage?.id) : [];
       const unlockedOrderableCount = unlockedOrderableList.length;
       const minOrderableReq = eng?.MIN_ORDERABLE_TO_START || 4;
-      const canStartStoreNow = isOrderableInTycoon && unlockedOrderableCount >= minOrderableReq;
+      const canStartStoreNow = isTycoonMode && isOrderableInTycoon && unlockedOrderableCount >= minOrderableReq;
 
-      let tycoonSellNoticeHtml = '';
-      if (isOrderableInTycoon) {
+      let modeNoticeHtml = '';
+      let secondaryActionBtnHtml = '';
+
+      if (isTycoonMode) {
+        if (isOrderableInTycoon) {
+          if (canStartStoreNow) {
+            modeNoticeHtml = `
+              <div style="width:100%; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.45); border-radius:10px; padding:8px 10px; font-size:0.74rem; color:#6ee7b7; font-weight:700;">
+                🏪 판매 음료 ${unlockedOrderableCount}종 준비 완료! 이제 <b>[점포]</b>에서 <b>${this.brandResolver.resolveName(rec)}</b> 등을 판매하여 자금을 모을 수 있습니다!
+              </div>
+            `;
+          } else {
+            const remainDrinkCount = Math.max(1, minOrderableReq - unlockedOrderableCount);
+            modeNoticeHtml = `
+              <div style="width:100%; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.4); border-radius:10px; padding:8px 10px; font-size:0.74rem; color:#7dd3fc; font-weight:700;">
+                🥤 판매 음료 해금 (<b>${unlockedOrderableCount} / ${minOrderableReq}종</b>) — 점포 영업을 시작하려면 음료·주류를 <b>${remainDrinkCount}종</b> 더 연구하세요!
+              </div>
+            `;
+          }
+        }
         if (canStartStoreNow) {
-          tycoonSellNoticeHtml = `
-            <div style="width:100%; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.45); border-radius:10px; padding:8px 10px; font-size:0.74rem; color:#6ee7b7; font-weight:700;">
-              🏪 판매 음료 ${unlockedOrderableCount}종 준비 완료! 이제 <b>[점포]</b>에서 <b>${this.brandResolver.resolveName(rec)}</b> 등을 판매하여 자금을 모을 수 있습니다!
+          secondaryActionBtnHtml = `<button class="clear-pot-btn" id="result-go-tycoon-btn" style="flex:1; background:linear-gradient(135deg,#059669,#10b981); color:#fff; border-color:#34d399; font-weight:800;">🏪 점포 가기</button>`;
+        }
+      } else {
+        // 퀴즈 모드: 경영 안내는 일절 배제하고 다음 퀴즈 목표 제시
+        const nextQuizRec = this.inventory.getNextQuizRecipe();
+        if (nextQuizRec) {
+          const nextName = this.brandResolver.resolveName(nextQuizRec);
+          modeNoticeHtml = `
+            <div style="width:100%; background:rgba(99,102,241,0.14); border:1px solid rgba(99,102,241,0.45); border-radius:10px; padding:8px 10px; font-size:0.75rem; color:#c7d2fe; font-weight:700;">
+              🎯 다음 퀴즈 목표: <b>[No.${nextQuizRec.recipe_number} ${nextName}]</b> 도전 가능!
             </div>
           `;
+          secondaryActionBtnHtml = `<button class="clear-pot-btn" id="result-go-next-quiz-btn" style="flex:1; background:linear-gradient(135deg,#4f46e5,#6366f1); color:#fff; border-color:#818cf8; font-weight:800;">🎯 다음 퀴즈 풀기</button>`;
         } else {
-          const remainDrinkCount = Math.max(1, minOrderableReq - unlockedOrderableCount);
-          tycoonSellNoticeHtml = `
-            <div style="width:100%; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.4); border-radius:10px; padding:8px 10px; font-size:0.74rem; color:#7dd3fc; font-weight:700;">
-              🥤 판매 음료 해금 (<b>${unlockedOrderableCount} / ${minOrderableReq}종</b>) — 점포 영업을 시작하려면 음료·주류를 <b>${remainDrinkCount}종</b> 더 연구하세요!
+          modeNoticeHtml = `
+            <div style="width:100%; background:rgba(16,185,129,0.14); border:1px solid rgba(16,185,129,0.45); border-radius:10px; padding:8px 10px; font-size:0.75rem; color:#a7f3d0; font-weight:700;">
+              🎉 축하합니다! 모든 K-술 조합 퀴즈를 전부 정복하셨습니다!
             </div>
           `;
         }
@@ -2002,10 +2067,10 @@ class KSoolApp {
             ${recipeFormula}
           </div>
           ${unifiedUnlockBanner}
-          ${tycoonSellNoticeHtml}
+          ${modeNoticeHtml}
           <div style="display:flex; gap:8px; width:100%; margin-top:4px;">
             <button class="mix-btn" id="result-close-btn" style="flex:1;">🔬 계속 연구하기</button>
-            ${canStartStoreNow ? `<button class="clear-pot-btn" id="result-go-tycoon-btn" style="flex:1; background:linear-gradient(135deg,#059669,#10b981); color:#fff; border-color:#34d399; font-weight:800;">🏪 점포 가기</button>` : ''}
+            ${secondaryActionBtnHtml}
           </div>
         </div>
       `;
@@ -2053,6 +2118,20 @@ class KSoolApp {
         modal.classList.remove('active');
         this.audio.playTap();
         this.switchTab('tycoon');
+        this._showNextPendingTabIntro();
+      };
+    }
+    const goNextQuizBtn = content.querySelector('#result-go-next-quiz-btn');
+    if (goNextQuizBtn) {
+      goNextQuizBtn.onclick = () => {
+        modal.classList.remove('active');
+        this.audio.playTap();
+        const nextQuiz = this.inventory.getNextQuizRecipe();
+        if (nextQuiz) {
+          this.quizTargetRecipeId = nextQuiz.recipe_id;
+          this.switchTab('brew');
+          this._renderBrewStepQuizBar();
+        }
         this._showNextPendingTabIntro();
       };
     }
@@ -2313,16 +2392,12 @@ class KSoolApp {
       };
     }
 
-    // 상단 🏠 모드 선택 버튼
+    // 상단 🏠 모드 선택 버튼 -> 전체 화면 SPA 모드 선택 뷰로 전환
     const modeSelectPortalBtn = document.getElementById('mode-select-portal-btn');
     if (modeSelectPortalBtn) {
       modeSelectPortalBtn.onclick = () => {
         this.audio?.playTap?.();
-        if (this.modeSelectPortalView) {
-          this.modeSelectPortalView.open((chosenMode) => {
-            this.selectGameMode(chosenMode, true);
-          });
-        }
+        this.switchTab('portal');
       };
     }
 
@@ -2470,11 +2545,22 @@ class KSoolApp {
   }
 }
 
-window.addEventListener('DOMContentLoaded', () => {
+function bootKSoolApp() {
+  if (window._ksoolAppBooted) return;
+  window._ksoolAppBooted = true;
   const app = new KSoolApp();
   app._installGlobalWebViewGuards();
   window.ksoolApp = app;
   window.kSoolApp = app;
   window.app = app;
   app.init();
-});
+}
+
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootKSoolApp);
+  } else {
+    // DOM이 이미 로드 완료(interactive/complete)된 경우 이벤트 대기 없이 즉시 부팅
+    bootKSoolApp();
+  }
+}

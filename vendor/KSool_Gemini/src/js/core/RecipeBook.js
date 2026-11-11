@@ -130,6 +130,10 @@ class RecipeBook {
     return this.baseIngredients.get(Number(id)) || null;
   }
 
+  getAllBaseIngredients() {
+    return Array.from(this.baseIngredients.values());
+  }
+
   getDetailIngredient(detailId) {
     if (!detailId) return null;
     return this.detailIngredients.get(Number(detailId)) || null;
@@ -159,6 +163,10 @@ class RecipeBook {
 
   getRecipeItems(recipeId) {
     return this.recipeItemsByRecipeId.get(Number(recipeId)) || [];
+  }
+
+  getIngredientsForRecipe(recipeId) {
+    return this.getRecipeItems(recipeId);
   }
 
   getExternalHints(recipeId) {

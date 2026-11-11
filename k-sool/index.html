@@ -21,6 +21,7 @@
   <link rel="stylesheet" href="/game/src/css/suggestion_board.css?v=20261102_01">
   <link rel="stylesheet" href="/game/src/css/party_games.css?v=20261102_16">
   <link rel="stylesheet" href="/game/src/css/tycoon.css?v=20261109_05">
+  <link rel="stylesheet" href="/game/src/css/sos_solve.css?v=20261111_01">
   <script type="module" src="/src/ait/main.js"></script>
   <script type="module" src="/src/ait/modes.js"></script>
 </head>
@@ -56,6 +57,12 @@
       <button id="reset-progress-btn" class="toolbar-toggle" title="해금 기록 초기화">🔄 초기화</button>
     </div>
   </header>
+
+  <!-- [화면 0] 게임 모드 선택 SPA 게이트웨이 (첫 진입 & 상단 [🏠 모드 선택] 전용 풀스크린 뷰) -->
+  <section id="view-portal" class="view portal-view"></section>
+
+  <!-- [화면 SOS] 친구 SOS 풀이 전용 독립 페이지 (하단 탭바 없는 100% 독립 풀이 화면) -->
+  <section id="view-sos" class="view sos-view"></section>
 
   <!-- [탭 1] 점포 영업 (Tycoon Main Game View - 기본 메인 화면) -->
   <section id="view-tycoon" class="view active"></section>
@@ -174,22 +181,20 @@
   <div id="recipe-inspector-modal" class="modal-overlay">
     <div id="recipe-inspector-content" class="modal-card recipe-inspector-card"></div>
   </div>
-
-  <!-- [모달 8] 모드 선택 포털 모달 (첫 진입 & 상단 [🏠 모드 선택] 버튼 연동) -->
-  <div id="mode-portal-modal" class="modal-overlay mode-portal-overlay"></div>
 </div>
 
 <!-- OOP 모듈 로드 (오프라인/로컬 file:// 및 웹서버 100% 호환) -->
 <script src="/game/src/js/config/SeedDataBundle.js?v=20261108_21"></script>
 <script src="/game/src/js/services/PixelIconRegistry.js?v=20261108_14"></script>
 <script src="/game/src/js/services/FriendHelpService.js?v=20261110_01"></script>
+<script src="/game/src/js/services/PlatformBridge.js?v=20261111_01"></script>
 <script src="/game/src/js/config/GameConfig.js?v=20261101_7"></script>
 <script src="/game/src/js/services/BrandResolver.js?v=20261101_7"></script>
 <script src="/game/src/js/services/StorageService.js?v=20261110_02"></script>
 <script src="/game/src/js/services/AdService.js?v=20261101_1"></script>
 <script src="/game/src/js/core/CraftingPot.js?v=20261108_22"></script>
 <script src="/game/src/js/core/ProgressionEngine.js?v=20261110_01"></script>
-<script src="/game/src/js/core/RecipeBook.js?v=20261109_01"></script>
+<script src="/game/src/js/core/RecipeBook.js?v=20261111_02"></script>
 <script src="/game/src/js/core/InventoryManager.js?v=20261109_05"></script>
 <script src="/game/src/js/core/hint/FeedbackHintStrategy.js?v=20261101_7"></script>
 <script src="/game/src/js/core/hint/BaseballHintEngine.js?v=20261101_7"></script>
@@ -208,6 +213,7 @@
 <script src="/game/src/js/ui/SettingsModalView.js?v=20261110_02"></script>
 <script src="/game/src/js/ui/StoryTutorialModalView.js?v=20261109_05"></script>
 <script src="/game/src/js/ui/ModeSelectPortalView.js?v=20261110_01"></script>
+<script src="/game/src/js/ui/FriendSosSolveView.js?v=20261111_01"></script>
 <script src="/game/src/js/ui/party/PartySoundSynth.js?v=20261102_02"></script>
 <script src="/game/src/js/ui/party/games/UpAndDownGame.js?v=20261106_01"></script>
 <script src="/game/src/js/ui/party/games/CapFlickGame.js?v=20261103_20"></script>
@@ -224,6 +230,6 @@
 <script src="/game/src/js/core/tycoon/TycoonLeaderboardService.js?v=20261103_01"></script>
 <script src="/game/src/js/core/tycoon/TycoonEngine.js?v=20261110_01"></script>
 <script src="/game/src/js/ui/TycoonView.js?v=20261110_02"></script>
-<script src="/game/src/js/app.js?v=20261110_02"></script>
+<script src="/game/src/js/app.js?v=20261111_02"></script>
 </body>
 </html>

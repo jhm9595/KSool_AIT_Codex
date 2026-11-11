@@ -651,6 +651,7 @@ class InventoryManager {
   }
 
   isTabUnlocked(tabKey) {
+    if (tabKey === 'portal') return true;
     if (tabKey === 'tycoon') return true;
     if (tabKey === 'brew') return true;
     if (tabKey === 'shop') return true;

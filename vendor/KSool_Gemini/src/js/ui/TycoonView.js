@@ -578,6 +578,7 @@ class TycoonView {
         let isDisabled = false;
         let stockBadgeHtml = '';
 
+        let titleAttr = '';
         if (isCrafted && !this.inventory?.unlockAllSandboxMode) {
           const sessionStock = this.engine.getStockCountForIngredient
             ? this.engine.getStockCountForIngredient(ing.ingredient_id)
@@ -585,6 +586,17 @@ class TycoonView {
           const availableStock = Math.max(0, sessionStock - inPotCount);
           isDisabled = availableStock === 0;
           stockBadgeHtml = `<span class="ing-stock-badge ${isDisabled ? 'zero' : ''}" title="보유 재고: ${availableStock}개">${availableStock}</span>`;
+          if (!this.inventory.isIngredientAvailable(ing.ingredient_id)) {
+            titleAttr = `${name} ([🔬 연구실]에서 먼저 레시피를 연구해 해금 필요)`;
+          } else if (sessionStock === 0) {
+            titleAttr = `${name} (이번 영업 재고 0개 · 조리대에서 먼저 제조 필요)`;
+          } else if (availableStock === 0) {
+            titleAttr = `${name} (가마솥에 전량 투입됨 · 남은 재고 0개)`;
+          } else {
+            titleAttr = `${name} (남은 재고: ${availableStock}개 · 클릭하여 가마솥에 담기)`;
+          }
+        } else {
+          titleAttr = `${name} (클릭하여 조주 가마솥에 담기)`;
         }
 
         const details = this.recipeBook.getDetailsForBase(ing.ingredient_id);
@@ -600,7 +612,7 @@ class TycoonView {
           <div class="ing-card tycoon-compact-ing ${inPotCount > 0 ? 'in-pot' : ''} ${isDisabled ? 'is-disabled' : ''}"
                data-tycoon-base-ing="${ing.ingredient_id}"
                ${isDisabled ? 'aria-disabled="true"' : ''}
-               title="${isDisabled ? `${name} (재고 없음 - [🔬 연구실]에서 직접 조합 필요)` : `${name} (클릭하여 조주 가마솥에 담기)`}">
+               title="${titleAttr}">
             ${stockBadgeHtml}
             ${hasPicker ? `<button type="button" class="ing-picker-btn" data-tycoon-detail-picker="${ing.ingredient_id}">상세▾</button>` : ''}
             ${inPotCount > 0 ? `<span class="slot-count-badge" title="가마솥 투입 비율">${inPotCount}</span>` : ''}
@@ -1650,12 +1662,16 @@ class TycoonView {
           const baseId = Number(ingCard.getAttribute('data-tycoon-base-ing'));
           const ing = this.recipeBook.getBaseIngredient(baseId);
           const name = ing ? this.brandResolver.resolveName(ing) : '재료';
-          this.app?.showToast?.(`⚠️ '${name}'의 재고가 없습니다! 타이쿤 가마솥에서 먼저 조합해주세요.`);
+          if (!this.inventory.isIngredientAvailable(baseId)) {
+            this.app?.showToast?.(`🧪 '${name}'은(는) [🔬 연구실]에서 먼저 레시피를 연구해 해금해야 합니다!`);
+          } else {
+            this.app?.showToast?.(`⚠️ '${name}'의 이번 영업 재고가 없습니다! 조리대 가마솥에서 먼저 제조해주세요.`);
+          }
           return;
         }
 
         const baseId = Number(ingCard.getAttribute('data-tycoon-base-ing'));
-        const tapRes = this.engine.tapIngredientInTycoonPot(baseId, null);
+        const tapRes = this.engine.tapIngredientInTycoonPot(baseId, null, false);
         if (tapRes && tapRes.ok === false) {
           this.audio?.playFail?.();
           this.app?.showToast?.(`⚠️ ${tapRes.message}`);
@@ -1816,7 +1832,7 @@ class TycoonView {
     const defaultBtn = content.querySelector('#picker-select-default');
     if (defaultBtn) {
       defaultBtn.onclick = () => {
-        const tapRes = this.engine.tapIngredientInTycoonPot(baseId, null);
+        const tapRes = this.engine.tapIngredientInTycoonPot(baseId, null, true);
         if (tapRes && tapRes.ok === false) {
           this.audio?.playFail?.();
           this.app?.showToast?.(`⚠️ ${tapRes.message}`);
@@ -1831,7 +1847,7 @@ class TycoonView {
     content.querySelectorAll('[data-detail-id]').forEach(el => {
       el.onclick = () => {
         const detId = Number(el.getAttribute('data-detail-id'));
-        const tapRes = this.engine.tapIngredientInTycoonPot(baseId, detId);
+        const tapRes = this.engine.tapIngredientInTycoonPot(baseId, detId, true);
         if (tapRes && tapRes.ok === false) {
           this.audio?.playFail?.();
           this.app?.showToast?.(`⚠️ ${tapRes.message}`);

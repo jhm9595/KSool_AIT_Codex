@@ -33,3 +33,33 @@ body { font-family: system-ui, -apple-system, 'Malgun Gothic', sans-serif, 'Toss
   .hint-step-title { flex: 1 0 100%; white-space: normal; }
   .foil-scratch-strip { flex-wrap: wrap; height: auto; }
 }
+
+/* Reserve separate space for the detail action and the ingredient body. */
+.tycoon-compact-ing:has(.ing-picker-btn) {
+  box-sizing: border-box;
+  min-height: 112px !important;
+  padding: 52px 4px 8px !important;
+}
+.tycoon-compact-ing .ing-picker-btn {
+  top: 4px !important;
+  right: 4px !important;
+  height: 44px !important;
+}
+
+/* The SPA mode gateway shares the bottle theme rather than a fixed dark canvas. */
+#view-portal.view { background: var(--bg); color: var(--text); }
+#view-portal .portal-mode-card {
+  background: linear-gradient(135deg, var(--card-bg), var(--theme-soft));
+  color: var(--text);
+  border-color: var(--border);
+  box-shadow: none;
+}
+#view-portal .portal-mode-card:is(:hover, .is-active-mode) { border-color: var(--primary); }
+#view-portal :is(.portal-spa-title, .portal-card-title, .portal-card-action, .portal-card-badge) { color: var(--text); }
+#view-portal :is(.portal-spa-subtitle, .portal-card-desc, .portal-card-bullets, .portal-card-bullets span, .portal-spa-notice) { color: var(--text-muted); }
+#view-portal :is(.portal-card-badge, .portal-card-icon-box, .portal-spa-emblem-wrap) {
+  background: var(--theme-soft);
+  border-color: var(--border);
+  box-shadow: none;
+}
+#view-portal .portal-card-current-tag { background: var(--primary); color: var(--ait-on-primary); border-color: var(--primary); }

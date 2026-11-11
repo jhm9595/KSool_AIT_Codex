@@ -57,20 +57,40 @@ function transform(dir) {
   }
 }
 transform(join(output, 'src'));
-// The new upstream portal must not cover the app after its active flag clears.
-const layoutPath = join(output, 'src/css/layout.css');
-writeFileSync(layoutPath, readFileSync(layoutPath, 'utf8') + '\n.mode-portal-overlay:not(.active){display:none!important}\n');
-// Web-origin SOS URLs cannot reopen an Apps in Toss mini-app. Keep the sandbox
-// reader, but do not offer a broken localhost/WebView URL as a share action.
+// SOS requires a verified mini-app ingress URL and SDK share integration.
+// Do not emit WebView-origin links or enter the web-only SOS receiver.
 const appPath = join(output, 'src/js/app.js');
-writeFileSync(appPath, readFileSync(appPath, 'utf8').replace(
-  "if (!isUnlocked && this.friendHelpService && this.currentMode !== 'HELP_FRIEND')",
-  "if (false /* SOS requires an Apps in Toss ingress URL */)"
-));
+const appText = readFileSync(appPath, 'utf8');
+const helpEntry = "const helpParam = urlParams.get('help');";
+if (!appText.includes(helpEntry)) throw new Error('Upstream SOS entry contract changed');
+writeFileSync(appPath, appText.replace(helpEntry, 'const helpParam = null; // Disabled until mini-app SOS ingress is configured.'));
+const sosHintPath = join(output, 'src/js/ui/HintModalView.js');
+const sosHintText = readFileSync(sosHintPath, 'utf8');
+const sosCondition = "const isHelpFriendMode = this.app?.currentMode === 'HELP_FRIEND';";
+if (!sosHintText.includes(sosCondition)) throw new Error('Upstream SOS hint contract changed');
+writeFileSync(sosHintPath, sosHintText.replace(sosCondition, 'const isHelpFriendMode = true; // No unsupported SOS share controls in Toss.'));
 const portalPath = join(output, 'src/js/ui/ModeSelectPortalView.js');
-writeFileSync(portalPath, readFileSync(portalPath, 'utf8').replace(
-  '<li><span>🤝</span> <strong>친구 SOS 공유:</strong> 막히는 문제 친구와 함께 풀기</li>', ''
-));
+writeFileSync(portalPath, readFileSync(portalPath, 'utf8').replace('<span>💌 막히는 문제 친구 SOS 공유</span>', ''));
+const friendPath = join(output, 'src/js/services/FriendHelpService.js');
+writeFileSync(friendPath, readFileSync(friendPath, 'utf8') + `
+window.KSool.FriendHelpService.prototype.generateHelpUrl = () => '';
+window.KSool.FriendHelpService.prototype.shareHelp = async () => ({ ok: false, message: '친구 공유는 준비 중이에요.' });
+`);
+cpSync(join(app, 'src/ait/platform-bridge.js'), join(output, 'src/js/services/PlatformBridge.js'));
+
+// Upstream b343671: compact ingredient titles read `name` before its const.
+// Move that declaration within the generated map callback only.
+const tycoonPath = join(output, 'src/js/ui/TycoonView.js');
+let tycoonText = readFileSync(tycoonPath, 'utf8');
+const gridStart = tycoonText.indexOf('gridContentHtml = allIngs.map(ing => {');
+const titleStart = tycoonText.indexOf("let titleAttr = '';", gridStart);
+const nameDeclaration = 'const name = this.brandResolver.resolveName(ing);';
+const nameStart = tycoonText.indexOf(nameDeclaration, gridStart);
+if (gridStart >= 0 && titleStart > gridStart && nameStart > titleStart) {
+  tycoonText = tycoonText.slice(0, nameStart) + tycoonText.slice(nameStart + nameDeclaration.length);
+  tycoonText = tycoonText.replace('gridContentHtml = allIngs.map(ing => {', 'gridContentHtml = allIngs.map(ing => {\n        ' + nameDeclaration);
+  writeFileSync(tycoonPath, tycoonText);
+}
 
 // Upstream 9ab2022: the CHOICE back button referenced a later const, causing
 // a temporal-dead-zone ReferenceError on every hint screen. Patch generated

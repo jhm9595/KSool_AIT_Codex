@@ -1,7 +1,9 @@
 window.KSool = window.KSool || {};
 
 class HintModalView {
-  constructor({ recipeBook, inventory, baseballEngine, ratioProvider, brandResolver, audio, onImageUnlocked, onDescUnlocked, onAutoSetupBrew }) {
+  constructor({ recipeBook, inventory, baseballEngine, ratioProvider, brandResolver, audio, app, onImageUnlocked, onDescUnlocked, onAutoSetupBrew }) {
+    this.app = app || null;
+    this.friendHelpService = app?.friendHelpService || (window.KSool?.FriendHelpService ? new window.KSool.FriendHelpService() : null);
     this.recipeBook = recipeBook;
     this.inventory = inventory;
     this.baseballEngine = baseballEngine;
@@ -154,6 +156,8 @@ class HintModalView {
     // =========================================================================
     // [모드 1] 2단계 힌트 추리 메인 화면 (상단: 설명 힌트 은박 복권 / STEP 1: 외형 그림 ➔ STEP 2: 베이스볼 추리)
     // =========================================================================
+    const isHelpFriendMode = this.app?.currentMode === 'HELP_FRIEND';
+
     if (this.viewMode === 'CHOICE') {
       const isDescAvailable = isDescUnlocked || isRecipeUnlocked;
 
@@ -294,6 +298,27 @@ class HintModalView {
               <div class="step-main-desc">${descText}</div>
             </div>
           </div>
+
+          ${!isHelpFriendMode ? `
+          <!-- STEP 3: 친구에게 도움 요청 (로즈 테마) -->
+          <div class="hint-step-card step-rose ${isRecipeUnlocked ? 'step-done' : 'step-active'}" id="choice-friend-sos-btn" role="button" tabindex="0">
+            <div class="step-card-icon-col">
+              <span class="step-main-icon">💌</span>
+            </div>
+            <div class="step-card-main-col">
+              <div class="step-card-header">
+                <div class="step-title-group">
+                  <span class="step-order-badge badge-sos">SOS</span>
+                  <span class="step-main-title">친구에게 도움 요청</span>
+                </div>
+                <span class="step-status-tag tag-sos">
+                  ${isRecipeUnlocked ? '해금완료' : '공유 ➔'}
+                </span>
+              </div>
+              <div class="step-main-desc">${isRecipeUnlocked ? '이미 정답을 알고 있는 레시피입니다.' : '진정한 주당 친구 소환! 링크를 보내 함께 황금 조합을 맞춰보세요.'}</div>
+            </div>
+          </div>
+          ` : ''}
 
           ${extHintCardHtml}
         </div>
@@ -651,6 +676,13 @@ class HintModalView {
             </button>
           </div>
           ${historyHtml ? `<div class="bb-history-list">${historyHtml}</div>` : ''}
+          ${!isHelpFriendMode ? `
+          <div class="bb-friend-sos-wrap" style="display:flex; justify-content:center; margin-top:10px;">
+            <button type="button" class="bb-friend-sos-btn" id="bb-friend-sos-btn">
+              <span>💌</span> <span>주당 친구에게 SOS (도전장 보내기)</span>
+            </button>
+          </div>
+          ` : ''}
         </div>
       `;
     } else {
@@ -1031,6 +1063,38 @@ class HintModalView {
     }
 
     // STEP 2: [베이스볼] 버튼 클릭 (1단계 외형 그림 해금 필수!)
+    const triggerFriendSos = async () => {
+      this.audio?.playTap?.();
+      const recipe = this.recipeBook.getRecipe(this.activeRecipeId);
+      if (!recipe) return;
+      const leafIngIds = Array.from(this.inventory.purchasedIngredientIds || []);
+      const shareData = {
+        recipeId: recipe.recipe_id,
+        recipeNumber: recipe.recipe_number,
+        recipeName: this.brandResolver.resolveName(recipe),
+        sharerName: this.inventory.playerName || '주점 주인장',
+        leafIngIds: leafIngIds
+      };
+      const friendHelp = this.friendHelpService || this.app?.friendHelpService || (window.KSool?.FriendHelpService ? new window.KSool.FriendHelpService() : null);
+      if (friendHelp) {
+        await friendHelp.shareHelp(shareData, (msg) => {
+          if (this.app?.showToast) {
+            this.app.showToast(msg);
+          }
+        });
+      }
+    };
+
+    const choiceFriendSosBtn = container.querySelector('#choice-friend-sos-btn');
+    if (choiceFriendSosBtn) {
+      choiceFriendSosBtn.onclick = triggerFriendSos;
+    }
+
+    const bbFriendSosBtn = container.querySelector('#bb-friend-sos-btn');
+    if (bbFriendSosBtn) {
+      bbFriendSosBtn.onclick = triggerFriendSos;
+    }
+
     const choiceBaseballBtn = container.querySelector('#choice-baseball-btn');
     if (choiceBaseballBtn) {
       choiceBaseballBtn.onclick = () => {

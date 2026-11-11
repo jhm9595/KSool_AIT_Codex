@@ -52,10 +52,10 @@ try {
   await page.goto(url);
   await page.waitForFunction(() => window.ksoolApp?.recipeBook.recipes.size > 0);
   await page.addStyleTag({ content: '.ait-panel-root{display:none!important}' });
-  await page.locator('#portal-start-tycoon-btn').waitFor();
+  await page.locator('#mode-choice-tycoon').waitFor();
   await page.screenshot({ path: join(artifacts, 'mode-portal.png') });
-  await page.locator('#portal-start-tycoon-btn').click();
-  await page.locator('#mode-portal-modal').waitFor({ state: 'hidden' });
+  await page.locator('#mode-choice-tycoon').click();
+  await page.locator('#view-portal').waitFor({ state: 'hidden' });
   await page.locator('#cutscene-skip-btn').waitFor();
   await page.screenshot({ path: join(artifacts, 'prologue.png') });
   assert(await page.locator('#story-tutorial-content img').evaluate(img => img.complete && img.naturalWidth > 0));
@@ -144,6 +144,13 @@ try {
     await page.locator('#open-settings-btn').click();
     await page.locator(`.ait-theme-option[data-bottle-theme="${theme}"]`).click();
     await page.evaluate(() => window.ksoolApp.settingsModalView.close());
+    await page.locator('#open-settings-btn').click();
+    await page.locator('#ait-mode-select-btn').click();
+    await page.waitForTimeout(300); // Complete the new portal entrance animation.
+    await page.screenshot({ path: join(artifacts, `${theme}-portal.png`) });
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, `${theme}/portal overflow`);
+    await page.locator('#mode-choice-tycoon').click();
+
     for (const tab of ['tycoon', 'brew', 'collection', 'party']) {
       await page.evaluate(tab => window.ksoolApp.switchTab(tab), tab);
       await page.waitForTimeout(250); // Let source entrance animations reach their visible state.
@@ -204,6 +211,33 @@ try {
     assert(e.session.lives === 0 && e.session.status === 'GAMEOVER', 'Three lives');
     return stages;
   });
+  // Brand repetition and explicit general selection must have different meanings.
+  await page.evaluate(() => {
+    const a = window.ksoolApp, e = a.tycoonView.engine;
+    e.startGame('GROWTH');
+    for (let i = 0; i < 2; i++) {
+      e.tapIngredientInTycoonPot(202); e.tapIngredientInTycoonPot(203);
+      if (!e.craftToPlate().ok) throw Error('Prepare two soju portions');
+    }
+    a.switchTab('tycoon'); a.tycoonView.render();
+  });
+  assert.equal(await page.evaluate(() => window.ksoolApp.tycoonView.engine.getStockCountForIngredient(101)), 2, 'Prepared session stock');
+  await page.locator('[data-tycoon-ing-cat="DRINK"]').click();
+  assert.match(await page.locator('[data-tycoon-base-ing="204"]').getAttribute('title'), /이번 영업 재고 0개.*조리대/);
+  await page.locator('[data-tycoon-ing-cat="ALCOHOL"]').click();
+  await page.locator('[data-tycoon-detail-picker="101"]').click();
+  await page.locator('#detail-picker-content [data-detail-id="10105"]').click();
+  await page.locator('[data-tycoon-base-ing="101"]').click();
+  assert.deepEqual(await page.evaluate(() => window.ksoolApp.tycoonView.engine.session.potSlots.map(x => [x.baseId, x.detailId, x.count])), [[101, 10105, 2]]);
+  await page.locator('#tycoon-clear-pot-btn').click();
+  await page.locator('[data-tycoon-detail-picker="101"]').click();
+  await page.locator('#detail-picker-content [data-detail-id="10105"]').click();
+  await page.locator('[data-tycoon-detail-picker="101"]').click();
+  await page.locator('#picker-select-default').click();
+  await page.screenshot({ path: join(artifacts, 'tycoon-brand-input.png') });
+  assert.deepEqual(await page.evaluate(() => window.ksoolApp.tycoonView.engine.session.potSlots.map(x => [x.baseId, x.detailId, x.count])), [[101, 10105, 1], [101, null, 1]]);
+  await page.locator('#tycoon-back-lobby-btn').click();
+
   await page.evaluate(() => { const a = window.ksoolApp; a.tycoonView.engine.session.status = 'LOBBY'; a.storyTutorialModalView.startInteractiveTutorial(); });
   await page.locator('#live-interactive-tutorial-layer').waitFor();
   await page.waitForTimeout(250);
@@ -215,10 +249,19 @@ try {
   const tycoonSave = await page.evaluate(() => localStorage.getItem('ksool_alchemy_v2_state'));
   await page.locator('#open-settings-btn').click();
   await page.locator('#ait-mode-select-btn').click();
-  await page.locator('#portal-start-quiz-btn').click();
+  await page.locator('#mode-choice-quiz').click();
   await page.waitForFunction(() => window.ksoolApp.currentMode === 'QUIZ');
-  assert.equal(await page.locator('#mode-portal-modal').isVisible(), false);
+  assert.equal(await page.locator('#view-portal').isVisible(), false);
   assert.equal(await page.locator('#quiz-sos-share-btn').count(), 0, 'No unusable WebView SOS links');
+  assert.equal(await page.locator('[data-tab-target="tycoon"]').isVisible(), false, 'Quiz hides store');
+  assert.equal(await page.locator('[data-tab-target="shop"]').isVisible(), false, 'Quiz hides shop');
+  await page.evaluate(() => { window.ksoolApp.switchTab('tycoon'); window.ksoolApp.switchTab('shop'); });
+  assert.equal(await page.evaluate(() => window.ksoolApp.currentTab), 'brew', 'Mode policy guards routing');
+  await page.evaluate(() => window.ksoolApp.hintModalView.open(12));
+  assert.equal(await page.locator('#choice-friend-sos-btn').count(), 0);
+  assert.equal(await page.locator('#bb-friend-sos-btn').count(), 0);
+  await page.evaluate(() => window.ksoolApp.hintModalView.close());
+
   await page.evaluate(() => {
     const a = window.ksoolApp;
     if (a.inventory.isRecipeUnlocked(11)) throw Error('Quiz must start with independent progress');
@@ -227,12 +270,25 @@ try {
     if (!a.alchemyEngine.executeCraft(11).isSuccess) throw Error('Quiz craft');
     a.inventory.save();
   });
+  await page.evaluate(() => { const a = window.ksoolApp; a.quizTargetRecipeId = 12; a.craftingPot.clear(); a.renderBrewView(); });
+  await page.locator('[data-ing-cat="NATURE"]').click();
+  await page.locator('[data-base-ing-id="202"]').click();
+  await page.locator('[data-base-ing-id="205"]').click();
+  await page.locator('#mix-btn').click();
+  await page.locator('#result-close-btn').waitFor();
+  assert.equal(await page.locator('#result-go-tycoon-btn').count(), 0, 'Quiz result cannot route to store');
+  assert(!(await page.locator('#result-modal').innerText()).includes('자금을 모을'), 'Quiz result has no tycoon sale guidance');
+  await page.locator('#result-close-btn').click();
   assert.equal(await page.evaluate(() => localStorage.getItem('ksool_alchemy_v2_state')), tycoonSave, 'Quiz saves cannot touch tycoon progress');
   await page.reload();
   await page.waitForFunction(() => window.ksoolApp?.currentMode === 'QUIZ' && window.ksoolApp.inventory.isRecipeUnlocked(11));
+  const help = Buffer.from(JSON.stringify({rId:11, num:'01', name:'얼음', ings:[202,206], by:'QA'})).toString('base64');
+  await page.goto(url + '?help=' + encodeURIComponent(help));
+  await page.waitForFunction(() => window.ksoolApp?.currentMode === 'QUIZ');
+  assert.equal(await page.evaluate(() => window.ksoolApp.inventory.isRecipeUnlocked(11)), true, 'Web SOS cannot replace mini-app state');
   await page.locator('#open-settings-btn').click();
   await page.locator('#ait-mode-select-btn').click();
-  await page.locator('#portal-start-tycoon-btn').click();
+  await page.locator('#mode-choice-tycoon').click();
   assert.equal(await page.evaluate(() => window.ksoolApp.inventory.unlockedRecipeIds.size), 84, 'Tycoon progress restored after mode switch');
 
   const legacyContext = await browser.newContext();

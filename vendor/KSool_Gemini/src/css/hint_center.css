@@ -1923,3 +1923,48 @@
 }
 
 
+
+/* STEP 3 테마: 💌 로즈/핑크 (친구에게 도움 요청) */
+.hint-step-card.step-rose {
+  border-color: rgba(244, 63, 94, 0.4);
+  background: linear-gradient(135deg, rgba(76, 15, 30, 0.75) 0%, rgba(15, 23, 42, 0.85) 100%);
+}
+.hint-step-card.step-rose .step-order-badge {
+  color: #fecdd3;
+  background: rgba(244, 63, 94, 0.22);
+  border: 1px solid rgba(244, 63, 94, 0.45);
+}
+.hint-step-card.step-rose:hover {
+  border-color: #f43f5e;
+  box-shadow: 0 4px 18px rgba(244, 63, 94, 0.3);
+  transform: translateY(-2px);
+}
+.hint-step-card.step-rose .step-status-tag.tag-sos {
+  background: rgba(244, 63, 94, 0.25);
+  color: #fda4af;
+  border: 1px solid #f43f5e;
+  font-weight: 800;
+}
+/* 베이스볼 화면 내부의 친구에게 도움 요청 버튼 */
+.bb-friend-sos-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: linear-gradient(135deg, rgba(225, 29, 72, 0.2) 0%, rgba(15, 23, 42, 0.85) 100%);
+  border: 1.5px solid #f43f5e;
+  border-radius: 12px;
+  color: #fecdd3;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  box-shadow: 0 3px 10px rgba(244, 63, 94, 0.25);
+}
+.bb-friend-sos-btn:hover {
+  background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 16px rgba(244, 63, 94, 0.4);
+}

@@ -835,23 +835,35 @@ class TycoonEngine {
   // 타이쿤 전용 주조 가마솥 & 중앙 접시(Plate) <-> [📦 재고] 연동
   // =========================================================================
 
-  tapIngredientInTycoonPot(baseId, detailId = null) {
+  tapIngredientInTycoonPot(baseId, detailId = null, isExplicit = false) {
     if (!this.session) return { ok: false };
     const bId = Number(baseId);
-    const dId = detailId ? Number(detailId) : null;
+    let dId = detailId ? Number(detailId) : null;
     const pot = this.session.potSlots;
+
+    // 만약 카드를 직접 탭한 경우(!isExplicit): 가마솥에 이미 존재하는 동일 재료의 detailId를 승계
+    if (!isExplicit) {
+      const matchingSlots = pot.filter(s => s.baseId === bId);
+      if (matchingSlots.length === 1) {
+        dId = matchingSlots[0].detailId || null;
+      } else if (matchingSlots.length > 1) {
+        dId = matchingSlots[matchingSlots.length - 1].detailId || null;
+      } else {
+        dId = null;
+      }
+    }
 
     // 연구실에서 직접 조합해 해금해야 하는 중간 재료(탄산수, 얼음 등)의 보유 재고(타이쿤 세션 직접 조주분) 검증
     if (this.inventory && this.inventory.isCraftedIngredient(bId) && !this.inventory.unlockAllSandboxMode) {
       const ing = this.recipeBook.getBaseIngredient(bId);
-      const name = ing ? this.brandResolver.resolveName(ing) : '재료';
+      const name = ing ? (this.brandResolver?.resolveName ? this.brandResolver.resolveName(ing) : (ing.display_name || ing.name || '재료')) : '재료';
       if (!this.inventory.isIngredientAvailable(bId)) {
         return { ok: false, message: `'${name}'은(는) [🔬 연구실]에서 먼저 직접 조합해 해금해야 합니다!` };
       }
       const sessionStock = this.getStockCountForIngredient(bId);
       const inPotCount = pot.filter(s => s.baseId === bId).reduce((acc, s) => acc + s.count, 0);
       if (inPotCount >= sessionStock) {
-        return { ok: false, message: `'${name}'의 재고가 없습니다! (보유: ${sessionStock}개) 타이쿤 가마솥에서 먼저 조합해주세요.` };
+        return { ok: false, message: `'${name}'의 이번 영업 재고가 없습니다! (보유: ${sessionStock}개) 조리대 가마솥에서 먼저 제조해주세요.` };
       }
     }
 

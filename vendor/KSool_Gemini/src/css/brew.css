@@ -243,6 +243,95 @@
   font-weight: 700;
 }
 
+.quiz-num-pill-static {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #93c5fd;
+  background: rgba(30, 41, 59, 0.85);
+  border: 1px solid #475569;
+  border-radius: 5px;
+  padding: 2px 6px;
+  flex-shrink: 0;
+  line-height: 1.2;
+}
+
+/* 🤝 친구 도움 SOS 인라인 상태 배지 & 콤팩트 나가기 버튼 */
+.quiz-nav-sos-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.quiz-sos-help-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: linear-gradient(135deg, rgba(225, 29, 72, 0.28) 0%, rgba(168, 85, 247, 0.28) 100%);
+  border: 1px solid #f43f5e;
+  border-radius: 6px;
+  padding: 3px 6px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #fecdd3;
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow: 0 0 8px rgba(244, 63, 94, 0.3);
+}
+
+.sos-pulse-icon {
+  font-size: 0.8rem;
+  display: inline-block;
+  animation: sosPulse 1.8s infinite ease-in-out;
+}
+
+@keyframes sosPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.18); opacity: 0.85; }
+}
+
+.sos-tag-name {
+  color: #fb7185;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+}
+
+.sos-friend-target {
+  color: #f1f5f9;
+  font-weight: 700;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quiz-sos-exit-btn-inline {
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid #64748b;
+  border-radius: 6px;
+  color: #cbd5e1;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 3px 7px;
+  cursor: pointer;
+  white-space: nowrap;
+  line-height: 1.1;
+  transition: all 0.15s ease;
+}
+
+.quiz-sos-exit-btn-inline:hover {
+  background: #f43f5e;
+  border-color: #f43f5e;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(244, 63, 94, 0.4);
+}
+
+@media (max-width: 400px) {
+  .sos-friend-target {
+    display: none;
+  }
+}
+
 .quiz-target-title {
   font-size: 0.86rem;
   font-weight: 900;

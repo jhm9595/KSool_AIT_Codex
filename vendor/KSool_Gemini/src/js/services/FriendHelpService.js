@@ -2,7 +2,7 @@ window.KSool = window.KSool || {};
 
 /**
  * 🤝 FriendHelpService
- * K-술 조합 퀴즈 모드: "나 너무 어려우니 같이 풀자!" 친구 도움요청 SOS 링크 생성 및 복호화 서비스
+ * K-술 조합 퀴즈 모드: 주당 친구 소환 & SOS 링크 생성 및 복호화 서비스
  * - 질문자: 현재 막힌 레시피 ID + 본인이 보유한 기초 재료 ID 목록을 안전하게 인코딩하여 링크 생성
  * - 친구: 해당 링크로 접속 시 친구가 가진 재료와 문제만 노출되는 독립 샌드박스로 진입 (기존 세이브 데이터 100% 무영향)
  */
@@ -80,8 +80,9 @@ class FriendHelpService {
       return { ok: false, message: '도움 링크 생성에 실패했습니다.' };
     }
 
-    const title = `[K-술 SOS] No.${recipeNumber} ${recipeName} 같이 풀자! 🍶`;
-    const text = `나 이거 너무 어려우니 같이 풀어줘! 내가 가진 재료로 [No.${recipeNumber} ${recipeName}] 조합법을 찾아봐!`;
+    const sender = sharerName ? `${sharerName}님의 SOS!` : 'K-술 도전장!';
+    const title = `🍶 [K-술 대결] ${sender} No.${recipeNumber} ${recipeName} 황금 조합을 찾아줘!`;
+    const text = `너 주당 맞지? 내가 모은 재료로 [No.${recipeNumber} ${recipeName}] 황금 조합을 맞힐 수 있는지 도전해봐! 👀✨`;
 
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
@@ -94,7 +95,8 @@ class FriendHelpService {
 
     if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
       try {
-        await navigator.clipboard.writeText(`${text}\n${url}`);
+        const shareMsg = `${text}\n👉 지금 바로 조합 맞춰보기:\n${url}`;
+        await navigator.clipboard.writeText(shareMsg);
         return { ok: true, copied: true, url, message: '📋 친구에게 보낼 SOS 도움요청 링크가 복사되었습니다!' };
       } catch (e) {}
     }
