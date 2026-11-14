@@ -11,7 +11,7 @@ npm test
 npm run audit:design
 ```
 
-Node 24 이상이 필요하다. 브라우저에서는 `http://localhost:5173`을 열고 AIT → Viewport에서 모바일 폭을 선택한다. `npm run build`는 게임 생성, 타입 확인, Vite 빌드 후 `k-sool/k-sool.ait`를 만든다.
+Node 24 이상이 필요하다. 브라우저에서는 `http://localhost:5173`을 열고 AIT → Viewport에서 모바일 폭을 선택한다. `npm run build`는 게임 생성, 타입 확인, Vite 빌드 후 `k-sool/ksool.ait`를 만든다. 콘솔에 등록한 appName은 `ksool`이며 번들의 식별자도 이 값과 일치해야 한다.
 
 - `vendor/KSool_Gemini`: 추적 중인 원본 스냅샷
 - `k-sool`: 앱인토스 설정, devtools, 전용 어댑터와 디자인 가이드

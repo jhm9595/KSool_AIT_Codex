@@ -1,7 +1,7 @@
 import { defineConfig } from '@apps-in-toss/web-framework/config';
 
 export default defineConfig({
-  appName: 'k-sool',
+  appName: 'ksool',
   brand: {
     primaryColor: '#16845B',
   },
