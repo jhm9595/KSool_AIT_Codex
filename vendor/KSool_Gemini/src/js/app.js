@@ -2642,8 +2642,10 @@ class KSoolApp {
       resetBtn.onclick = () => {
         const isQuiz = (this.currentMode === 'QUIZ');
         const modeLabel = isQuiz ? '조합 퀴즈' : '주점 타이쿤';
-        const otherModeLabel = isQuiz ? '주점 타이쿤' : '조합 퀴즈';
-        if (confirm(`정말로 현재 [${modeLabel}] 모드의 진행도를 초기 상태로 리셋하시겠습니까?\n\n※ ${otherModeLabel} 모드의 기록과 점포 자금은 안전하게 보존됩니다.`)) {
+        const preserveNotice = isQuiz
+          ? '주점 타이쿤 모드의 기록과 점포 자금은 안전하게 보존됩니다.'
+          : '조합 퀴즈 모드의 진행 기록은 안전하게 보존됩니다.';
+        if (confirm(`정말로 현재 [${modeLabel}] 모드의 진행도를 초기 상태로 리셋하시겠습니까?\n\n※ ${preserveNotice}`)) {
           this.resetCurrentModeProgress();
         }
       };

@@ -1,6 +1,6 @@
 {
   "repository": "https://github.com/jhm9595/KSool_Gemini.git",
-  "commit": "27a9311a08bd2f9a0ad47e1ae4b3c98d027d3ccd",
+  "commit": "090be9a117ed4d1c320a2730a99be3bc94601cf7",
   "paths": [
     "index.html",
     "project.json",
@@ -59,7 +59,7 @@
     "src/css/suggestion_board.css": "db1e2be5d16216a15b0152f227fa254e689444eaac4ad09d45f0b811e5810846",
     "src/css/tycoon.css": "065d565fa834a518a8a8335068fc3568a4fb4e18cabc767d9908309678cd8b4f",
     "src/css/variables.css": "fb253c7b59394f48b8ba3bc00cb9ad97b93c3222b77e1d95a789b477b7dca3c2",
-    "src/js/app.js": "04d3da503c1fd2d616576ed1a44c34af76382908a0d5f2bc26307451e62ce163",
+    "src/js/app.js": "b3b2c00f378e706c552830b627faf78fae2f11f649c568606e38fed899d1f9cd",
     "src/js/config/GameConfig.js": "d261c126c59a1eab58d02e715d69583c5312099c3cb15a0b0e2f4f7638707039",
     "src/js/config/SeedDataBundle.js": "8e784ec56caf4a5088a167611d62e02b56d6cb1718aed1514c03531e6f217297",
     "src/js/core/AlchemyEngine.js": "2034b1027da98c8cc824d51ab54314be19dac044426242d5c022db0ff83a3185",
@@ -102,7 +102,7 @@
     "src/js/ui/pickers/DetailPickerRegistry.js": "e03a08b21aa7a9c858a1c5ba18694c87c328b5870f8f07842662234c3ea46111",
     "src/js/ui/RecipeInspectorModalView.js": "56b1611338a06d4e09a8a3e70145d7d628ae0aad791afb0666d4d5cc9f82e913",
     "src/js/ui/ScratchCardView.js": "5e2ce050453ac43dc7281ae6061898ae6f79e9099acc989fa4a70a5a7c0f9d9c",
-    "src/js/ui/SettingsModalView.js": "ceb4182172d76de13a63b654ac724f5723054490063975dfbb524944b05b1041",
+    "src/js/ui/SettingsModalView.js": "d58eee9e9512c4dbe0a5ebe7da59dd5b1eb95993021c349ce0a27c37aabaaa7c",
     "src/js/ui/StoryTutorialModalView.js": "be4f95b5e96dd42c2082f3a8078f4e5a5e0c0efd36d843a2aa0960d13f518296",
     "src/js/ui/SuggestionBoardView.js": "22a56feb71df352bf6c7d96c8f735baeffb41b9524ae11fc7f841eaef8ece0fb",
     "src/js/ui/TycoonView.js": "d87f1b98075e4b39107e13333a63d63a487116fecdd16c6f213f24b393e924dc"
