@@ -367,16 +367,23 @@ class PartyGameHubView {
     if (!inv) return true;
     if (inv.unlockAllSandboxMode) return true;
 
+    // 합집합 해금 레시피 Set
+    const combinedRecipeIds = typeof inv.getCombinedUnlockedRecipeIds === 'function'
+      ? inv.getCombinedUnlockedRecipeIds()
+      : (inv.unlockedRecipeIds || new Set());
+
     if (gameKey === 'penaltycocktail') {
-      // 소주(101)와 맥주(102)가 둘 다 해금되었을 때 오픈
-      const hasSoju = inv.isIngredientAvailable(101) || inv.isRecipeUnlocked(5);
-      const hasBeer = inv.isIngredientAvailable(102) || inv.isRecipeUnlocked(4);
+      // 소주(101)와 맥주(102) 또는 관련 레시피가 둘 다 해금되었을 때 오픈 (합집합 기준)
+      const hasSoju = inv.isIngredientAvailable(101) || combinedRecipeIds.has(5) || inv.isRecipeUnlocked(5);
+      const hasBeer = inv.isIngredientAvailable(102) || combinedRecipeIds.has(4) || inv.isRecipeUnlocked(4);
       return Boolean(hasSoju && hasBeer);
     }
 
     if (gameKey === 'fridge' || gameKey === 'market') {
-      // 전체 도감 레시피의 50% 이상 해금 시 오픈
-      const ratio = typeof inv.getUnlockProgressRatio === 'function' ? inv.getUnlockProgressRatio() : 0;
+      // 퀴즈 + 타이쿤 합집합 해금률 기준 50% 이상 달성 시 오픈
+      const ratio = typeof inv.getCombinedUnlockProgressRatio === 'function'
+        ? inv.getCombinedUnlockProgressRatio()
+        : (typeof inv.getUnlockProgressRatio === 'function' ? inv.getUnlockProgressRatio() : 0);
       return ratio >= 0.5;
     }
 
@@ -385,23 +392,25 @@ class PartyGameHubView {
 
   _getGameLockReason(gameKey) {
     const inv = this._ensureInventory();
+    const combinedRecipeIds = inv && typeof inv.getCombinedUnlockedRecipeIds === 'function'
+      ? inv.getCombinedUnlockedRecipeIds()
+      : (inv?.unlockedRecipeIds || new Set());
+
     if (gameKey === 'penaltycocktail') {
-      const hasSoju = inv ? (inv.isIngredientAvailable(101) || inv.isRecipeUnlocked(5)) : false;
-      const hasBeer = inv ? (inv.isIngredientAvailable(102) || inv.isRecipeUnlocked(4)) : false;
+      const hasSoju = inv ? (inv.isIngredientAvailable(101) || combinedRecipeIds.has(5) || inv.isRecipeUnlocked(5)) : false;
+      const hasBeer = inv ? (inv.isIngredientAvailable(102) || combinedRecipeIds.has(4) || inv.isRecipeUnlocked(4)) : false;
       let missing = [];
       if (!hasSoju) missing.push('🍶 소주');
       if (!hasBeer) missing.push('🍺 맥주');
       return `🔒 [랜덤 벌칙주 제조기]\n연구실에서 ${missing.join(', ')}를 해금하면 열립니다!`;
     }
-    if (gameKey === 'fridge') {
-      const ratio = inv && typeof inv.getUnlockProgressRatio === 'function' ? inv.getUnlockProgressRatio() : 0;
+    if (gameKey === 'fridge' || gameKey === 'market') {
+      const ratio = inv && typeof inv.getCombinedUnlockProgressRatio === 'function'
+        ? inv.getCombinedUnlockProgressRatio()
+        : (inv && typeof inv.getUnlockProgressRatio === 'function' ? inv.getUnlockProgressRatio() : 0);
       const pct = Math.round(ratio * 100);
-      return `🔒 [냉장고를 부탁해]\n도감 50% 이상 달성 시 열립니다! (현재: ${pct}%)`;
-    }
-    if (gameKey === 'market') {
-      const ratio = inv && typeof inv.getUnlockProgressRatio === 'function' ? inv.getUnlockProgressRatio() : 0;
-      const pct = Math.round(ratio * 100);
-      return `🔒 [시장에 가면]\n도감 50% 이상 달성 시 열립니다! (현재: ${pct}%)`;
+      const gameTitle = gameKey === 'fridge' ? '냉장고를 부탁해' : '시장에 가면';
+      return `🔒 [${gameTitle}]\n도감 50% 이상 달성 시 열립니다! (현재: ${pct}%)`;
     }
     return '🔒 아직 해금되지 않은 게임입니다.';
   }
@@ -429,14 +438,16 @@ class PartyGameHubView {
    */
   renderLobby(container) {
     const inv = this._ensureInventory();
-    const fridgeProgressRatio = inv && typeof inv.getUnlockProgressRatio === 'function' ? inv.getUnlockProgressRatio() : 0;
-    const fridgePercent = Math.round(fridgeProgressRatio * 100);
+    const progressRatio = (inv && typeof inv.getCombinedUnlockProgressRatio === 'function')
+      ? inv.getCombinedUnlockProgressRatio()
+      : (inv && typeof inv.getUnlockProgressRatio === 'function' ? inv.getUnlockProgressRatio() : 0);
+    const unlockPercent = Math.round(progressRatio * 100);
 
     container.innerHTML = `
       <div class="party-lobby-container">
         <!-- 상단 헤더: 한 줄 콤팩트 헤더 -->
         <div class="party-lobby-header">
-          <h2 class="party-lobby-title">🍻 술자리 미니게임 모음</h2>
+          <h2 class="party-lobby-title">🍻 술자리 미니게임</h2>
         </div>
 
         <!-- 중앙 게임 선택 카드 목록 -->
@@ -448,7 +459,7 @@ class PartyGameHubView {
               if (g.key === 'penaltycocktail') {
                 badgeHtml = `<span class="lobby-card-badge lock-badge">🔒 소주·맥주 필요</span>`;
               } else if (g.key === 'fridge' || g.key === 'market') {
-                badgeHtml = `<span class="lobby-card-badge lock-badge">🔒 도감 50% (${fridgePercent}%)</span>`;
+                badgeHtml = `<span class="lobby-card-badge lock-badge">🔒 도감 50% (${unlockPercent}%)</span>`;
               }
             }
 
@@ -471,6 +482,23 @@ class PartyGameHubView {
         </div>
       </div>
     `;
+
+    // 모드 선택으로 복귀 버튼 이벤트 바인딩
+    const portalBackBtn = container.querySelector('#party-lobby-portal-back-btn');
+    if (portalBackBtn) {
+      portalBackBtn.onclick = (e) => {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        this.sound?.playTap?.();
+        if (window.ksoolApp?.switchTab) {
+          window.ksoolApp.switchTab('portal');
+        } else if (window.app?.switchTab) {
+          window.app.switchTab('portal');
+        }
+      };
+    }
 
     // 게임 선택 이벤트 바인딩
     container.querySelectorAll('[data-start-game]').forEach(card => {

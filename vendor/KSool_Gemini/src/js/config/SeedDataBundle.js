@@ -2246,7 +2246,7 @@ window.KSool.SeedDataBundle = {
         "emoji": "🍶",
         "category": "막걸리꿀조합",
         "unlocks_ingredient_id": null,
-        "description": "막걸리 2 : 사이다 1의 황금비율! 비 오는 날 파전과 함께 마시는 청량감 끝판왕 주막 칵테일.",
+        "description": "막걸리 2 : 사이다 1의 황금비율! 비 오는 날 파전과 함께 마시는 청량감 끝판왕 전통 칵테일.",
         "requires_order": false,
         "max_ratio": 2,
         "sum_ratio": 3,
@@ -2255,7 +2255,7 @@ window.KSool.SeedDataBundle = {
         "step_order": 4,
         "recipe_number": 59,
         "formatted_number": "No.59",
-        "unlock_hint": "비 오는 날 파전의 단짝! 뽀얀 전통 탁주 두 잔에 투명한 달콤 탄산음료 한 잔을 섞어 청량감을 끌어올린 주막 칵테일입니다."
+        "unlock_hint": "비 오는 날 파전의 단짝! 뽀얀 전통 탁주 두 잔에 투명한 달콤 탄산음료 한 잔을 섞어 청량감을 끌어올린 전통 칵테일입니다."
     },
     {
         "recipe_id": 79,
@@ -2312,7 +2312,7 @@ window.KSool.SeedDataBundle = {
         "emoji": "🍧",
         "category": "막걸리꿀조합",
         "unlocks_ingredient_id": null,
-        "description": "걸쭉한 막걸리와 달콤한 단팥바, 부드러운 우유가 어우러져 한여름 주막의 팥빙수를 연상시키는 디저트 막걸리.",
+        "description": "걸쭉한 막걸리와 달콤한 단팥바, 부드러운 우유가 어우러져 한여름 팥빙수를 연상시키는 디저트 막걸리.",
         "requires_order": false,
         "max_ratio": 2,
         "sum_ratio": 4,
@@ -2532,7 +2532,7 @@ window.KSool.SeedDataBundle = {
         "emoji": "🍯",
         "category": "막걸리꿀조합",
         "unlocks_ingredient_id": null,
-        "description": "막걸리 9 : 꿀 1! 텁텁함을 잡아주고 입안에 감기는 달콤함을 극대화한 전통 주막 스타일.",
+        "description": "막걸리 9 : 꿀 1! 텁텁함을 잡아주고 입안에 감기는 달콤함을 극대화한 전통 주점 스타일.",
         "requires_order": false,
         "max_ratio": 9,
         "sum_ratio": 10,
@@ -2541,7 +2541,7 @@ window.KSool.SeedDataBundle = {
         "step_order": 5,
         "recipe_number": 72,
         "formatted_number": "No.72",
-        "unlock_hint": "전통 탁주 아홉에 달콤한 황금빛 꿀을 더해, 특유의 텁텁함은 잡고 입안에 감기는 달콤함을 극대화한 주막 스타일입니다."
+        "unlock_hint": "전통 탁주 아홉에 달콤한 황금빛 꿀을 더해, 특유의 텁텁함은 잡고 입안에 감기는 달콤함을 극대화한 전통 주점 스타일입니다."
     },
     {
         "recipe_id": 43,
@@ -2576,7 +2576,7 @@ window.KSool.SeedDataBundle = {
         "emoji": "🍯",
         "category": "막걸리꿀조합",
         "unlocks_ingredient_id": null,
-        "description": "막걸리 5 : 미숫가루 3 : 꿀 1! 고소함에 달콤함까지 완벽하게 밸런스를 맞춘 주막 시그니처.",
+        "description": "막걸리 5 : 미숫가루 3 : 꿀 1! 고소함에 달콤함까지 완벽하게 밸런스를 맞춘 시그니처 칵테일.",
         "requires_order": false,
         "max_ratio": 5,
         "sum_ratio": 9,

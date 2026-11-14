@@ -20,12 +20,12 @@ class AudioService {
 
   getAvailableBgmTracks() {
     return [
-      { id: 'kpop_dance', name: '⚡ K-POP 댄스 비트', badge: '대표곡', desc: '신나고 중독적인 최신 K-POP 아이돌 댄스 팝 & 펀치 비트' },
-      { id: 'kpop_synth', name: '🌆 K-POP 시티팝 & 신스', badge: '감성', desc: '서울 야경 감성의 세련된 신스웨이브 & 그루브 베이스' },
-      { id: 'k_fusion', name: '🥁 조선 퓨전 K-비트', badge: '대취타', desc: '웅장한 808 트랩 비트와 한국 전통 관악 태평소의 만남' },
-      { id: 'korean_tavern', name: '🏮 한국 전통 주막 풍류', badge: '국악', desc: '구수한 대금 요성과 장구 굿거리 장단의 전통 풍류' },
-      { id: 'retro_8bit', name: '👾 레트로 8비트 칩튠', badge: '아케이드', desc: '톡톡 튀는 고전 오락실 아케이드 칩튠 사운드' },
-      { id: 'off', name: '🔇 BGM 끄기', badge: '', desc: '배경음악 없이 게임 효과음만 출력' }
+      { id: 'kpop_dance', name: 'K-POP 댄스 비트', badge: '대표곡', desc: '신나고 중독적인 최신 K-POP 아이돌 댄스 팝 & 펀치 비트' },
+      { id: 'kpop_synth', name: 'K-POP 시티팝 & 신스', badge: '감성', desc: '서울 야경 감성의 세련된 신스웨이브 & 그루브 베이스' },
+      { id: 'k_fusion', name: '조선 퓨전 K-비트', badge: '대취타', desc: '웅장한 808 트랩 비트와 한국 전통 관악 태평소의 만남' },
+      { id: 'korean_tavern', name: '한국 전통 풍류', badge: '국악', desc: '구수한 대금 요성과 장구 굿거리 장단의 전통 풍류' },
+      { id: 'retro_8bit', name: '레트로 8비트 칩튠', badge: '아케이드', desc: '톡톡 튀는 고전 오락실 아케이드 칩튠 사운드' },
+      { id: 'off', name: 'BGM 끄기', badge: '', desc: '배경음악 없이 게임 효과음만 출력' }
     ];
   }
 
@@ -158,10 +158,10 @@ class AudioService {
   }
 
   /**
-   * 🏮 한국 전통 주막 풍류 BGM (12/8 굿거리·세마치 삼분박 장단 + 대금 농현 + 거문고 저음 + 장구 '덩 기덕 쿵 더러러러')
+   * 🏮 한국 전통 풍류 BGM (12/8 굿거리·세마치 삼분박 장단 + 대금 농현 + 거문고 저음 + 장구 '덩 기덕 쿵 더러러러')
    * - 중국풍 16분음표 고쟁 소리를 완전히 배제하고,
    *   한국 민요/풍류 특유의 3분박(점4분음표 호흡) 장단과 대금(Daegeum)의 따뜻한 숨결·요성(농현),
-   *   장구 북편(쿵)과 채편(기덕/더러러) 울림으로 정겨운 한국 주막 분위기를 연출합니다.
+   *   장구 북편(쿵)과 채편(기덕/더러러) 울림으로 정겨운 한국 전통 분위기를 연출합니다.
    */
   startTycoonBgm(wave = 1) {
     this._bgmWave = Math.max(1, Number(wave) || 1);
@@ -752,7 +752,7 @@ class AudioService {
 
     // 3) 대금(Daegeum) 한국 민요·풍류 선율 (3분박 장단 호흡 + 떠는음 요성 + 흘러내리는 퇴성)
     // 각 노트는 { midi, durSteps, vibrato(요성), slideDown(퇴성) }
-    // 한국 전래 민요(아리랑·태평가·주막 타령)의 '장-단 / 장-단' 3분박 호흡
+    // 한국 전래 민요(아리랑·태평가·풍류가)의 '장-단 / 장-단' 3분박 호흡
     const daegeumScore = {
       // Bar 0: 정겹고 유장한 도입 ("라~ 시 | 라~ 솔 | 미~ 레 | 미~~~(요성)")
       0:  { midi: 69, dur: 0.62, vibrato: true, slide: false },  // A4 (2박)

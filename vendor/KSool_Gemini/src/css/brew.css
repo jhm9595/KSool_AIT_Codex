@@ -1449,6 +1449,18 @@
   transform: scale(0.99);
 }
 
+.quiz-shop-needed-banner.is-static {
+  cursor: default;
+  pointer-events: none;
+  justify-content: center;
+  text-align: center;
+}
+
+.quiz-shop-needed-banner.is-static:hover,
+.quiz-shop-needed-banner.is-static:active {
+  transform: none;
+}
+
 .quiz-shop-needed-banner b {
   color: #ffffff;
   background: linear-gradient(135deg, #d97706, #b45309);

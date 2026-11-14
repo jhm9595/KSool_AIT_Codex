@@ -414,7 +414,7 @@ class InventoryManager {
     if (this.unlockAllSandboxMode) return true;
     const rId = Number(recipeId);
     // STAGE 1 ~ STAGE 2 (길거리 노점·이모네 포장마차, step_id <= 2, No.01 ~ No.37)까지는 설명 힌트 기본 공개
-    // STAGE 3 (동네 목조 주막, step_id >= 3, No.38~)부터는 은박지 복권을 긁어야 설명 힌트 확인 가능!
+    // STAGE 3 (골목 전통 주점, step_id >= 3, No.38~)부터는 은박지 복권을 긁어야 설명 힌트 확인 가능!
     if (this._getRecipeStepId(rId) <= 2) return true;
     return this.unlockedRecipeIds.has(rId) || this.unlockedDescRecipeIds.has(rId);
   }
@@ -627,6 +627,48 @@ class InventoryManager {
     const total = this.recipeBook.getAllRecipes().length;
     if (total === 0) return 0;
     return this.unlockedRecipeIds.size / total;
+  }
+
+  /**
+   * 퀴즈 모드와 타이쿤 모드의 해금 레시피 합집합(Union) 반환
+   * - 술 미니게임 등 모드 공용 콘텐츠의 해금률 계산에 사용
+   */
+  getCombinedUnlockedRecipeIds() {
+    const combined = new Set(this.unlockedRecipeIds || []);
+
+    if (typeof localStorage === 'undefined') {
+      return combined;
+    }
+
+    try {
+      const keys = [
+        'ksool_alchemy_v2_state',
+        'ksool_alchemy_v2_state_bak',
+        'ksool_alchemy_quiz_v1_state',
+        'ksool_alchemy_quiz_v1_state_bak'
+      ];
+      for (const k of keys) {
+        const raw = localStorage.getItem(k);
+        if (!raw) continue;
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed && Array.isArray(parsed.unlockedRecipeIds)) {
+            parsed.unlockedRecipeIds.forEach(id => combined.add(Number(id)));
+          }
+        } catch (_) {}
+      }
+    } catch (_) {}
+
+    return combined;
+  }
+
+  /**
+   * 퀴즈 모드와 타이쿤 모드의 해금 기록을 합집합(Union)하여 계산한 전체 해금률 (0.0 ~ 1.0)
+   */
+  getCombinedUnlockProgressRatio() {
+    const total = this.recipeBook?.getAllRecipes()?.length || 0;
+    if (total === 0) return 0;
+    return this.getCombinedUnlockedRecipeIds().size / total;
   }
 
   isCollectionTabUnlocked() {

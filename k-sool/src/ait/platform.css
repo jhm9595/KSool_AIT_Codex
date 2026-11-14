@@ -78,6 +78,8 @@ html { color-scheme: light; }
 .party-numpad-grid .party-num-key { height: 44px !important; }
 #view-party.active.party-fullscreen-mode { padding-top: env(safe-area-inset-top, 0px) !important; padding-bottom: max(env(safe-area-inset-bottom, 0px), 34px) !important; }
 .party-fullscreen-wrapper { min-height: 0; }
+.ait-party-controls { display: flex; gap: 12px; padding: 16px 0 max(env(safe-area-inset-bottom, 0px), 34px); }
+.ait-party-controls > button { flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--card-bg); color: var(--text); font-size: 15px; font-weight: 700; }
 #ait-data-note { margin: 0; color: var(--text-muted); font-size: 15px; line-height: 1.6; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }

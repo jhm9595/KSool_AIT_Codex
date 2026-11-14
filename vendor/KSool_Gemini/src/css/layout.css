@@ -606,98 +606,55 @@ body.admin-mode .header-toolbar {
 }
 
 
-/* 타이쿤 BGM 스타일 선택 카드 리스트 */
-.settings-bgm-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+/* 타이쿤 BGM 스타일 콤보박스 */
+.settings-bgm-combobox-wrap {
+  width: 100%;
+  position: relative;
+  margin-top: 4px;
 }
 
-.settings-bgm-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: rgba(15, 23, 42, 0.75);
-  border: 1.5px solid #334155;
-  cursor: pointer;
-  transition: all 0.18s ease;
-  user-select: none;
-}
-
-.settings-bgm-card:hover {
-  background: rgba(30, 41, 59, 0.85);
-  border-color: #64748b;
-  transform: translateY(-1px);
-}
-
-.settings-bgm-card.active {
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.18) 0%, rgba(56, 189, 248, 0.28) 100%);
-  border-color: #38bdf8;
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
-}
-
-.settings-bgm-info {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
-  text-align: left;
-}
-
-.settings-bgm-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.settings-bgm-name {
-  font-size: 0.84rem;
-  font-weight: 800;
+.settings-bgm-select {
+  width: 100%;
+  padding: 12px 38px 12px 14px;
+  background-color: #0f172a;
   color: #f8fafc;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.4;
+  border: 1.5px solid #334155;
+  border-radius: 10px;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 15px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
 }
 
-.settings-bgm-card.active .settings-bgm-name {
-  color: #38bdf8;
+.settings-bgm-select:hover {
+  border-color: #64748b;
+  background-color: #1e293b;
 }
 
-.settings-bgm-badge {
-  font-size: 0.62rem;
-  font-weight: 800;
-  padding: 2px 6px;
-  border-radius: 999px;
-  background: rgba(56, 189, 248, 0.2);
-  color: #38bdf8;
-  border: 1px solid rgba(56, 189, 248, 0.4);
-}
-
-.settings-bgm-desc {
-  font-size: 0.70rem;
-  color: #94a3b8;
-  line-height: 1.3;
-}
-
-.settings-bgm-select-indicator {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 1.5px solid #475569;
-  color: transparent;
-  font-size: 0.72rem;
-  font-weight: 900;
-  flex-shrink: 0;
-  margin-left: 8px;
-  transition: all 0.15s ease;
-}
-
-.settings-bgm-card.active .settings-bgm-select-indicator {
+.settings-bgm-select:focus {
   border-color: #38bdf8;
-  background: #38bdf8;
-  color: #0f172a;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
+  background-color: #0f172a;
+}
+
+.settings-bgm-select option {
+  background-color: #0f172a;
+  color: #f8fafc;
+  font-size: 0.90rem;
+  font-weight: 600;
+  padding: 10px 12px;
 }
 
 
@@ -705,19 +662,19 @@ body.admin-mode .header-toolbar {
    🌟 게임 모드 선택 SPA 게이트웨이 뷰 (#view-portal)
    ========================================================================== */
 #view-portal.view {
+  flex: 1;
   width: 100%;
-  height: 100%;
-  min-height: calc(100vh - 58px);
-  min-height: calc(100dvh - 58px);
+  min-height: 0;
+  height: auto;
   background: radial-gradient(circle at 50% 15%, rgba(14, 165, 233, 0.12) 0%, transparent 55%),
               radial-gradient(circle at 50% 85%, rgba(245, 158, 11, 0.12) 0%, transparent 55%),
               #0b1120;
   display: none;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   box-sizing: border-box;
-  padding: 20px 16px;
+  padding: clamp(10px, 2.5vh, 24px) 14px clamp(14px, 3vh, 26px);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -728,65 +685,61 @@ body.admin-mode .header-toolbar {
 
 .portal-spa-container {
   width: 100%;
-  max-width: 480px;
+  max-width: 440px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 18px;
-  margin: auto 0;
+  gap: clamp(8px, 1.6vh, 14px);
+  margin: 0 auto;
   animation: portalFadeIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes portalFadeIn {
-  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  from { opacity: 0; transform: translateY(8px) scale(0.99); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-.portal-spa-hero {
+.portal-spa-header {
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 3px;
+  margin-bottom: 2px;
 }
 
-.portal-spa-emblem-wrap {
-  width: 58px;
-  height: 58px;
-  border-radius: 18px;
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(14, 165, 233, 0.2) 100%);
-  border: 1.5px solid rgba(255, 255, 255, 0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-}
-
-.portal-spa-emblem {
-  font-size: 2.2rem;
-  line-height: 1;
-  filter: drop-shadow(0 4px 10px rgba(245, 158, 11, 0.5));
+.portal-spa-kicker {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
 }
 
 .portal-spa-title {
   margin: 0;
-  font-size: 1.45rem;
+  font-size: clamp(1.15rem, 2.6vh, 1.35rem);
   font-weight: 900;
   color: #f8fafc;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.4px;
 }
 
 .portal-spa-subtitle {
   margin: 0;
-  font-size: 0.84rem;
+  font-size: clamp(0.72rem, 1.5vh, 0.8rem);
   color: #94a3b8;
+  font-weight: 500;
 }
 
 .portal-spa-grid {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: clamp(8px, 1.3vh, 12px);
 }
 
 /* 2대 모드 카드 (영역 전체가 버튼) */
@@ -794,12 +747,12 @@ body.admin-mode .header-toolbar {
   width: 100%;
   box-sizing: border-box;
   background: rgba(15, 23, 42, 0.95);
-  border: 2px solid #334155;
-  border-radius: 18px;
-  padding: 16px 16px;
+  border: 1.5px solid #334155;
+  border-radius: 16px;
+  padding: clamp(10px, 1.4vh, 15px) clamp(12px, 3vw, 16px);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: clamp(6px, 0.9vh, 9px);
   cursor: pointer;
   text-align: left;
   user-select: none;
@@ -808,7 +761,7 @@ body.admin-mode .header-toolbar {
   overflow: hidden;
   color: inherit;
   font-family: inherit;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
 .portal-mode-card * {
@@ -850,11 +803,64 @@ body.admin-mode .header-toolbar {
   box-shadow: 0 10px 32px rgba(245, 158, 11, 0.3);
 }
 
+/* 미니게임 모드 테마 */
+.portal-mode-card.party {
+  border-color: rgba(168, 85, 247, 0.5);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.12) 0%, rgba(15, 23, 42, 0.96) 100%);
+}
+
+.portal-mode-card.party:hover {
+  border-color: #a855f7;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.22) 0%, rgba(15, 23, 42, 0.98) 100%);
+  box-shadow: 0 10px 32px rgba(168, 85, 247, 0.3);
+}
+
+.portal-card-badge.party {
+  background: rgba(168, 85, 247, 0.25);
+  color: #d8b4fe;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+}
+
+.portal-card-icon-box.party {
+  background: rgba(168, 85, 247, 0.2);
+  border: 1px solid rgba(168, 85, 247, 0.45);
+}
+
+.portal-card-action.party {
+  color: #c084fc;
+}
+
 .portal-card-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
+}
+
+.portal-card-badges-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.portal-card-diff-tag {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2.5px 8px;
+  border-radius: 999px;
+  letter-spacing: -0.2px;
+}
+
+.portal-card-diff-tag.easy {
+  background: rgba(16, 185, 129, 0.22);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.45);
+}
+
+.portal-card-diff-tag.hard {
+  background: rgba(239, 68, 68, 0.22);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.45);
 }
 
 .portal-card-badge {
@@ -889,19 +895,19 @@ body.admin-mode .header-toolbar {
 
 .portal-card-main {
   display: flex;
-  align-items: flex-start;
-  gap: 14px;
+  align-items: center;
+  gap: clamp(10px, 2.5vw, 14px);
 }
 
 .portal-card-icon-box {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
+  width: clamp(38px, 5vh, 46px);
+  height: clamp(38px, 5vh, 46px);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 1.6rem;
+  font-size: clamp(1.3rem, 2.6vh, 1.55rem);
 }
 
 .portal-card-icon-box.quiz {
@@ -919,12 +925,12 @@ body.admin-mode .header-toolbar {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 }
 
 .portal-card-title {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: clamp(0.94rem, 2vh, 1.05rem);
   font-weight: 900;
   color: #f8fafc;
   letter-spacing: -0.3px;
@@ -932,7 +938,7 @@ body.admin-mode .header-toolbar {
 
 .portal-card-desc {
   margin: 0;
-  font-size: 0.76rem;
+  font-size: clamp(0.70rem, 1.4vh, 0.76rem);
   color: #cbd5e1;
   font-weight: 600;
 }
@@ -955,9 +961,9 @@ body.admin-mode .header-toolbar {
   align-items: center;
   justify-content: flex-end;
   gap: 4px;
-  font-size: 0.75rem;
+  font-size: clamp(0.68rem, 1.4vh, 0.74rem);
   font-weight: 800;
-  padding-top: 8px;
+  padding-top: clamp(4px, 0.7vh, 7px);
   border-top: 1px dashed rgba(71, 85, 105, 0.4);
 }
 
@@ -982,7 +988,7 @@ body.admin-mode .header-toolbar {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: clamp(5px, 1vh, 8px);
   width: 100%;
   text-align: center;
 }
@@ -992,9 +998,9 @@ body.admin-mode .header-toolbar {
   border: 1.5px solid #475569;
   border-radius: 12px;
   color: #e2e8f0;
-  font-size: 0.82rem;
+  font-size: clamp(0.76rem, 1.5vh, 0.82rem);
   font-weight: 800;
-  padding: 10px 18px;
+  padding: clamp(8px, 1.2vh, 11px) 16px;
   cursor: pointer;
   width: 100%;
   transition: all 0.18s ease;
@@ -1008,7 +1014,7 @@ body.admin-mode .header-toolbar {
 
 .portal-spa-notice {
   margin: 0;
-  font-size: 0.72rem;
+  font-size: clamp(0.66rem, 1.3vh, 0.72rem);
   color: #64748b;
 }
 

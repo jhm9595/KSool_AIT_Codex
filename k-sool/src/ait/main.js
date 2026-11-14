@@ -115,7 +115,9 @@ function back() {
   if (app?.currentTab === 'tycoon' && app.tycoonView?.engine?.session.status === 'PLAYING') {
     document.getElementById('tycoon-back-lobby-btn')?.click(); return;
   }
-  if (app && app.currentTab !== 'tycoon') { app.switchTab('tycoon'); return; }
+  if (app?.currentTab === 'party') { app.switchTab('portal'); return; }
+  const homeTab = app?.currentMode === 'QUIZ' ? 'brew' : 'tycoon';
+  if (app && app.currentTab !== homeTab) { app.switchTab(homeTab); return; }
   void exit();
 }
 const cleanup = [];

@@ -1,7 +1,7 @@
 window.KSool = window.KSool || {};
 
 /**
- * 🏮 주막 타이쿤 (Tycoon Main Game) - 6단계 점포 성장(GROWTH) & 최종 무한모드(INFINITE) 핵심 엔진
+ * 🍸 주점 타이쿤 (Tycoon Main Game) - 6단계 점포 성장(GROWTH) & 최종 무한모드(INFINITE) 핵심 엔진
  *
  * [핵심 게임 루프]
  * 1. [🔬 연구실]에서 보유 재료로 새 음료/주류 레시피(No.01 ~ No.84)를 연구·해금합니다.
@@ -54,15 +54,15 @@ class TycoonEngine {
         icon: '⛺',
         name: '이모네 포장마차',
         subtitle: '정겨운 밤거리 주황 천막 포차 (기초 주류 입문)',
-        bgImage: './assets/tycoon/bg_stage_2.jpg?v=2',
+        bgImage: './assets/tycoon/bg_stage_2.jpg?v=3',
         quotaCount: 6,
-        bellLeftPct: 72.9,
-        bellBottomPct: 9.5,
-        plateLeftPct: 50.1,
-        plateBottomPct: 10.5,
-        plateWidthPct: 23.6,
-        plateHeightPct: 12.7,
-        barTopBottomPct: 18.6,
+        bellLeftPct: 74.0,
+        bellBottomPct: 11.5,
+        plateLeftPct: 50.7,
+        plateBottomPct: 13.4,
+        plateWidthPct: 24.0,
+        plateHeightPct: 12.5,
+        barTopBottomPct: 21.0,
         unlockCost: 300,
         priceMultiplier: 1.20,
         maxRecipeStep: 2,
@@ -72,9 +72,9 @@ class TycoonEngine {
       {
         id: 'stage_3',
         stageNum: 3,
-        icon: '🏮',
-        name: '동네 목조 주막',
-        subtitle: '따뜻한 조명과 나무 향기가 가득한 전통 주막',
+        icon: '🍶',
+        name: '골목 전통 주점',
+        subtitle: '따뜻한 조명과 나무 향기가 가득한 감성 전통 주점',
         bgImage: './assets/tycoon/bg_stage_3.jpg?v=2',
         quotaCount: 7,
         bellLeftPct: 72.9,
@@ -137,7 +137,7 @@ class TycoonEngine {
         stageNum: 6,
         icon: '🚀',
         name: '사이버펑크 미래도시 바',
-        subtitle: '홀로그램 메뉴와 비행선이 오가는 미래도시 주막',
+        subtitle: '홀로그램 메뉴와 비행선이 오가는 미래도시 라운지',
         bgImage: './assets/tycoon/bg_stage_6.jpg?v=2',
         quotaCount: 10,
         bellLeftPct: 68.2,
@@ -704,7 +704,7 @@ class TycoonEngine {
       chosenRecipeId = Number(this.session.customerSessionRecipeMap.get(chosenCustomer.id));
       orderType = 'MEMORY';
     } else {
-      // 1. 손님 매칭: 직전 주문 메뉴와 다른 선호 메뉴를 가진 손님을 우선적으로 우대
+      // 1. 손님 매칭: 점포별 테마에 어울리는 손님 풀을 최우선으로 매핑
       const stageMatchedNonRepeatCusts = availableCustomers.filter(
         c => stageAllowedIds.has(Number(c.preferredRecipeId)) && Number(c.preferredRecipeId) !== Number(prevOrderedRecipeId)
       );
@@ -712,7 +712,20 @@ class TycoonEngine {
         ? stageMatchedNonRepeatCusts
         : availableCustomers.filter(c => stageAllowedIds.has(Number(c.preferredRecipeId)));
 
-      const custPool = (stageMatchedCusts.length > 0 && Math.random() < 0.75) ? stageMatchedCusts : availableCustomers;
+      // 현재 점포 고유 테마 손님(현재 점포 단계와 선호 음료의 step_id가 일치하는 손님) 우선 가중치
+      const currentStageCusts = stageMatchedCusts.filter(c => {
+        const rec = this.recipeBook ? this.recipeBook.getRecipe(c.preferredRecipeId) : null;
+        return rec && Number(rec.step_id) === Number(stage.stageNum);
+      });
+
+      let targetCustPool = stageMatchedCusts;
+      if (currentStageCusts.length > 0 && (Math.random() < 0.85 || stageMatchedCusts.length === currentStageCusts.length)) {
+        targetCustPool = currentStageCusts;
+      }
+
+      const custPool = (targetCustPool.length > 0 && !isInfiniteMode)
+        ? targetCustPool
+        : (stageMatchedCusts.length > 0 ? stageMatchedCusts : availableCustomers);
       chosenCustomer = custPool[Math.floor(Math.random() * custPool.length)];
 
       // 2. 주문 레시피 선정: 가능한 경우 직전 주문 메뉴와 다른 메뉴 선정
@@ -1018,13 +1031,15 @@ class TycoonEngine {
 
     const meta = this.getStockItemDisplayMeta(stockKey);
     const label = meta ? meta.recipeName : '완성품';
+    const message = `[${label}] 임시 재고에 보관했습니다! (보유: ${newCount}개)`;
     this.session.lastLogMessage = `📦 접시 위의 [${label}]을(를) 이번 영업 임시 재고에 보관했습니다! (현재 ${newCount}개 · 영업 종료 시 소멸)`;
 
     return {
       ok: true,
       storedStockKey: stockKey,
       label,
-      newCount
+      newCount,
+      message
     };
   }
 

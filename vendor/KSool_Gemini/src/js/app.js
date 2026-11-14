@@ -190,9 +190,8 @@ class KSoolApp {
       }
     }, { passive: false });
 
-    // URL 해시(#party/updown, #tycoon 등) 딥링크 처리
+    // URL 해시(#party/updown, #tycoon 등) 딥링크 이벤트 리스너 등록
     const hasHashRoute = Boolean(window.location.hash && window.location.hash !== '#' && window.location.hash !== '#/');
-    this._handleHashRouting();
     window.addEventListener('hashchange', () => this._handleHashRouting());
 
     // 2. 친구에게 도움요청 (?help=...) 딥링크 확인
@@ -209,16 +208,30 @@ class KSoolApp {
       }
     }
 
-    // 3. 일반 접속: 첫 진입자에게 2대 모드 선택 포털 화면 오픈, 기존 유저는 이전 모드 복원
+    // 3. 일반 접속: 첫 진입자에게 모드 선택 포털 화면 오픈, 기존 유저는 이전 모드 및 보던 화면(포털/미니게임 등) 복원
     if (!isFriendHelp) {
       const savedMode = typeof localStorage !== 'undefined' ? localStorage.getItem('ksool_active_mode') : null;
-      if (!savedMode) {
-        // 첫 진입: 전체 화면 SPA 모드 선택 게이트웨이 뷰 오픈
-        this.storage.setMode('TYCOON');
+      const savedTab = typeof localStorage !== 'undefined' ? localStorage.getItem('ksool_active_tab') : null;
+
+      if (!savedMode || savedTab === 'portal') {
+        // 첫 진입이거나 모드 선택 화면에서 새로고침한 경우: 포털 화면 상태 그대로 유지!
+        const effectiveMode = savedMode || 'TYCOON';
+        this.currentMode = effectiveMode;
+        this.storage.setMode(effectiveMode);
+        this.inventory.isQuizMode = (effectiveMode === 'QUIZ');
         this.inventory.init();
+        this._updateTabBarForMode(effectiveMode);
         this.switchTab('portal');
       } else {
         this.selectGameMode(savedMode, false);
+        // 이전에 보던 탭(예: party 미니게임 허브, shop, collection 등)이 있다면 해당 탭 복원
+        if (savedTab && savedTab !== this.currentTab && this.canAccessTab(savedTab)) {
+          this.switchTab(savedTab);
+        }
+      }
+
+      if (hasHashRoute) {
+        this._handleHashRouting();
       }
     }
 
@@ -280,6 +293,7 @@ class KSoolApp {
    */
   canAccessTab(target, mode = this.currentMode) {
     if (target === 'portal' || target === 'sos') return true;
+    if (target === 'party') return true; // 모드 선택 창 및 딥링크 등에서 접근 가능
     if (target === 'fridge') return false; // fridge는 party 내부 게임
 
     const isQuizOrHelp = (mode === 'QUIZ' || mode === 'HELP_FRIEND');
@@ -304,12 +318,17 @@ class KSoolApp {
 
   /**
    * 탭바 네비게이션을 현재 모드에 맞게 제어
-   * - 퀴즈 모드: 점포(타이쿤) 및 재료상점 탭 숨김 처리 (조합 퀴즈 연구실 + 도감·힌트 + 술게임 유지)
-   * - 타이쿤 모드: 점포, 연구실, 재료상점, 도감, 술게임 전체 노출
+   * - 하단 탭바에서 미니게임(party)은 제거되어 상단 모드 선택 화면을 통해 진입
+   * - 퀴즈 모드: 점포(타이쿤) 및 재료상점 탭 숨김 처리 (조합 퀴즈 연구실 + 도감·힌트 노출)
+   * - 타이쿤 모드: 점포, 연구실, 재료상점, 도감 노출
    */
   _updateTabBarForMode(mode) {
     document.querySelectorAll('[data-tab-target]').forEach(btn => {
       const target = btn.getAttribute('data-tab-target');
+      if (target === 'party') {
+        btn.style.display = 'none';
+        return;
+      }
       const isVisible = this.canAccessTab(target, mode);
       btn.style.display = isVisible ? '' : 'none';
     });
@@ -445,6 +464,9 @@ class KSoolApp {
       this.tycoonView.onLeaveTab();
     }
     this.currentTab = target;
+    try {
+      localStorage.setItem('ksool_active_tab', target);
+    } catch (_) {}
     document.querySelectorAll('[data-tab-target]').forEach(b => {
       b.classList.toggle('active', b.getAttribute('data-tab-target') === target);
     });
@@ -455,15 +477,18 @@ class KSoolApp {
   }
 
   renderTabBar() {
-    const isFullScreen = (this.currentTab === 'portal' || this.currentTab === 'sos');
+    const isFullScreen = (this.currentTab === 'portal' || this.currentTab === 'sos' || this.currentTab === 'party');
     const tabBar = document.querySelector('.tab-bar');
     if (tabBar) {
       tabBar.style.display = isFullScreen ? 'none' : '';
     }
 
+    // 상단 🏠 모드 선택 버튼: 모드 선택 포털 및 SOS 화면에서만 숨기고,
+    // 퀴즈 모드, 타이쿤 모드, 미니게임 모드 등 모든 모드에서 상단 우측 동일한 위치에 일관되게 제공
+    const hidePortalBtn = (this.currentTab === 'portal' || this.currentTab === 'sos');
     const modePortalBtn = document.getElementById('mode-select-portal-btn');
     if (modePortalBtn) {
-      modePortalBtn.style.display = isFullScreen ? 'none' : '';
+      modePortalBtn.style.display = hidePortalBtn ? 'none' : '';
     }
 
     if (!isFullScreen && (this.currentTab === 'fridge' || !this.canAccessTab(this.currentTab))) {
@@ -472,6 +497,10 @@ class KSoolApp {
 
     document.querySelectorAll('[data-tab-target]').forEach(btn => {
       const target = btn.getAttribute('data-tab-target');
+      if (target === 'party') {
+        btn.style.display = 'none';
+        return;
+      }
       const isVisible = this.canAccessTab(target);
       btn.style.display = isVisible ? '' : 'none';
       btn.classList.toggle('active', target === this.currentTab);
@@ -532,7 +561,7 @@ class KSoolApp {
       if (shouldQueue) this.pendingTabIntroQueue.push('noticeStage2');
     }
 
-    // [STAGE 3 진입 안내] 동네 목조 주막(STAGE 3) 해금 시 설명 힌트 기본 제공 종료 안내
+    // [STAGE 3 진입 안내] 골목 전통 주점(STAGE 3) 해금 시 설명 힌트 기본 제공 종료 안내
     const isStage3Unlocked = this.inventory.unlockedStepId >= 3;
     if (!this.inventory.shownTabIntros.noticeStage3 && isStage3Unlocked) {
       this.inventory.shownTabIntros.noticeStage3 = true;
@@ -600,40 +629,102 @@ class KSoolApp {
         btnLabel: '👍 조합추천 보러가기'
       },
       tycoon: {
-        emoji: '🏮',
+        emoji: '🏪',
         badge: '본게임 해금 (도감 100% 마스터)',
-        title: '[주막 타이쿤] 본게임 탭이 열렸습니다!',
-        desc: '축하합니다! 도감 100%를 달성한 전설의 주모에게만 허락된 새로운 본게임 <b>[🏮 타이쿤]</b>이 해금되었습니다!<br/><br/>찾아오는 손님들의 주문을 외워서 조합해 서빙하세요! (<b>♾️ 무한모드</b> 지원)',
-        btnLabel: '🏮 주막 타이쿤 영업하러 가기'
+        title: '[주점 타이쿤] 본게임 탭이 열렸습니다!',
+        desc: '축하합니다! 도감 100%를 달성한 전설의 마스터에게만 허락된 새로운 본게임 <b>[🏪 타이쿤]</b>이 해금되었습니다!<br/><br/>찾아오는 손님들의 주문을 외워서 조합해 서빙하세요! (<b>♾️ 무한모드</b> 지원)',
+        btnLabel: '🏪 주점 타이쿤 영업하러 가기'
       },
       noticeStage2: {
         emoji: '🎨',
-        badge: 'STAGE 2 해금 안내',
-        title: '외형 그림 기본 제공 종료',
-        desc: '길거리 노점(STAGE 1)을 마스터하고 <b>STAGE 2 (이모네 포장마차)</b>에 진입하셨습니다!<br/><br/>STAGE 2(No.19~)부터는 <b>외형 그림 힌트</b>가 기본 제공되지 않으며, <b>벽돌깨기 · 땅따먹기 · 네모로직</b> 미니게임을 직접 클리어하여 해금해야 합니다.<br/><br/><span style="color:#fde047; font-weight:700;">※ 설명 힌트는 STAGE 2(No.37)까지 계속 무료로 제공됩니다.</span>',
+        badge: 'STAGE 2 안내',
+        title: '외형 그림 잠김 안내',
+        visualHtml: `
+          <div style="display:flex; align-items:center; justify-content:center; gap:14px; margin:4px 0 6px;">
+            <div style="display:flex; flex-direction:column; align-items:center; gap:5px;">
+              <div class="quiz-mystery-icon is-unlocked" style="width:48px; height:48px; border:1.5px solid #10b981; box-shadow:0 0 12px rgba(16,185,129,0.3); background:#0f172a;">
+                ${window.KSool?.pixelIcon ? window.KSool.pixelIcon(this.recipeBook?.getRecipe?.(14) || { recipe_id: 14, emoji: '🍋' }, 32) : '🍋'}
+              </div>
+              <span style="font-size:0.7rem; color:#6ee7b7; font-weight:700;">외형 공개</span>
+            </div>
+            <span style="font-size:1.3rem; color:#94a3b8; font-weight:900;">➔</span>
+            <div style="display:flex; flex-direction:column; align-items:center; gap:5px;">
+              <div class="quiz-mystery-icon is-locked" style="width:48px; height:48px; font-size:1.5rem; border:1.5px dashed #f59e0b; color:#fde047; box-shadow:0 0 12px rgba(245,158,11,0.25);">
+                ❓
+              </div>
+              <span style="font-size:0.7rem; color:#fde047; font-weight:700;">물음표 가림</span>
+            </div>
+          </div>
+        `,
+        desc: `
+          <div style="text-align:left; display:flex; flex-direction:column; gap:8px; font-size:0.82rem; line-height:1.5;">
+            <div style="color:#f8fafc; font-weight:700;">
+              🎉 <b>STAGE 1</b>을 마스터하고 <b style="color:#38bdf8;">STAGE 2 (이모네 포장마차)</b>에 진입하셨습니다!
+            </div>
+            <div style="background:rgba(30,41,59,0.75); border-left:3px solid #f59e0b; padding:8px 10px; border-radius:6px; color:#e2e8f0;">
+              📌 <b>No.19</b>부터는 음료 외형이 기본 제공되지 않고 <b style="color:#fde047;">❓ 물음표 상자</b>로 가려집니다.
+            </div>
+            <div style="color:#cbd5e1;">
+              🎮 힌트 버튼의 <b style="color:#38bdf8;">벽돌깨기 · 땅따먹기 · 네모로직</b> 미니게임을 직접 클리어하여 음료 그림을 해금해보세요!
+            </div>
+          </div>
+        `,
         btnLabel: '확인 및 계속하기'
       },
       noticeStage3: {
         emoji: '📜',
-        badge: 'STAGE 3 해금 안내',
-        title: '외형 · 설명 힌트 기본 제공 종료',
-        desc: '이모네 포장마차(STAGE 2)를 마스터하고 <b>STAGE 3 (동네 목조 주막)</b>에 진입하셨습니다!<br/><br/>STAGE 3(No.38~)부터는 <b>외형 그림 힌트</b>와 <b>설명 힌트</b>가 모두 기본 제공되지 않으며, <b>미니게임</b>과 <b>은박 복권 긁기(AD)</b>를 통해 직접 힌트를 해금해야 합니다.<br/><br/><span style="color:#38bdf8; font-weight:700;">※ 힌트 버튼에서 미니게임과 은박 복권을 활용해 새로운 레시피를 추리해보세요!</span>',
+        badge: 'STAGE 3 안내',
+        title: '설명 힌트 잠김 안내',
+        visualHtml: `
+          <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin:4px 0 6px; width:100%; max-width:280px;">
+            <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px;">
+              <div style="width:100%; height:40px; border-radius:10px; background:rgba(56,189,248,0.12); border:1.5px solid #38bdf8; display:flex; align-items:center; justify-content:center; gap:5px; color:#f8fafc; font-size:0.78rem; font-weight:700; box-shadow:0 0 10px rgba(56,189,248,0.25);">
+                <span style="font-size:1rem;">💡</span>
+                <span style="color:#7dd3fc;">설명 공개</span>
+              </div>
+              <span style="font-size:0.7rem; color:#7dd3fc; font-weight:700;">힌트 제공</span>
+            </div>
+            <span style="font-size:1.2rem; color:#94a3b8; font-weight:900;">➔</span>
+            <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px;">
+              <div class="quiz-desc-locked" style="width:100%; height:40px; border-radius:10px; border:1.5px dashed #f43f5e; background:rgba(244,63,94,0.14); color:#fda4af; box-shadow:0 0 10px rgba(244,63,94,0.25);">
+                <span class="quiz-lock-icon" style="font-size:0.95rem;">🔒</span>
+                <span class="quiz-lock-label" style="color:#fda4af; font-weight:800; font-size:0.78rem;">설명 잠김</span>
+              </div>
+              <span style="font-size:0.7rem; color:#fda4af; font-weight:700;">자물쇠 잠김</span>
+            </div>
+          </div>
+        `,
+        desc: `
+          <div style="text-align:left; display:flex; flex-direction:column; gap:8px; font-size:0.82rem; line-height:1.5;">
+            <div style="color:#f8fafc; font-weight:700;">
+              🎉 <b>STAGE 2</b>를 마스터하고 <b style="color:#c084fc;">STAGE 3 (골목 전통 주점)</b>에 진입하셨습니다!
+            </div>
+            <div style="background:rgba(30,41,59,0.75); border-left:3px solid #f43f5e; padding:8px 10px; border-radius:6px; color:#e2e8f0;">
+              📌 <b>No.38</b>부터는 음료 외형뿐만 아니라 <b style="color:#f87171;">💡 설명 힌트도 🔒 잠긴 상태</b>로 시작됩니다.
+            </div>
+            <div style="color:#cbd5e1;">
+              🎫 힌트 버튼에서 <b style="color:#38bdf8;">은박 복권 긁기</b>나 단계별 힌트를 열어 비밀 레시피를 추리해보세요!
+            </div>
+          </div>
+        `,
         btnLabel: '확인 및 계속하기'
       }
     }[tabKey];
 
     if (!introMeta) return;
 
+    const visualHtml = introMeta.visualHtml || `<div style="font-size:3.3rem;">${introMeta.emoji}</div>`;
+
     content.innerHTML = `
       <div style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:10px;">
         <span class="diff-badge diff-NORMAL" style="position:static; font-size:0.7rem; padding:3px 10px;">
           🎉 ${introMeta.badge}
         </span>
-        <div style="font-size:3.3rem;">${introMeta.emoji}</div>
+        ${visualHtml}
         <div style="font-size:1.18rem; font-weight:900; color:#f8fafc;">
           ${introMeta.title}
         </div>
-        <div style="font-size:0.8rem; color:#cbd5e1; line-height:1.55; background:#0f172a; border:1px solid #334155; border-radius:12px; padding:12px;">
+        <div style="font-size:0.8rem; color:#cbd5e1; line-height:1.55; background:#0f172a; border:1px solid #334155; border-radius:12px; padding:12px; width:100%; box-sizing:border-box;">
           ${introMeta.desc}
         </div>
         <div style="display:flex; gap:8px; width:100%; margin-top:4px;">
@@ -859,15 +950,22 @@ class KSoolApp {
     if (needsShopMaterials) {
       if (missingDiag && missingDiag.missingCrafted.length > 0) {
         const item = missingDiag.missingCrafted[0];
-        const ingName = item.ingredient ? this.brandResolver.resolveName(item.ingredient) : '재료';
         const prodRec = item.producerRecipe;
-        const prodLabel = prodRec ? `[No.${String(prodRec.recipe_number).padStart(2, '0')} ${this.brandResolver.resolveName(prodRec)}]` : '선행 레시피';
-        descAreaHtml = `
-          <button type="button" class="quiz-shop-needed-banner" id="quiz-go-producer-btn" data-jump-recipe-id="${prodRec ? prodRec.recipe_id : ''}" title="클릭하여 선행 조합 레시피로 이동" style="border-color:#38bdf8; background:rgba(14,165,233,0.12); color:#38bdf8;">
-            <span>🧪 선행 조합 재료인 '${ingName}'을(를) 먼저 ${prodLabel}에서 조합해야 합니다!</span>
-            <b>선행 연구로 이동 ▸</b>
-          </button>
-        `;
+        const isQuiz = (this.currentMode === 'QUIZ');
+        if (isQuiz) {
+          descAreaHtml = `
+            <div class="quiz-shop-needed-banner is-static" style="border-color:#38bdf8; background:rgba(14,165,233,0.12); color:#38bdf8;">
+              <span>🧪 이전 번호의 음료 연구가 먼저 완료되어야 합니다!</span>
+            </div>
+          `;
+        } else {
+          descAreaHtml = `
+            <button type="button" class="quiz-shop-needed-banner" id="quiz-go-producer-btn" data-jump-recipe-id="${prodRec ? prodRec.recipe_id : ''}" title="클릭하여 선행 조합 레시피로 이동" style="border-color:#38bdf8; background:rgba(14,165,233,0.12); color:#38bdf8;">
+              <span>🧪 선행 조합 재료인 '${item.ingredient ? this.brandResolver.resolveName(item.ingredient) : '재료'}'을(를) 먼저 조합해야 합니다!</span>
+              <b>선행 연구로 이동 ▸</b>
+            </button>
+          `;
+        }
       } else if (missingDiag && missingDiag.outOfStockCrafted.length > 0) {
         const item = missingDiag.outOfStockCrafted[0];
         const ingName = item.ingredient ? this.brandResolver.resolveName(item.ingredient) : '재료';
@@ -879,12 +977,21 @@ class KSoolApp {
           </button>
         `;
       } else {
-        descAreaHtml = `
-          <button type="button" class="quiz-shop-needed-banner" id="quiz-go-shop-chip-btn" title="클릭하여 재료상점으로 이동">
-            <span>🛒 아직 보유하지 않은 재료(상점 구매 필요)가 포함되어 있습니다!</span>
-            <b>재료상점 탭 보기 ▸</b>
-          </button>
-        `;
+        const isQuiz = (this.currentMode === 'QUIZ');
+        if (isQuiz) {
+          descAreaHtml = `
+            <div class="quiz-shop-needed-banner is-static" style="border-color:#64748b; background:rgba(51,65,85,0.25); color:#94a3b8;">
+              <span>🔒 이전 단계(스테이지)의 음료들을 먼저 완성해주세요!</span>
+            </div>
+          `;
+        } else {
+          descAreaHtml = `
+            <button type="button" class="quiz-shop-needed-banner" id="quiz-go-shop-chip-btn" title="클릭하여 재료상점으로 이동">
+              <span>🛒 아직 보유하지 않은 재료(상점 구매 필요)가 포함되어 있습니다!</span>
+              <b>재료상점 탭 보기 ▸</b>
+            </button>
+          `;
+        }
       }
     } else {
       descAreaHtml = `
@@ -1014,6 +1121,18 @@ class KSoolApp {
       };
     }
 
+    const quizJumpPrevStageBtn = container.querySelector('#quiz-jump-prev-stage-btn');
+    if (quizJumpPrevStageBtn) {
+      quizJumpPrevStageBtn.onclick = () => {
+        const nextQuiz = this.inventory.getNextQuizRecipe();
+        this.audio.playTap();
+        if (nextQuiz) {
+          this.quizTargetRecipeId = nextQuiz.recipe_id;
+          this._renderBrewStepQuizBar();
+        }
+      };
+    }
+
     const prevBtn = container.querySelector('#quiz-prev-btn');
     if (prevBtn && targetRec) {
       prevBtn.onclick = () => {
@@ -1110,7 +1229,7 @@ class KSoolApp {
     const stages = [
       { step: 1, name: '1단계: 길거리 노점 (No.01~18)' },
       { step: 2, name: '2단계: 포장마차 (No.19~37)' },
-      { step: 3, name: '3단계: 동네 주막 (No.38~55)' },
+      { step: 3, name: '3단계: 전통 주점 (No.38~55)' },
       { step: 4, name: '4단계: 비어 펍 (No.56~67)' },
       { step: 5, name: '5단계: 라운지 바 (No.68~77)' },
       { step: 6, name: '6단계: 미래도시 바 (No.78~84)' }
@@ -1451,6 +1570,7 @@ class KSoolApp {
     const grid = document.getElementById('ingredients-grid');
     if (!grid) return;
 
+    const prevScroll = grid.scrollTop || 0;
     this._bindIngredientsGridEvents();
     grid.classList.remove('is-shop-mode');
 
@@ -1464,6 +1584,9 @@ class KSoolApp {
     const filtered = unlockedBase.filter(i => i.category_id === this.selectedIngCategory);
     filtered.sort((a, b) => a.ingredient_id - b.ingredient_id);
     grid.innerHTML = filtered.map(ing => this._createIngredientCardHtml(ing, potSlots)).join('');
+    if (prevScroll > 0) {
+      grid.scrollTop = prevScroll;
+    }
   }
 
   /**
@@ -1474,6 +1597,9 @@ class KSoolApp {
   renderShopView() {
     const container = document.getElementById('shop-view-container');
     if (!container) return;
+
+    const prevScrollEl = container.querySelector('.shop-scroll-body');
+    const prevScrollTop = prevScrollEl ? prevScrollEl.scrollTop : 0;
 
     const wallet = this.tycoonView?.engine ? this.tycoonView.engine.persistentWallet : 0;
     const maxStep = this.inventory.unlockedStepId || 1;
@@ -1567,6 +1693,11 @@ class KSoolApp {
         ${stageSectionsHtml.join('')}
       </div>
     `;
+
+    if (prevScrollTop > 0) {
+      const newScrollEl = container.querySelector('.shop-scroll-body');
+      if (newScrollEl) newScrollEl.scrollTop = prevScrollTop;
+    }
 
     container.querySelectorAll('[data-buy-shop-tab-ing]').forEach(btn => {
       btn.onclick = () => {
@@ -2036,15 +2167,26 @@ class KSoolApp {
               🎯 다음 퀴즈 목표: <b>[No.${nextQuizRec.recipe_number} ${nextName}]</b> 도전 가능!
             </div>
           `;
-          secondaryActionBtnHtml = `<button class="clear-pot-btn" id="result-go-next-quiz-btn" style="flex:1; background:linear-gradient(135deg,#4f46e5,#6366f1); color:#fff; border-color:#818cf8; font-weight:800;">🎯 다음 퀴즈 풀기</button>`;
+          secondaryActionBtnHtml = `<button class="mix-btn" id="result-go-next-quiz-btn" style="width:100%; background:linear-gradient(135deg,#4f46e5,#6366f1); color:#fff; border-color:#818cf8; font-weight:800;">🎯 다음 퀴즈 풀기</button>`;
         } else {
           modeNoticeHtml = `
             <div style="width:100%; background:rgba(16,185,129,0.14); border:1px solid rgba(16,185,129,0.45); border-radius:10px; padding:8px 10px; font-size:0.75rem; color:#a7f3d0; font-weight:700;">
               🎉 축하합니다! 모든 K-술 조합 퀴즈를 전부 정복하셨습니다!
             </div>
           `;
+          secondaryActionBtnHtml = `<button class="mix-btn" id="result-close-btn" style="width:100%;">닫기</button>`;
         }
       }
+
+      const isQuizMode = (this.currentMode === 'QUIZ');
+      const actionButtonsHtml = isQuizMode
+        ? secondaryActionBtnHtml
+        : `
+          <div style="display:flex; gap:8px; width:100%; margin-top:4px;">
+            <button class="mix-btn" id="result-close-btn" style="flex:1;">🔬 계속 연구하기</button>
+            ${secondaryActionBtnHtml}
+          </div>
+        `;
 
       content.innerHTML = `
         <div style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:10px;">
@@ -2068,10 +2210,7 @@ class KSoolApp {
           </div>
           ${unifiedUnlockBanner}
           ${modeNoticeHtml}
-          <div style="display:flex; gap:8px; width:100%; margin-top:4px;">
-            <button class="mix-btn" id="result-close-btn" style="flex:1;">🔬 계속 연구하기</button>
-            ${secondaryActionBtnHtml}
-          </div>
+          ${actionButtonsHtml}
         </div>
       `;
     } else {
@@ -2138,6 +2277,10 @@ class KSoolApp {
   }
 
   showToast(message) {
+    if (message === undefined || message === null) return;
+    const strMsg = String(message).trim();
+    if (!strMsg || strMsg === 'undefined' || strMsg === '📦 undefined' || strMsg === '⚠️ undefined' || strMsg === '🛎️ undefined') return;
+
     let toast = document.getElementById('ksool-toast');
     if (!toast) {
       toast = document.createElement('div');
@@ -2497,7 +2640,7 @@ class KSoolApp {
     if (this.storyTutorialModalView) {
       this.storyTutorialModalView.openIntroFlow(() => {
         this.switchTab('brew');
-        this.showToast('🔬 연구실에서 무료 재료로 첫 판매 음료(No.01 얼음)를 조합해보세요!');
+        this.showToast('🔬 연구실에서 기본 재료로 첫 판매 음료(No.01 얼음)를 조합해보세요!');
       });
     }
   }
@@ -2550,6 +2693,8 @@ function bootKSoolApp() {
   window._ksoolAppBooted = true;
   const app = new KSoolApp();
   app._installGlobalWebViewGuards();
+  window.KSoolApp = KSoolApp;
+  if (window.KSool) window.KSool.KSoolApp = KSoolApp;
   window.ksoolApp = app;
   window.kSoolApp = app;
   window.app = app;

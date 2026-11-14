@@ -1,7 +1,7 @@
 window.KSool = window.KSool || {};
 
 /**
- * 🏮 주막 타이쿤 (Tycoon Main Game) - 글로벌 Top 100 랭킹 서비스
+ * 🍸 주점 타이쿤 (Tycoon Main Game) - 글로벌 Top 100 랭킹 서비스
  *
  * - Supabase `ksool_tycoon_leaderboard` 테이블과 실시간 연동하여
  *   타임어택(TIME_ATTACK) 및 무한모드(INFINITE) Top 100 랭킹을 전체 유저에게 공개합니다.

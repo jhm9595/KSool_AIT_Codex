@@ -782,7 +782,24 @@ class StoryTutorialModalView {
         desc: '탄산수 완성! 이제 손님에게 팔아볼까요?<br/>하단의 <b>[🏪 점포]</b>를 눌러주세요.',
         targetSelector: '.tab-btn[data-tab-target="tycoon"]',
         mode: 'CLICK_TARGET',
-        handLabel: '🏪 점포 터치!'
+        handLabel: '🏪 점포 터치!',
+        beforeClick: () => {
+          if (this.app) {
+            if (this.app.currentMode !== 'TYCOON') {
+              this.app.currentMode = 'TYCOON';
+              this.app._updateTabBarForMode('TYCOON');
+            }
+          }
+        },
+        afterClick: () => {
+          if (this.app) {
+            this.app.switchTab('tycoon');
+            if (this.app.tycoonView) {
+              this.app.tycoonView.engine.session.status = 'LOBBY';
+              this.app.tycoonView.render();
+            }
+          }
+        }
       },
       // STEP 7: 점포 로비 화면 -> [🏪 영업 시작하기] 실제 클릭 유도
       {
@@ -793,14 +810,26 @@ class StoryTutorialModalView {
         mode: 'CLICK_TARGET',
         handLabel: '영업 시작 터치!',
         setup: () => {
-          if (this.app?.tycoonView) {
-            this.app.tycoonView.engine.session.status = 'LOBBY';
-            this.app.tycoonView.render();
+          if (this.app) {
+            if (this.app.currentMode !== 'TYCOON') {
+              this.app.currentMode = 'TYCOON';
+              this.app._updateTabBarForMode('TYCOON');
+            }
+            if (this.app.currentTab !== 'tycoon') {
+              this.app.switchTab('tycoon');
+            }
+            if (this.app.tycoonView) {
+              this.app.tycoonView.engine.session.status = 'LOBBY';
+              this.app.tycoonView.render();
+            }
           }
         },
         afterClick: () => {
           if (this.app?.tycoonView) {
             const tv = this.app.tycoonView;
+            if (tv.engine?.session?.status !== 'PLAYING') {
+              tv._tryStartTycoonGame('GROWTH', true);
+            }
             tv._isTutorialPaused = true;
             tv.selectedIngCat = 'NATURE';
             tv.engine.forceTutorialOrder(12); // 첫 손님 주문: 탄산수(물1 + 공기1)
@@ -917,12 +946,18 @@ class StoryTutorialModalView {
 
     const targetEl = document.querySelector(step.targetSelector);
     if (!targetEl) {
-      // 타겟 요소를 아직 찾지 못한 경우 짧게 재시도
-      setTimeout(() => {
-        if (document.getElementById('live-interactive-tutorial-layer')) {
-          this._renderCurrentLiveStep(true);
-        }
-      }, 120);
+      this._liveStepRetryCount = (this._liveStepRetryCount || 0) + 1;
+      if (this._liveStepRetryCount < 10) {
+        setTimeout(() => {
+          if (document.getElementById('live-interactive-tutorial-layer')) {
+            this._renderCurrentLiveStep(true);
+          }
+        }, 120);
+        return;
+      }
+      console.warn(`[StoryTutorialModalView] Target not found for step: ${step.stepBadge}`);
+      this._liveStepRetryCount = 0;
+      this._runLiveStepSetupAndRender(this._liveStepIdx + 1);
       return;
     }
 
@@ -933,6 +968,24 @@ class StoryTutorialModalView {
     }
 
     const rect = targetEl.getBoundingClientRect();
+    if (rect.width === 0 && rect.height === 0) {
+      this._liveStepRetryCount = (this._liveStepRetryCount || 0) + 1;
+      if (this._liveStepRetryCount < 8) {
+        if (targetEl.closest('#view-tycoon') && this.app?.currentTab !== 'tycoon') {
+          this.app?.switchTab?.('tycoon');
+        } else if (targetEl.closest('#view-brew') && this.app?.currentTab !== 'brew') {
+          this.app?.switchTab?.('brew');
+        }
+        setTimeout(() => {
+          if (document.getElementById('live-interactive-tutorial-layer')) {
+            this._renderCurrentLiveStep(true);
+          }
+        }, 100);
+        return;
+      }
+    } else {
+      this._liveStepRetryCount = 0;
+    }
     const viewportW = window.innerWidth || 390;
     const viewportH = window.innerHeight || 720;
     const isTabBtn = targetEl.classList.contains('tab-btn');

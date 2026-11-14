@@ -39,19 +39,20 @@ class ModeSelectPortalView {
 
     container.innerHTML = `
       <div class="portal-spa-container">
-        <div class="portal-spa-hero">
-          <div class="portal-spa-emblem-wrap">
-            <span class="portal-spa-emblem">🍶</span>
-          </div>
-          <h1 class="portal-spa-title">K-술 연금술사</h1>
-          <p class="portal-spa-subtitle">플레이할 게임 모드를 선택하세요</p>
+        <div class="portal-spa-header">
+          <span class="portal-spa-kicker">GAME MODE</span>
+          <h2 class="portal-spa-title">게임 모드 선택</h2>
+          <p class="portal-spa-subtitle">플레이할 게임 모드를 선택해 주세요</p>
         </div>
 
         <div class="portal-spa-grid">
           <!-- 1. K-술 조합 퀴즈 모드 -->
           <button type="button" class="portal-mode-card quiz ${currentMode === 'QUIZ' ? 'is-active-mode' : ''}" id="mode-choice-quiz">
             <div class="portal-card-top">
-              <span class="portal-card-badge quiz">정통 퍼즐 & 퀴즈</span>
+              <div class="portal-card-badges-wrap">
+                <span class="portal-card-badge quiz">조합 퀴즈</span>
+                <span class="portal-card-diff-tag easy">쉬움</span>
+              </div>
               ${currentMode === 'QUIZ' ? '<span class="portal-card-current-tag">현재 모드</span>' : ''}
             </div>
             <div class="portal-card-main">
@@ -60,11 +61,7 @@ class ModeSelectPortalView {
               </div>
               <div class="portal-card-text">
                 <h3 class="portal-card-title">K-술 조합 퀴즈</h3>
-                <p class="portal-card-desc">No.01부터 순서대로 84종 술 조합 맞히기</p>
-                <div class="portal-card-bullets">
-                  <span>✨ 단계별 재료 자동 무료 해금</span>
-                  <span>💌 막히는 문제 친구 SOS 공유</span>
-                </div>
+                <p class="portal-card-desc">순서대로 전통주 조합 맞히기</p>
               </div>
             </div>
             <div class="portal-card-action quiz">
@@ -76,7 +73,10 @@ class ModeSelectPortalView {
           <!-- 2. 주점 타이쿤 모드 -->
           <button type="button" class="portal-mode-card tycoon ${currentMode === 'TYCOON' ? 'is-active-mode' : ''}" id="mode-choice-tycoon">
             <div class="portal-card-top">
-              <span class="portal-card-badge tycoon">실시간 경영 시뮬레이션</span>
+              <div class="portal-card-badges-wrap">
+                <span class="portal-card-badge tycoon">주점 경영</span>
+                <span class="portal-card-diff-tag hard">어려움</span>
+              </div>
               ${currentMode === 'TYCOON' ? '<span class="portal-card-current-tag">현재 모드</span>' : ''}
             </div>
             <div class="portal-card-main">
@@ -85,14 +85,30 @@ class ModeSelectPortalView {
               </div>
               <div class="portal-card-text">
                 <h3 class="portal-card-title">주점 타이쿤</h3>
-                <p class="portal-card-desc">손님 주문 실시간 조리 & 주막 번창 경영</p>
-                <div class="portal-card-bullets">
-                  <span>⚡ 콤보 서빙 & 재료상점 구매 확장</span>
-                  <span>🎵 신나는 K-POP BGM 플레이리스트</span>
-                </div>
+                <p class="portal-card-desc">손님 주문 조리 & 주점 운영</p>
               </div>
             </div>
             <div class="portal-card-action tycoon">
+              <span>입장하기</span>
+              <span class="portal-card-arrow">▸</span>
+            </div>
+          </button>
+
+          <!-- 3. 술 미니게임 모드 -->
+          <button type="button" class="portal-mode-card party" id="mode-choice-party">
+            <div class="portal-card-top">
+              <span class="portal-card-badge party">미니게임</span>
+            </div>
+            <div class="portal-card-main">
+              <div class="portal-card-icon-box party">
+                <span>🍻</span>
+              </div>
+              <div class="portal-card-text">
+                <h3 class="portal-card-title">술 미니게임</h3>
+                <p class="portal-card-desc">술자리 게임 & 패스앤플레이 모음</p>
+              </div>
+            </div>
+            <div class="portal-card-action party">
               <span>입장하기</span>
               <span class="portal-card-arrow">▸</span>
             </div>
@@ -118,6 +134,7 @@ class ModeSelectPortalView {
   _bindEvents(container) {
     const quizBtn = container.querySelector('#mode-choice-quiz');
     const tycoonBtn = container.querySelector('#mode-choice-tycoon');
+    const partyBtn = container.querySelector('#mode-choice-party');
     const returnBtn = container.querySelector('#portal-return-game-btn');
 
     const attachAction = (btn, mode) => {
@@ -146,6 +163,26 @@ class ModeSelectPortalView {
 
     attachAction(quizBtn, 'QUIZ');
     attachAction(tycoonBtn, 'TYCOON');
+
+    if (partyBtn) {
+      let isPartyBusy = false;
+      const doPartyAction = (e) => {
+        if (e) {
+          if (e.cancelable && e.type !== 'pointerdown') e.preventDefault();
+          e.stopPropagation();
+        }
+        if (isPartyBusy) return;
+        isPartyBusy = true;
+        setTimeout(() => { isPartyBusy = false; }, 350);
+
+        this.audio?.playTap?.();
+        if (this.app) {
+          this.app.switchTab('party');
+        }
+      };
+      partyBtn.addEventListener('click', doPartyAction);
+      partyBtn.addEventListener('touchend', doPartyAction, { passive: false });
+    }
 
     if (returnBtn) {
       returnBtn.onclick = (e) => {

@@ -315,7 +315,7 @@ class HintModalView {
                   ${isRecipeUnlocked ? '해금완료' : '공유 ➔'}
                 </span>
               </div>
-              <div class="step-main-desc">${isRecipeUnlocked ? '이미 정답을 알고 있는 레시피입니다.' : '진정한 주당 친구 소환! 링크를 보내 함께 황금 조합을 맞춰보세요.'}</div>
+              <div class="step-main-desc">${isRecipeUnlocked ? '이미 해금 완료된 레시피입니다.' : '링크 공유하고 친구와 함께 풀기'}</div>
             </div>
           </div>
           ` : ''}

@@ -1,7 +1,7 @@
 window.KSool = window.KSool || {};
 
 /**
- * 🏮 주막 타이쿤 (Tycoon Main Game) - 붕어빵 타이쿤 스타일 카운터·접시·서비스 벨 & 6단계 점포 성장 뷰
+ * 🍸 주점 타이쿤 (Tycoon Main Game) - 붕어빵 타이쿤 스타일 카운터·접시·서비스 벨 & 6단계 점포 성장 뷰
  *
  * [핵심 게임 루프]
  * 1. 프롤로그 스토리 & 가이드 튜토리얼 확인
@@ -97,7 +97,7 @@ class TycoonView {
     this._stopTimerLoop();
     this.timerInterval = setInterval(() => {
       const s = this.engine.session;
-      if (!s || s.status !== 'PLAYING' || this._isCustomerLeavingAnim || this._isTutorialPaused) return;
+      if (!s || s.status !== 'PLAYING' || this._isCustomerLeavingAnim || this._isTutorialPaused || this.activeSubModal) return;
 
       s.elapsedSec += 1;
 
@@ -194,6 +194,16 @@ class TycoonView {
     const container = document.getElementById(this.containerId);
     if (!container) return;
 
+    // 이전 스크롤 위치 보존 (재료 상점 모달, 단골/메뉴판 수첩 모달, 랭킹 모달, 로비 스크롤)
+    const activeNbList = container.querySelector('.notebook-modal-card .notebook-cust-list');
+    if (activeNbList && this.notebookTab) {
+      if (!this._notebookScrollByTab) this._notebookScrollByTab = {};
+      this._notebookScrollByTab[this.notebookTab] = activeNbList.scrollTop;
+    }
+    const prevShopScroll = container.querySelector('.shop-modal-card .shop-scroll-list')?.scrollTop || 0;
+    const prevRankScroll = container.querySelector('.tycoon-rank-list')?.scrollTop || 0;
+    const prevLobbyScroll = container.querySelector('.tycoon-lobby-body')?.scrollTop || 0;
+
     const s = this.engine.session;
     const isPlaying = s.status === 'PLAYING';
     this._syncGlobalTabBarVisibility(isPlaying);
@@ -209,6 +219,7 @@ class TycoonView {
         </div>
       `;
       this._bindEvents(container);
+      this._restoreScrollPositions(container, prevShopScroll, prevRankScroll, prevLobbyScroll);
       return;
     }
 
@@ -223,6 +234,7 @@ class TycoonView {
         </div>
       `;
       this._bindEvents(container);
+      this._restoreScrollPositions(container, prevShopScroll, prevRankScroll, prevLobbyScroll);
       return;
     }
 
@@ -244,6 +256,29 @@ class TycoonView {
     `;
 
     this._bindEvents(container);
+    this._restoreScrollPositions(container, prevShopScroll, prevRankScroll, prevLobbyScroll);
+  }
+
+  _restoreScrollPositions(container, prevShopScroll, prevRankScroll, prevLobbyScroll) {
+    if (this._notebookScrollByTab && this.notebookTab) {
+      const savedNb = this._notebookScrollByTab[this.notebookTab] || 0;
+      if (savedNb > 0) {
+        const nb = container.querySelector('.notebook-modal-card .notebook-cust-list');
+        if (nb) nb.scrollTop = savedNb;
+      }
+    }
+    if (prevShopScroll > 0) {
+      const sh = container.querySelector('.shop-modal-card .shop-scroll-list');
+      if (sh) sh.scrollTop = prevShopScroll;
+    }
+    if (prevRankScroll > 0) {
+      const rk = container.querySelector('.tycoon-rank-list');
+      if (rk) rk.scrollTop = prevRankScroll;
+    }
+    if (prevLobbyScroll > 0) {
+      const lb = container.querySelector('.tycoon-lobby-body');
+      if (lb) lb.scrollTop = prevLobbyScroll;
+    }
   }
 
   _renderTopHud(s) {
@@ -570,6 +605,7 @@ class TycoonView {
         .sort((a, b) => a.ingredient_id - b.ingredient_id);
 
       gridContentHtml = allIngs.map(ing => {
+        const name = this.brandResolver.resolveName(ing);
         const inPotCount = potSlots
           .filter(sl => sl.baseId === ing.ingredient_id)
           .reduce((acc, sl) => acc + sl.count, 0);
@@ -605,7 +641,6 @@ class TycoonView {
           details.length > 0 &&
           ing.picker_component &&
           ing.picker_component !== 'NONE';
-        const name = this.brandResolver.resolveName(ing);
         const icon = window.KSool?.pixelIcon ? window.KSool.pixelIcon(ing, 24) : ing.emoji;
 
         return `
@@ -1050,28 +1085,50 @@ class TycoonView {
         }).join('');
       } else {
         const allCustomers = this.engine.customerPool.getAllCustomers();
-        bodyHtml = allCustomers.map(c => {
-          const sessionRecId = this.engine.session?.customerSessionRecipeMap?.get(c.id) || c.preferredRecipeId;
-          const rec = this.recipeBook.getRecipe(sessionRecId);
-          const recName = rec ? this.brandResolver.resolveName(rec) : '비전 음료';
-          const recIcon = rec && window.KSool?.pixelIcon ? window.KSool.pixelIcon(rec, 22) : (rec?.emoji || '🍶');
-          const favPrice = rec ? this.engine.calculateOrderPrice(rec.recipe_id, 'NORMAL', 0, 1) : 15;
-          const avatar = this.engine.customerPool.renderCustomerAvatarSvg(c, 42);
+        const unlockedCustomers = allCustomers.filter(c => {
+          const targetRecId = this.engine.session?.customerSessionRecipeMap?.get(c.id) || c.preferredRecipeId;
+          return this.inventory ? this.inventory.isRecipeUnlocked(targetRecId) : false;
+        });
 
-          return `
-            <div class="notebook-cust-card">
-              <div class="nb-avatar">${avatar}</div>
-              <div class="nb-info">
-                <div class="nb-top">
-                  <span class="nb-name">${c.name}</span>
-                  <span class="nb-price-badge">💰 ${favPrice.toLocaleString()}원</span>
-                </div>
-                <div class="nb-fav">${recIcon} <b>${recName}</b></div>
-              </div>
+        if (unlockedCustomers.length === 0) {
+          bodyHtml = `
+            <div style="padding:36px 16px; text-align:center; color:#94a3b8; font-size:0.85rem; line-height:1.6;">
+              <div style="font-size:2.4rem; margin-bottom:8px;">🧑‍🍳</div>
+              <b style="color:#f8fafc; font-size:0.95rem;">아직 만난 단골 손님이 없습니다!</b><br/>
+              [🔬 연구실]에서 새로운 음료를 조합해 해금하면<br/>
+              그 음료를 좋아하는 단골 손님이 찾아와 도감에 등록됩니다.
             </div>
           `;
-        }).join('');
+        } else {
+          bodyHtml = unlockedCustomers.map(c => {
+            const sessionRecId = this.engine.session?.customerSessionRecipeMap?.get(c.id) || c.preferredRecipeId;
+            const rec = this.recipeBook.getRecipe(sessionRecId);
+            const recName = rec ? this.brandResolver.resolveName(rec) : '비전 음료';
+            const recIcon = rec && window.KSool?.pixelIcon ? window.KSool.pixelIcon(rec, 22) : (rec?.emoji || '🍶');
+            const favPrice = rec ? this.engine.calculateOrderPrice(rec.recipe_id, 'NORMAL', 0, 1) : 15;
+            const avatar = this.engine.customerPool.renderCustomerAvatarSvg(c, 42);
+
+            return `
+              <div class="notebook-cust-card">
+                <div class="nb-avatar">${avatar}</div>
+                <div class="nb-info">
+                  <div class="nb-top">
+                    <span class="nb-name">${c.name} <small style="font-size:0.72rem; color:#94a3b8; font-weight:normal;">(${c.title || ''})</small></span>
+                    <span class="nb-price-badge">💰 ${favPrice.toLocaleString()}원</span>
+                  </div>
+                  <div class="nb-fav">${recIcon} <b>${recName}</b></div>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
       }
+
+      const allCustList = this.engine.customerPool.getAllCustomers();
+      const unlockedCustCount = allCustList.filter(c => {
+        const targetRecId = this.engine.session?.customerSessionRecipeMap?.get(c.id) || c.preferredRecipeId;
+        return this.inventory ? this.inventory.isRecipeUnlocked(targetRecId) : false;
+      }).length;
 
       return `
         <div class="tycoon-submodal-overlay" id="tycoon-submodal-overlay">
@@ -1082,7 +1139,7 @@ class TycoonView {
             </div>
             <div class="submodal-tabs">
               <button type="button" class="submodal-tab ${this.notebookTab === 'STAGE_MENU' ? 'active' : ''}" data-nb-tab="STAGE_MENU">📋 점포 판매 메뉴</button>
-              <button type="button" class="submodal-tab ${this.notebookTab === 'CUSTOMERS' ? 'active' : ''}" data-nb-tab="CUSTOMERS">🧑 단골 손님 도감</button>
+              <button type="button" class="submodal-tab ${this.notebookTab === 'CUSTOMERS' ? 'active' : ''}" data-nb-tab="CUSTOMERS">🧑 단골 손님 도감 (${unlockedCustCount}명)</button>
             </div>
             <div class="notebook-cust-list">
               ${bodyHtml}
@@ -1362,7 +1419,20 @@ class TycoonView {
       closeSubBtn.onclick = () => {
         this.audio?.playTap?.();
         this.activeSubModal = null;
+        this._notebookScrollByTab = {};
         this.render();
+      };
+    }
+
+    const subOverlay = container.querySelector('#tycoon-submodal-overlay');
+    if (subOverlay) {
+      subOverlay.onclick = (e) => {
+        if (e.target === subOverlay) {
+          this.audio?.playTap?.();
+          this.activeSubModal = null;
+          this._notebookScrollByTab = {};
+          this.render();
+        }
       };
     }
 
@@ -1568,7 +1638,8 @@ class TycoonView {
         const res = this.engine.storePlateToStock();
         if (res && res.ok) {
           this.audio?.playTap?.();
-          this.app?.showToast?.(`📦 ${res.message}`);
+          const msg = res.message || (res.label ? `[${res.label}] 임시 재고에 보관했습니다! (보유: ${res.newCount || 1}개)` : '임시 재고에 보관 완료');
+          this.app?.showToast?.(`📦 ${msg}`);
           this._updatePlateAndBellInDom();
           this._updateBottomAreaInDom();
         }
@@ -1697,6 +1768,9 @@ class TycoonView {
 
     const res = this.engine.ringBellToServe();
     if (!res.ok) {
+      if (res.emptyPlate) {
+        this.app?.showToast?.(`🛎️ ${res.message || '접시가 비어 있습니다! 음료를 조합해 접시 위에 먼저 올려주세요.'}`);
+      }
       this._updatePlateAndBellInDom();
       return;
     }
@@ -1797,9 +1871,10 @@ class TycoonView {
     floatEl.style.bottom = `calc(${barTopBottomPct}% + 114px)`;
 
     const comboNum = Number(comboBonus) || 0;
-    const priceText = typeof earnedAmount === 'number'
-      ? `+${earnedAmount.toLocaleString()}원`
-      : String(earnedAmount);
+    const priceNum = Number(earnedAmount);
+    const priceText = Number.isFinite(priceNum)
+      ? `+${priceNum.toLocaleString()}원`
+      : (typeof earnedAmount === 'string' && earnedAmount && earnedAmount !== 'undefined' ? earnedAmount : '+0원');
 
     floatEl.innerHTML = `
       ${comboNum > 0 ? `<div class="floating-combo-line">COMBO +${comboNum}</div>` : ''}

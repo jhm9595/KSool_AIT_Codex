@@ -157,6 +157,18 @@ try {
       await page.screenshot({ path: join(artifacts, `${theme}-${tab}.png`) });
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, `${theme}/${tab} overflow`);
     }
+    await page.locator('#open-settings-btn').click();
+    await page.locator('#settings-bgm-select').selectOption('off');
+    await page.locator('#settings-bgm-select').selectOption('kpop_dance');
+    await page.evaluate(() => window.ksoolApp.settingsModalView.close());
+    await page.locator('#ait-party-mode-btn').click();
+    await page.locator('#mode-choice-party').click();
+    await page.locator('[data-start-game="updown"]').click();
+    await page.evaluate(() => window.__ksoolPlatform.back());
+    await page.locator('#ait-party-mode-btn').waitFor();
+    assert.equal(await page.locator('#open-settings-btn').count(), 1, 'Settings survives party view replacement');
+    await page.evaluate(() => window.__ksoolPlatform.back());
+    await page.locator('#mode-choice-tycoon').click();
     await page.evaluate(() => window.ksoolApp.hintModalView.open(14));
     await page.waitForTimeout(250);
     await page.screenshot({ path: join(artifacts, `${theme}-hint.png`) });
@@ -255,6 +267,10 @@ try {
   assert.equal(await page.locator('#quiz-sos-share-btn').count(), 0, 'No unusable WebView SOS links');
   assert.equal(await page.locator('[data-tab-target="tycoon"]').isVisible(), false, 'Quiz hides store');
   assert.equal(await page.locator('[data-tab-target="shop"]').isVisible(), false, 'Quiz hides shop');
+  await page.evaluate(() => { window.ksoolApp.switchTab('party'); window.__ksoolPlatform.back(); });
+  await page.locator('#mode-choice-quiz').click();
+  await page.evaluate(() => { window.ksoolApp.switchTab('collection'); window.__ksoolPlatform.back(); });
+  assert.equal(await page.evaluate(() => window.ksoolApp.currentTab), 'brew', 'Quiz back respects mode policy');
   await page.evaluate(() => { window.ksoolApp.switchTab('tycoon'); window.ksoolApp.switchTab('shop'); });
   assert.equal(await page.evaluate(() => window.ksoolApp.currentTab), 'brew', 'Mode policy guards routing');
   await page.evaluate(() => window.ksoolApp.hintModalView.open(12));
@@ -275,10 +291,10 @@ try {
   await page.locator('[data-base-ing-id="202"]').click();
   await page.locator('[data-base-ing-id="205"]').click();
   await page.locator('#mix-btn').click();
-  await page.locator('#result-close-btn').waitFor();
+  await page.locator('#result-go-next-quiz-btn').waitFor();
   assert.equal(await page.locator('#result-go-tycoon-btn').count(), 0, 'Quiz result cannot route to store');
   assert(!(await page.locator('#result-modal').innerText()).includes('자금을 모을'), 'Quiz result has no tycoon sale guidance');
-  await page.locator('#result-close-btn').click();
+  await page.locator('#result-go-next-quiz-btn').click();
   assert.equal(await page.evaluate(() => localStorage.getItem('ksool_alchemy_v2_state')), tycoonSave, 'Quiz saves cannot touch tycoon progress');
   await page.reload();
   await page.waitForFunction(() => window.ksoolApp?.currentMode === 'QUIZ' && window.ksoolApp.inventory.isRecipeUnlocked(11));
