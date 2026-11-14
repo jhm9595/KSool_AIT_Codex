@@ -128,6 +128,8 @@
       const soundIcon = this._getSoundIcon(isMuted, volPercent);
 
       const currentTrack = audioService?.getTycoonBgmTrack?.() || 'kpop_dance';
+      const isQuiz = (app?.currentMode === 'QUIZ');
+      const modeLabel = isQuiz ? '조합 퀴즈' : '주점 타이쿤';
       const availableTracks = audioService?.getAvailableBgmTracks?.() || [];
 
       const bgmOptionsHtml = availableTracks.map(t => {
@@ -190,14 +192,14 @@
             </div>
           </div>
 
-          <!-- 4. 전체 진행도 초기화 -->
+          <!-- 4. 현재 모드 진행도 초기화 -->
           <div class="settings-section settings-danger-section">
-            <div class="settings-section-title" style="color:#f87171;">진행도 초기화</div>
+            <div class="settings-section-title" style="color:#f87171;">${modeLabel} 진행도 초기화</div>
             <div class="settings-reset-card" style="border-bottom:none; padding:0;">
               <div class="settings-reset-info">
-                <div class="settings-reset-desc">해금된 모든 조합과 재료를 처음 상태로 완전히 리셋합니다.</div>
+                <div class="settings-reset-desc">${isQuiz ? '현재 진행 중인 조합 퀴즈의 진행도를 초기화합니다. (타이쿤 자금 및 점포 기록은 안전하게 보존됩니다)' : '현재 진행 중인 주점 타이쿤의 점포 자금과 기록을 초기화합니다. (조합 퀴즈의 기록은 안전하게 보존됩니다)'}</div>
               </div>
-              <button type="button" class="settings-danger-btn full-reset" id="settings-reset-all-btn">전체 초기화</button>
+              <button type="button" class="settings-danger-btn full-reset" id="settings-reset-all-btn">${modeLabel} 초기화</button>
             </div>
           </div>
         </div>
@@ -353,14 +355,19 @@
         };
       }
 
-      // 4. 전체 진행도 리셋
+      // 4. 현재 모드 진행도 리셋
       const resetAllBtn = container.querySelector('#settings-reset-all-btn');
       if (resetAllBtn) {
         resetAllBtn.onclick = () => {
-          if (confirm('정말로 모든 해금 기록과 점포 자금을 초기 상태로 리셋하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.')) {
+          const isQuiz = (app?.currentMode === 'QUIZ');
+          const modeLabel = isQuiz ? '조합 퀴즈' : '주점 타이쿤';
+          const otherModeLabel = isQuiz ? '주점 타이쿤' : '조합 퀴즈';
+          if (confirm(`정말로 현재 [${modeLabel}] 모드의 진행도를 초기 상태로 리셋하시겠습니까?\n\n※ ${otherModeLabel} 모드의 기록과 점포 자금은 안전하게 보존됩니다.\n※ 이 작업은 되돌릴 수 없습니다.`)) {
             if (app) {
               this.close();
-              if (typeof app.resetAllGameProgress === 'function') {
+              if (typeof app.resetCurrentModeProgress === 'function') {
+                app.resetCurrentModeProgress();
+              } else if (typeof app.resetAllGameProgress === 'function') {
                 app.resetAllGameProgress();
               }
             }

@@ -307,6 +307,69 @@ try {
   await page.locator('#mode-choice-tycoon').click();
   assert.equal(await page.evaluate(() => window.ksoolApp.inventory.unlockedRecipeIds.size), 84, 'Tycoon progress restored after mode switch');
 
+  // Regression for mode-local reset, final completion and locked-stage copy.
+  page.removeAllListeners('dialog');
+  page.on('dialog', dialog => dialog.accept());
+  async function resetCurrentMode() {
+    await page.locator('#open-settings-btn').click();
+    await page.locator('#settings-reset-all-btn').click();
+    if (await page.locator('#ait-confirm-dialog').count()) await page.locator('#ait-confirm-dialog .mix-btn').click();
+    await page.waitForFunction(() => !document.querySelector('#settings-modal.active'));
+  }
+  async function saved(prefix) {
+    return page.evaluate(prefix => Object.fromEntries(Object.keys(localStorage).filter(k => k.startsWith(prefix)).map(k => [k, localStorage.getItem(k)])), prefix);
+  }
+  await page.evaluate(() => {
+    const a = window.ksoolApp, e = a.tycoonView.engine;
+    e.persistentWallet = 9876; e.savePersistentData(); a.inventory.save();
+    a.selectGameMode('QUIZ', false);
+  });
+  const protectedTycoon = await saved('ksool_alchemy_v2_state');
+  const protectedWallet = await saved('ksool_tycoon_persist');
+  await resetCurrentMode();
+  assert.deepEqual(await saved('ksool_alchemy_v2_state'), protectedTycoon);
+  assert.deepEqual(await saved('ksool_tycoon_persist'), protectedWallet);
+  assert.equal(await page.evaluate(() => window.ksoolApp.currentTab), 'brew');
+  assert.equal(await page.locator('#story-tutorial-modal.active').count(), 0);
+  await page.locator('[data-base-ing-id="202"]').click();
+  await page.locator('[data-base-ing-id="206"]').click();
+  await page.locator('#mix-btn').click();
+  await page.locator('#result-go-next-quiz-btn').click();
+  assert.equal(await page.evaluate(() => window.ksoolApp.inventory.isRecipeUnlocked(11)), true);
+  await page.evaluate(() => {
+    const a = window.ksoolApp, all = a.recipeBook.getAllRecipes();
+    const last = all.find(r => Number(r.recipe_number) === 84);
+    for (const r of all) if (r.recipe_id !== last.recipe_id) a.inventory.unlockRecipe(r.recipe_id);
+    a.inventory.save(); a.quizTargetRecipeId = last.recipe_id; a.craftingPot.clear();
+    for (const item of a.recipeBook.getRecipeItems(last.recipe_id)) for (let n = 0; n < item.ratio; n++) a.craftingPot.tapIngredient(item.ingredient_id, item.detail_ingredient_id, a.inventory.getCurrentStepConfig());
+    a.renderBrewView();
+  });
+  await page.locator('#mix-btn').click();
+  assert((await page.locator('#result-modal').innerText()).includes('모든 조합을 발견했어요! (84/84)'));
+  assert.equal(await page.locator('#result-go-next-quiz-btn').count(), 0);
+  assert.equal(await page.evaluate(() => window.ksoolApp.inventory.getNextQuizRecipe()), null);
+  await page.waitForTimeout(350); // Capture the settled source result animation.
+  await page.screenshot({ path: join(artifacts, 'quiz-all-complete.png') });
+  await page.locator('#result-view-collection-btn').click();
+  await page.reload();
+  await page.waitForFunction(() => window.ksoolApp?.inventory.unlockedRecipeIds.size === 84);
+  const protectedQuiz = await saved('ksool_alchemy_quiz_v1_state');
+  await page.evaluate(() => window.ksoolApp.selectGameMode('TYCOON', false));
+  assert.equal(await page.evaluate(() => window.ksoolApp.tycoonView.engine.persistentWallet), 9876);
+  await resetCurrentMode();
+  assert.deepEqual(await saved('ksool_alchemy_quiz_v1_state'), protectedQuiz);
+  await page.locator('#story-tutorial-modal button').filter({ hasText: '건너뛰기' }).click();
+  assert((await page.locator('#ksool-toast').innerText()).includes('첫 재료인 얼음'));
+  await page.getByRole('button', { name: 'No.01 / 84 ▾', exact: true }).click();
+  await page.getByRole('button', { name: '6단계', exact: true }).click();
+  assert((await page.locator('#result-modal').innerText()).includes('6단계 점포를 열면'));
+  await page.locator('#result-modal .modal-close-x').click();
+  await page.evaluate(() => window.ksoolApp.selectGameMode('QUIZ', false));
+  await resetCurrentMode();
+  await page.getByRole('button', { name: 'No.01 / 84 ▾', exact: true }).click();
+  await page.getByRole('button', { name: '6단계', exact: true }).click();
+  assert((await page.locator('#result-modal').innerText()).includes('앞선 문제를 해결하면'));
+
   const legacyContext = await browser.newContext();
   await legacyContext.addInitScript(() => {
     localStorage.setItem('ksool_alchemy_v2_state', JSON.stringify({ unlockedStepId: 2, unlockedRecipeIds: [5, 11, 12], hasSeenIntroStory: true, hasSeenIntroTutorial: true }));

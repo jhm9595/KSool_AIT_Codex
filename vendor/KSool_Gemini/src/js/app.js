@@ -267,7 +267,12 @@ class KSoolApp {
       this.inventory.syncQuizModeStageIngredients();
       this._updateTabBarForMode('QUIZ');
       const nextQuiz = this.inventory.getNextQuizRecipe();
-      this.quizTargetRecipeId = nextQuiz ? nextQuiz.recipe_id : 11;
+      if (nextQuiz) {
+        this.quizTargetRecipeId = nextQuiz.recipe_id;
+      } else if (!this.quizTargetRecipeId || !this.recipeBook.getRecipe(this.quizTargetRecipeId)) {
+        const all = this.recipeBook.getAllRecipes();
+        this.quizTargetRecipeId = all[all.length - 1]?.recipe_id || 11;
+      }
       this.switchTab('brew');
     } else {
       if (this.tycoonView && this.tycoonView.engine) {
@@ -1246,7 +1251,26 @@ class KSoolApp {
     const renderListForStep = (step) => {
       const recs = navigableRecipes.filter(r => (r.step_id || 1) === step);
       if (recs.length === 0) {
-        return `<div style="text-align:center; padding:24px; color:#64748b; font-size:0.85rem;">해당 단계의 연구 대상 레시피가 없습니다.</div>`;
+        const allStepRecs = this.recipeBook.getAllRecipes().filter(r => (r.step_id || 1) === step);
+        if (allStepRecs.length === 0) {
+          return `<div style="text-align:center; padding:24px; color:#64748b; font-size:0.85rem;">해당 단계의 등록된 레시피가 없습니다.</div>`;
+        }
+
+        const isQuiz = (this.currentMode === 'QUIZ');
+        const lockTitle = isQuiz
+          ? `${step}단계 퀴즈가 아직 잠겨있습니다`
+          : `${step}단계 점포가 아직 잠겨있습니다`;
+        const lockDesc = isQuiz
+          ? `앞선 문제를 해결하면 도전할 수 있어요.`
+          : `${step}단계 점포를 열면 확인할 수 있어요.`;
+
+        return `
+          <div style="text-align:center; padding:32px 16px; color:#94a3b8; font-size:0.85rem; display:flex; flex-direction:column; align-items:center; gap:8px; background:#0f172a; border:1px dashed #334155; border-radius:12px; margin:8px 0;">
+            <span style="font-size:2rem; line-height:1;">🔒</span>
+            <div style="font-weight:800; font-size:0.92rem; color:#f8fafc;">${lockTitle}</div>
+            <div style="font-size:0.78rem; color:#94a3b8;">${lockDesc}</div>
+          </div>
+        `;
       }
       return recs.map(r => {
         const isCurrent = targetRec && r.recipe_id === targetRec.recipe_id;
@@ -2159,8 +2183,9 @@ class KSoolApp {
         }
       } else {
         // 퀴즈 모드: 경영 안내는 일절 배제하고 다음 퀴즈 목표 제시
+        const isAllDone = this.inventory.isAllQuizCompleted();
         const nextQuizRec = this.inventory.getNextQuizRecipe();
-        if (nextQuizRec) {
+        if (!isAllDone && nextQuizRec) {
           const nextName = this.brandResolver.resolveName(nextQuizRec);
           modeNoticeHtml = `
             <div style="width:100%; background:rgba(99,102,241,0.14); border:1px solid rgba(99,102,241,0.45); border-radius:10px; padding:8px 10px; font-size:0.75rem; color:#c7d2fe; font-weight:700;">
@@ -2169,12 +2194,29 @@ class KSoolApp {
           `;
           secondaryActionBtnHtml = `<button class="mix-btn" id="result-go-next-quiz-btn" style="width:100%; background:linear-gradient(135deg,#4f46e5,#6366f1); color:#fff; border-color:#818cf8; font-weight:800;">🎯 다음 퀴즈 풀기</button>`;
         } else {
+          const totalRecipes = this.recipeBook.getAllRecipes().length;
           modeNoticeHtml = `
-            <div style="width:100%; background:rgba(16,185,129,0.14); border:1px solid rgba(16,185,129,0.45); border-radius:10px; padding:8px 10px; font-size:0.75rem; color:#a7f3d0; font-weight:700;">
-              🎉 축하합니다! 모든 K-술 조합 퀴즈를 전부 정복하셨습니다!
+            <div style="width:100%; background:rgba(16,185,129,0.14); border:1px solid rgba(16,185,129,0.45); border-radius:12px; padding:12px 14px; font-size:0.8rem; color:#a7f3d0; text-align:left;">
+              <div style="display:flex; align-items:center; gap:6px; font-weight:900; font-size:0.92rem; color:#34d399; margin-bottom:6px;">
+                <span>🏆</span> <span>모든 조합을 발견했어요! (${totalRecipes}/${totalRecipes})</span>
+              </div>
+              <p style="margin:0 0 8px 0; color:#cbd5e1; font-size:0.75rem; line-height:1.4;">
+                축하합니다! 84종의 K-술 레시피를 모두 완성하여 전설의 연금술사가 되었습니다.
+              </p>
+              <div style="background:rgba(15,23,42,0.6); border-radius:8px; padding:8px 10px; font-size:0.72rem; color:#94a3b8; display:flex; flex-direction:column; gap:4px;">
+                <span style="color:#f8fafc; font-weight:700;">✨ 전체 해금 후 즐길 거리:</span>
+                <span>📖 <b>도감 보기:</b> 84종 전통주의 유래, 실제 브랜드, 황금비율 감상</span>
+                <span>🏪 <b>주점 타이쿤:</b> 해금한 술들로 나만의 주점을 운영하고 단골 손님 맞이</span>
+                <span>🍻 <b>술 미니게임:</b> 친구들과 함께 랜덤 벌칙주 제조기 & 미니게임 플레이</span>
+              </div>
             </div>
           `;
-          secondaryActionBtnHtml = `<button class="mix-btn" id="result-close-btn" style="width:100%;">닫기</button>`;
+          secondaryActionBtnHtml = `
+            <div style="display:flex; gap:8px; width:100%;">
+              <button class="clear-pot-btn" id="result-view-collection-btn" style="flex:1; background:rgba(30,41,59,0.9); color:#38bdf8; border:1.5px solid #38bdf8; font-weight:800; padding:10px;">📖 도감 보기</button>
+              <button class="mix-btn" id="result-close-btn" style="flex:1;">닫기</button>
+            </div>
+          `;
         }
       }
 
@@ -2257,6 +2299,15 @@ class KSoolApp {
         modal.classList.remove('active');
         this.audio.playTap();
         this.switchTab('tycoon');
+        this._showNextPendingTabIntro();
+      };
+    }
+    const viewCollectionBtn = content.querySelector('#result-view-collection-btn');
+    if (viewCollectionBtn) {
+      viewCollectionBtn.onclick = () => {
+        modal.classList.remove('active');
+        this.audio.playTap();
+        this.switchTab('collection');
         this._showNextPendingTabIntro();
       };
     }
@@ -2589,18 +2640,24 @@ class KSoolApp {
     const resetBtn = document.getElementById('reset-progress-btn');
     if (resetBtn) {
       resetBtn.onclick = () => {
-        if (confirm('모든 해금 기록과 점포 자금을 초기 상태로 리셋할까요?')) {
-          this.resetAllGameProgress();
+        const isQuiz = (this.currentMode === 'QUIZ');
+        const modeLabel = isQuiz ? '조합 퀴즈' : '주점 타이쿤';
+        const otherModeLabel = isQuiz ? '주점 타이쿤' : '조합 퀴즈';
+        if (confirm(`정말로 현재 [${modeLabel}] 모드의 진행도를 초기 상태로 리셋하시겠습니까?\n\n※ ${otherModeLabel} 모드의 기록과 점포 자금은 안전하게 보존됩니다.`)) {
+          this.resetCurrentModeProgress();
         }
       };
     }
   }
 
-  resetAllGameProgress() {
+  resetCurrentModeProgress() {
+    const isQuiz = (this.currentMode === 'QUIZ');
+    const mode = isQuiz ? 'QUIZ' : 'TYCOON';
+
+    // 1. 현재 모드의 전용 저장소만 초기화 (상대 모드의 주 저장 및 백업 저장은 100% 보존)
+    this.storage.setMode(mode);
     this.storage.clearState();
-    try {
-      localStorage.removeItem('ksool_tycoon_persist_v2');
-    } catch (_) {}
+
     this.craftingPot.clear();
     this.inventory.isLoadCorrupted = false;
     this.inventory.saveBlockedDueToCorruption = false;
@@ -2614,35 +2671,59 @@ class KSoolApp {
     this.inventory.purchasedIngredientIds.clear();
     this.inventory.hintProgressByRecipe = {};
     this.inventory.promotedCustomRecipes = [];
+    this.inventory.isQuizMode = isQuiz;
     this.inventory.init();
     this.inventory.save();
 
-    if (this.tycoonView && this.tycoonView.engine) {
-      const eng = this.tycoonView.engine;
-      eng.persistentWallet = 0;
-      eng.unlockedMapStageIds = new Set(['stage_1']);
-      eng.selectedMapStageId = 'stage_1';
-      eng.knownRegularIds.clear();
-      eng.resetSession('GROWTH');
-      eng.savePersistentData();
-    }
+    if (!isQuiz) {
+      // 주점 타이쿤 전용 데이터(자금, 점포 단계, 단골, 세션) 초기화 - 타이쿤 모드에서만 실행!
+      try {
+        localStorage.removeItem('ksool_tycoon_persist_v2');
+      } catch (_) {}
 
-    const nextQuiz = this.inventory.getNextQuizRecipe();
-    this.quizTargetRecipeId = nextQuiz ? nextQuiz.recipe_id : 11;
-    this.quizHintRevealed = false;
-    this.brewMode = 'QUIZ';
-    this.fridgeEngine.clearAll();
-    this.selectedIngCategory = 'NATURE';
-    this.currentTab = 'tycoon';
-    this.audio.playTap();
-    this.renderAll();
+      if (this.tycoonView && this.tycoonView.engine) {
+        const eng = this.tycoonView.engine;
+        eng.persistentWallet = 0;
+        eng.unlockedMapStageIds = new Set(['stage_1']);
+        eng.selectedMapStageId = 'stage_1';
+        eng.knownRegularIds.clear();
+        eng.resetSession('GROWTH');
+        eng.savePersistentData();
+      }
 
-    if (this.storyTutorialModalView) {
-      this.storyTutorialModalView.openIntroFlow(() => {
-        this.switchTab('brew');
-        this.showToast('🔬 연구실에서 기본 재료로 첫 판매 음료(No.01 얼음)를 조합해보세요!');
-      });
+      this.quizTargetRecipeId = 11;
+      this.quizHintRevealed = false;
+      this.brewMode = 'QUIZ';
+      this.fridgeEngine.clearAll();
+      this.selectedIngCategory = 'NATURE';
+      this.switchTab('tycoon');
+      this.audio.playTap();
+      this.renderAll();
+
+      if (this.storyTutorialModalView) {
+        this.storyTutorialModalView.openIntroFlow(() => {
+          this.switchTab('brew');
+          this.showToast('🔬 연구실에서 물과 눈을 조합해 첫 재료인 얼음을 만들어 보세요!');
+        });
+      }
+    } else {
+      // 조합 퀴즈 전용 초기화: 타이쿤 자금·기록 일절 건드리지 않고, 첫 퀴즈 연구실로 바로 진입
+      this.inventory.syncQuizModeStageIngredients();
+      const nextQuiz = this.inventory.getNextQuizRecipe();
+      this.quizTargetRecipeId = nextQuiz ? nextQuiz.recipe_id : 11;
+      this.quizHintRevealed = false;
+      this.brewMode = 'QUIZ';
+      this.fridgeEngine.clearAll();
+      this.selectedIngCategory = 'NATURE';
+      this.switchTab('brew');
+      this.audio.playTap();
+      this.renderAll();
+      this.showToast('🔬 조합 퀴즈가 초기화되었습니다. No.01 얼음부터 순서대로 맞혀보세요!');
     }
+  }
+
+  resetAllGameProgress() {
+    this.resetCurrentModeProgress();
   }
 
   /**

@@ -1,6 +1,6 @@
 {
   "repository": "https://github.com/jhm9595/KSool_Gemini.git",
-  "commit": "73404f324852c313482f19ceee300ef4a5ccdaff",
+  "commit": "27a9311a08bd2f9a0ad47e1ae4b3c98d027d3ccd",
   "paths": [
     "index.html",
     "project.json",
@@ -59,7 +59,7 @@
     "src/css/suggestion_board.css": "db1e2be5d16216a15b0152f227fa254e689444eaac4ad09d45f0b811e5810846",
     "src/css/tycoon.css": "065d565fa834a518a8a8335068fc3568a4fb4e18cabc767d9908309678cd8b4f",
     "src/css/variables.css": "fb253c7b59394f48b8ba3bc00cb9ad97b93c3222b77e1d95a789b477b7dca3c2",
-    "src/js/app.js": "8a993ce65d77a0ef53f2431fe8111482e94b8c81c1e6a186f30d6ca22046627e",
+    "src/js/app.js": "04d3da503c1fd2d616576ed1a44c34af76382908a0d5f2bc26307451e62ce163",
     "src/js/config/GameConfig.js": "d261c126c59a1eab58d02e715d69583c5312099c3cb15a0b0e2f4f7638707039",
     "src/js/config/SeedDataBundle.js": "8e784ec56caf4a5088a167611d62e02b56d6cb1718aed1514c03531e6f217297",
     "src/js/core/AlchemyEngine.js": "2034b1027da98c8cc824d51ab54314be19dac044426242d5c022db0ff83a3185",
@@ -69,7 +69,7 @@
     "src/js/core/hint/FeedbackHintStrategy.js": "3552d578f0d75d454667f706b8c0d97593e80c241127628b9e1dd98ea08d6749",
     "src/js/core/hint/ImageMinigameSuite.js": "2ee7149b3b1c08fafed6df3c5983102966e5009698bc8aaa008acdb2a3f07fb9",
     "src/js/core/hint/RatioHintProvider.js": "d393fc79c8c8fbdd83c7c72e16611ee79070e917917bacc1ba31fc2e3a1c3aaa",
-    "src/js/core/InventoryManager.js": "2886992b65a4483cd02f5b5c04d667fd10f507da6f88ab1ec8ac1868e05ba46d",
+    "src/js/core/InventoryManager.js": "8b3a54ab8b8966a1f5063ebff89f5f88769f9fe63e07625b09549d944772d910",
     "src/js/core/ProgressionEngine.js": "7b1791cbda04d26bd72ba2dd09600b25d1aea6b346191bbb4c1d84e077116fa9",
     "src/js/core/RecipeBook.js": "669f31c36a1cbd1e99ca737c27ac5f9ce9a59fdf70be1c94caf14b2bc711d32e",
     "src/js/core/suggestion/SuggestionService.js": "b42f9a6964edf68925a6f31739c2d1541701a9eb0c705a44e3594d0141096172",
@@ -102,7 +102,7 @@
     "src/js/ui/pickers/DetailPickerRegistry.js": "e03a08b21aa7a9c858a1c5ba18694c87c328b5870f8f07842662234c3ea46111",
     "src/js/ui/RecipeInspectorModalView.js": "56b1611338a06d4e09a8a3e70145d7d628ae0aad791afb0666d4d5cc9f82e913",
     "src/js/ui/ScratchCardView.js": "5e2ce050453ac43dc7281ae6061898ae6f79e9099acc989fa4a70a5a7c0f9d9c",
-    "src/js/ui/SettingsModalView.js": "b063fddcadf028bd9321dfeafbd86b5fe97897d565decdc22f408e91a236687b",
+    "src/js/ui/SettingsModalView.js": "ceb4182172d76de13a63b654ac724f5723054490063975dfbb524944b05b1041",
     "src/js/ui/StoryTutorialModalView.js": "be4f95b5e96dd42c2082f3a8078f4e5a5e0c0efd36d843a2aa0960d13f518296",
     "src/js/ui/SuggestionBoardView.js": "22a56feb71df352bf6c7d96c8f735baeffb41b9524ae11fc7f841eaef8ece0fb",
     "src/js/ui/TycoonView.js": "d87f1b98075e4b39107e13333a63d63a487116fecdd16c6f213f24b393e924dc"

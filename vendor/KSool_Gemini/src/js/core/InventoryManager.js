@@ -527,7 +527,16 @@ class InventoryManager {
 
     // 3순위: 전체 중 미해금된 가장 빠른 번호
     const anyUnlockedNext = all.find(r => !this.isRecipeUnlocked(r.recipe_id));
-    return anyUnlockedNext || all[all.length - 1] || null;
+    return anyUnlockedNext || null;
+  }
+
+  /**
+   * 84종 전체 퀴즈 대상 레시피가 모두 해금되었는지 여부를 정확한 recipe_id 기준으로 검증합니다.
+   */
+  isAllQuizCompleted() {
+    const allRecipes = this.recipeBook.getAllRecipes();
+    if (!allRecipes || allRecipes.length === 0) return false;
+    return allRecipes.every(r => this.isRecipeUnlocked(r.recipe_id));
   }
 
   unlockRecipe(recipeId) {
